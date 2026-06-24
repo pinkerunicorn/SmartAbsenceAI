@@ -203,6 +203,7 @@ class SmartAbsenceAI extends IPSModule
 
         foreach ($lightVars as $light) {
             $id = $light['VariableID'];
+            $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Lampe ".$id;
             if ($id > 0) {
                 // Nutze AC_GetLoggedValues für die letzten 14 Tage
                 // Um die Datenmenge klein zu halten, berechnen wir evtl. nur die Durchschnitte
@@ -212,15 +213,18 @@ class SmartAbsenceAI extends IPSModule
                 foreach ($values as $v) {
                     $compactLog[] = ["time" => date('Y-m-d H:i', $v['TimeStamp']), "val" => $v['Value']];
                 }
-                $historyData[$id] = $compactLog;
+                $historyData[$id] = [
+                    "name" => $name,
+                    "log" => $compactLog
+                ];
             }
         }
 
         // 3. Prompt an Gemini senden
         $prompt = "Du bist eine Smart Home KI. Heute ist der " . date('Y-m-d') . ". Der Sonnenuntergang ist um " . $sunsetTimeStr . " Uhr.\n";
-        $prompt .= "Hier sind die Schaltdaten der Lichter der letzten 14 Tage als JSON:\n" . json_encode($historyData) . "\n";
-        $prompt .= "Generiere einen realistischen Schaltplan für den heutigen Abend, der echte Anwesenheit simuliert und sich an den historischen Daten orientiert. ";
-        $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen):\n";
+        $prompt .= "Hier sind die Schaltdaten der Lichter der letzten 14 Tage inkl. Name/Raum als JSON:\n" . json_encode($historyData) . "\n";
+        $prompt .= "Generiere einen realistischen Schaltplan für den heutigen Abend, der echte Anwesenheit simuliert und sich an den historischen Daten orientiert. Nutze die Raumnamen, um einen logischen Ablauf (z.B. Wohnzimmer vor Schlafzimmer) zu erstellen. ";
+        $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen), verwende für 'device' zwingend die übermittelte numerische ID:\n";
         $prompt .= "[ {\"time\":\"HH:MM\", \"device\": 12345, \"state\": true/false/dimvalue} ]";
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" . $apiKey;
@@ -265,6 +269,14 @@ class SmartAbsenceAI extends IPSModule
                 if (is_array($scheduleArray)) {
                     $this->WriteAttributeString('LightSchedule', json_encode($scheduleArray));
                     
+                    // Map für die Namen erstellen
+                    $lightNames = [];
+                    foreach ($lightVars as $l) {
+                        if (isset($l['Name']) && $l['Name'] != "") {
+                            $lightNames[$l['VariableID']] = $l['Name'];
+                        }
+                    }
+
                     // Lesbare Formatierung für die Statusvariable
                     $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
                     foreach ($scheduleArray as $action) {
@@ -272,7 +284,8 @@ class SmartAbsenceAI extends IPSModule
                         if (is_numeric($action['state']) && $action['state'] > 1) {
                             $state = "Wert: " . $action['state'];
                         }
-                        $formattedSchedule .= "- " . $action['time'] . " Uhr: Gerät " . $action['device'] . " -> " . $state . "\n";
+                        $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
+                        $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
                     }
                     $this->SetValue('LightScheduleStatus', $formattedSchedule);
 
@@ -327,6 +340,17 @@ class SmartAbsenceAI extends IPSModule
         if ($executedSomething) {
             $this->WriteAttributeString('LightSchedule', json_encode($remainingSchedule));
             
+            // Map für die Namen erstellen
+            $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+            $lightNames = [];
+            if (is_array($lightVars)) {
+                foreach ($lightVars as $l) {
+                    if (isset($l['Name']) && $l['Name'] != "") {
+                        $lightNames[$l['VariableID']] = $l['Name'];
+                    }
+                }
+            }
+
             // Statusvariable aktualisieren (abgearbeitete Punkte entfernen)
             $formattedSchedule = "Verbleibende Schaltvorgänge für heute:\n";
             if (count($remainingSchedule) == 0) {
@@ -337,7 +361,8 @@ class SmartAbsenceAI extends IPSModule
                     if (is_numeric($action['state']) && $action['state'] > 1) {
                         $state = "Wert: " . $action['state'];
                     }
-                    $formattedSchedule .= "- " . $action['time'] . " Uhr: Gerät " . $action['device'] . " -> " . $state . "\n";
+                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
+                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
                 }
             }
             $this->SetValue('LightScheduleStatus', $formattedSchedule);

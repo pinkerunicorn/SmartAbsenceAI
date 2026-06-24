@@ -90,6 +90,15 @@
                     "edit": {
                         "type": "SelectVariable"
                     }
+                },
+                {
+                    "caption": "Name / Raum (für die KI)",
+                    "name": "Name",
+                    "width": "auto",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
                 }
             ]
         }
