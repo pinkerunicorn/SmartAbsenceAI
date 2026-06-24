@@ -27,6 +27,9 @@ class SmartAbsenceAI extends IPSModule
         // Status Variable für den KI-Schaltplan
         $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '~TextBox', 2);
 
+        // Status Variable für Fehler
+        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '~Alert', 3);
+
         // Timers
         // Timer für die tägliche Neugenerierung des KI-Plans (z.B. mittags)
         $this->RegisterTimer('DailyScheduleTimer', 0, 'SAI_GenerateAiSchedule($_IPS[\'TARGET\']);');
@@ -167,9 +170,13 @@ class SmartAbsenceAI extends IPSModule
         $locationId = $this->ReadPropertyInteger('LocationControlID');
         $archiveId = $this->ReadPropertyInteger('ArchiveControlID');
 
+        // Initial Fehler-Variable zurücksetzen
+        $this->SetValue('GeminiError', false);
+
         if (empty($apiKey) || $locationId == 0 || $archiveId == 0) {
             $this->SendDebug("GenerateAiSchedule", "Fehlende Konfiguration für KI-Generierung.", 0);
             $this->LogMessage("KI-Generierung fehlgeschlagen: Konfiguration unvollständig (API-Key, Location oder Archive Control fehlen).", KL_ERROR);
+            $this->SetValue('GeminiError', true);
             return;
         }
 
@@ -242,6 +249,7 @@ class SmartAbsenceAI extends IPSModule
 
         if ($curlError) {
             $this->LogMessage("cURL Fehler bei Verbindung zu Gemini: " . $curlError, KL_ERROR);
+            $this->SetValue('GeminiError', true);
             return;
         }
 
@@ -273,14 +281,20 @@ class SmartAbsenceAI extends IPSModule
                 } else {
                     $this->SendDebug("Gemini Error", "Ungültiges JSON empfangen: " . $scheduleText, 0);
                     $this->LogMessage("Fehler beim Parsen der Gemini-Antwort (ungültiges JSON): " . $scheduleText, KL_ERROR);
+                    $this->SetValue('GeminiError', true);
                 }
             } else if (isset($json['error'])) {
                 $errorMsg = json_encode($json['error']);
                 $this->SendDebug("Gemini API Error", $errorMsg, 0);
                 $this->LogMessage("Gemini API meldete einen Fehler: " . $errorMsg, KL_ERROR);
+                $this->SetValue('GeminiError', true);
             } else {
                 $this->LogMessage("Unerwartete Antwortstruktur von Gemini.", KL_WARNING);
+                $this->SetValue('GeminiError', true);
             }
+        } else {
+            $this->LogMessage("Keine Antwort von Gemini erhalten.", KL_ERROR);
+            $this->SetValue('GeminiError', true);
         }
     }
 
