@@ -34,22 +34,13 @@
         {
             "type": "List",
             "name": "HeatingVariables",
-            "caption": "Homematic Thermostate (SET_POINT_TEMPERATURE Variablen)",
+            "caption": "Thermostate (SET_POINT_TEMPERATURE Variablen)",
             "add": true,
             "delete": true,
             "columns": [
                 {
                     "caption": "Variable",
                     "name": "VariableID",
-                    "width": "auto",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectVariable"
-                    }
-                },
-                {
-                    "caption": "Control Mode Variable (optional, für Auto-Modus)",
-                    "name": "ControlModeID",
                     "width": "auto",
                     "add": 0,
                     "edit": {

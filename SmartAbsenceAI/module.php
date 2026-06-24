@@ -18,6 +18,7 @@ class SmartAbsenceAI extends IPSModule
 
         // Attributes (Internal state)
         $this->RegisterAttributeString('LightSchedule', '[]');
+        $this->RegisterAttributeString('PreviousHeatingStates', '{}');
 
         // Status Variable (Schalter für Abwesenheit)
         $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '~Switch', 1);
@@ -92,24 +93,34 @@ class SmartAbsenceAI extends IPSModule
         $heatingVars = json_decode($this->ReadPropertyString('HeatingVariables'), true);
         if (!is_array($heatingVars)) return;
 
-        foreach ($heatingVars as $heating) {
-            $tempId = $heating['VariableID'];
-            $modeId = isset($heating['ControlModeID']) ? $heating['ControlModeID'] : 0;
-
-            if ($isAbsence) {
-                // Abwesenheit: Modus auf "Manu" (1) und Temperatur absenken
-                if ($modeId > 0 && IPS_VariableExists($modeId)) {
-                    RequestAction($modeId, 1); // 1 = Manu bei Homematic IP
-                }
+        if ($isAbsence) {
+            $previousStates = [];
+            foreach ($heatingVars as $heating) {
+                $tempId = $heating['VariableID'];
                 if ($tempId > 0 && IPS_VariableExists($tempId)) {
+                    // Aktuellen Wert speichern
+                    $previousStates[$tempId] = GetValue($tempId);
+                    // Temperatur absenken
                     RequestAction($tempId, $targetTemp);
                 }
-            } else {
-                // Rückkehr: Modus zurück auf "Auto" (0)
-                if ($modeId > 0 && IPS_VariableExists($modeId)) {
-                    RequestAction($modeId, 0); // 0 = Auto bei Homematic IP
+            }
+            // Alten Zustand in Attribut speichern
+            $this->WriteAttributeString('PreviousHeatingStates', json_encode($previousStates));
+        } else {
+            // Rückkehr: Alte Werte wiederherstellen
+            $previousStatesStr = $this->ReadAttributeString('PreviousHeatingStates');
+            $previousStates = json_decode($previousStatesStr, true);
+            
+            if (is_array($previousStates)) {
+                foreach ($heatingVars as $heating) {
+                    $tempId = $heating['VariableID'];
+                    if ($tempId > 0 && isset($previousStates[$tempId]) && IPS_VariableExists($tempId)) {
+                        RequestAction($tempId, $previousStates[$tempId]);
+                    }
                 }
             }
+            // Attribut wieder leeren
+            $this->WriteAttributeString('PreviousHeatingStates', '{}');
         }
     }
 
