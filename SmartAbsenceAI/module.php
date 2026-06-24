@@ -277,6 +277,8 @@ class SmartAbsenceAI extends IPSModule
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60); // Timeout auf 60 Sekunden erhöhen
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         $response = curl_exec($ch);
         $curlError = curl_error($ch);
         curl_close($ch);
