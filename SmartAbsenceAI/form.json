@@ -10,12 +10,12 @@
             "caption": "API Key"
         },
         {
-            "type": "SelectLocation",
+            "type": "SelectInstance",
             "name": "LocationControlID",
             "caption": "Location Control Instanz (für Dämmerung & GPS)"
         },
         {
-            "type": "SelectArchive",
+            "type": "SelectInstance",
             "name": "ArchiveControlID",
             "caption": "Archive Control Instanz"
         },
