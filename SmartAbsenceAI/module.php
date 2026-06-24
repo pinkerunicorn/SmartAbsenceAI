@@ -8,7 +8,7 @@ class SmartAbsenceAI extends IPSModule
 
         // Properties
         $this->RegisterPropertyString('GeminiAPIKey', '');
-        $this->RegisterPropertyInteger('LocationControlID', 0);
+        $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('ArchiveControlID', 0);
         $this->RegisterPropertyFloat('HeatingTargetTemperature', 17.0);
         
@@ -306,30 +306,28 @@ class SmartAbsenceAI extends IPSModule
         }
 
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');
-        $locationId = $this->ReadPropertyInteger('LocationControlID');
+        $sunsetVarId = $this->ReadPropertyInteger('SunsetVariableID');
         $archiveId = $this->ReadPropertyInteger('ArchiveControlID');
 
         // Initial Fehler-Variable zurücksetzen
         $this->SetValue('GeminiError', false);
         $this->SetValue('LightScheduleStatus', 'Starte KI-Generierung... Bitte warten (Anfrage an Gemini läuft).');
 
-        if (empty($apiKey) || $locationId == 0 || $archiveId == 0) {
+        if (empty($apiKey) || $sunsetVarId == 0 || $archiveId == 0) {
             $this->SendDebug("GenerateAiSchedule", "Fehlende Konfiguration für KI-Generierung.", 0);
-            $this->LogMessage("KI-Generierung fehlgeschlagen: Konfiguration unvollständig (API-Key, Location oder Archive Control fehlen).", KL_ERROR);
+            $this->LogMessage("KI-Generierung fehlgeschlagen: Konfiguration unvollständig (API-Key, Sonnenuntergangs-Variable oder Archive Control fehlen).", KL_ERROR);
             $this->SetValue('GeminiError', true);
             return;
         }
 
-        // 1. Daten aus Location Control holen (Dämmerung, Sunset)
-        // (Angenommen: Location Control Instanz hat Variablen für Sunset etc.)
-        // Einfacher Workaround für echtes Symcon: date_sunrise/date_sunset in PHP nutzen,
-        // oder die Werte aus den Variablen des Location Control auslesen.
+        // 1. Sonnenuntergang / Dämmerung aus der konfigurierten Variable holen
         $sunsetTimeStr = "18:00"; // Fallback
-        $children = IPS_GetChildrenIDs($locationId);
-        foreach ($children as $child) {
-            $obj = IPS_GetObject($child);
-            if ($obj['ObjectIdent'] == 'Sunset') {
-                $sunsetTimeStr = date('H:i', GetValue($child));
+        if (IPS_VariableExists($sunsetVarId)) {
+            $val = GetValue($sunsetVarId);
+            if (is_int($val)) {
+                $sunsetTimeStr = date('H:i', $val);
+            } else {
+                $sunsetTimeStr = (string)$val;
             }
         }
 

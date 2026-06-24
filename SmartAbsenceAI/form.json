@@ -10,9 +10,9 @@
             "caption": "API Key"
         },
         {
-            "type": "SelectInstance",
-            "name": "LocationControlID",
-            "caption": "Location Control Instanz (für Dämmerung & GPS)"
+            "type": "SelectVariable",
+            "name": "SunsetVariableID",
+            "caption": "Sonnenuntergang (Uhrzeit Variable, String/Integer)"
         },
         {
             "type": "SelectInstance",
