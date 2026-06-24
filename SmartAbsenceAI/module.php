@@ -172,10 +172,9 @@ class SmartAbsenceAI extends IPSModule
                         }
                     }
                     if (count($openItems) > 0) {
-                        $msg = "Abwesenheit abgelehnt! Folgende Fenster/Türen sind nicht im Soll-Zustand: " . implode(", ", $openItems);
+                        $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem vollständig aktiviert.";
                         $this->LogMessage($msg, KL_WARNING);
                         echo $msg;
-                        return;
                     }
                 }
             }
