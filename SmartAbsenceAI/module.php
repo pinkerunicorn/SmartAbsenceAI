@@ -44,11 +44,29 @@ class SmartAbsenceAI extends IPSModule
 
         // Status prüfen
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');
+        $archiveId = $this->ReadPropertyInteger('ArchiveControlID');
+        
         if (empty($apiKey)) {
             $this->SetStatus(201); // Fehler: Kein API Key
-        } else {
-            $this->SetStatus(102); // OK
+            return;
         }
+
+        if ($archiveId > 0 && IPS_InstanceExists($archiveId)) {
+            $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+            if (is_array($lightVars)) {
+                foreach ($lightVars as $light) {
+                    $id = $light['VariableID'];
+                    if ($id > 0 && IPS_VariableExists($id)) {
+                        if (!AC_GetLoggingStatus($archiveId, $id)) {
+                            $this->SetStatus(202); // Fehler: Nicht alle Lichter geloggt
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->SetStatus(102); // OK
     }
 
     public function RequestAction($Ident, $Value)
@@ -205,6 +223,11 @@ class SmartAbsenceAI extends IPSModule
             $id = $light['VariableID'];
             $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Lampe ".$id;
             if ($id > 0) {
+                if (!AC_GetLoggingStatus($archiveId, $id)) {
+                    $this->LogMessage("Überspringe Licht-Variable '" . $name . "' (" . $id . "), da das Variablen-Logging im Archive Control nicht aktiviert ist!", KL_WARNING);
+                    continue;
+                }
+
                 // Nutze AC_GetLoggedValues für die letzten 14 Tage
                 // Um die Datenmenge klein zu halten, berechnen wir evtl. nur die Durchschnitte
                 // oder senden eine kompakte Liste von Schaltzeitpunkten.
