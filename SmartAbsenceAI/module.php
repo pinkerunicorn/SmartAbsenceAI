@@ -115,6 +115,7 @@ class SmartAbsenceAI extends IPSModule
             $this->SetTimerInterval('LightExecutionTimer', 0);
             $this->WriteAttributeString('LightSchedule', '[]');
             $this->SetValue('LightScheduleStatus', 'Abwesenheit inaktiv - Kein Plan generiert');
+            $this->SetValue('GeminiError', false);
             $this->TurnOffAllSimulatedLights();
 
             // 3. Türen aufsperren (Tedee: 1)
