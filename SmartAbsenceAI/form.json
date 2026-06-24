@@ -1,0 +1,125 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "label": "Google Gemini API Einstellungen"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "GeminiAPIKey",
+            "caption": "API Key"
+        },
+        {
+            "type": "SelectLocation",
+            "name": "LocationControlID",
+            "caption": "Location Control Instanz (für Dämmerung & GPS)"
+        },
+        {
+            "type": "SelectArchive",
+            "name": "ArchiveControlID",
+            "caption": "Archive Control Instanz"
+        },
+        {
+            "type": "Label",
+            "label": "Heizungssteuerung (Homematic)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "HeatingTargetTemperature",
+            "caption": "Absenktemperatur bei Abwesenheit (°C)",
+            "digits": 1,
+            "minimum": 5.0,
+            "maximum": 25.0
+        },
+        {
+            "type": "List",
+            "name": "HeatingVariables",
+            "caption": "Homematic Thermostate (SET_POINT_TEMPERATURE Variablen)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Variable",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Control Mode Variable (optional, für Auto-Modus)",
+                    "name": "ControlModeID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "label": "Türen verriegeln"
+        },
+        {
+            "type": "List",
+            "name": "DoorVariables",
+            "caption": "Türschlösser (Status Variablen)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Variable",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "label": "Licht-Simulation (KI-basiert)"
+        },
+        {
+            "type": "List",
+            "name": "LightVariables",
+            "caption": "Zu simulierende Lampen (Ein/Aus oder Dimmer)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Variable",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "KI Schaltplan für heute generieren",
+            "onClick": "SAI_GenerateAiSchedule($id);"
+        }
+    ],
+    "status": [
+        {
+            "code": 102,
+            "icon": "active",
+            "caption": "Modul ist aktiv"
+        },
+        {
+            "code": 201,
+            "icon": "error",
+            "caption": "Kein Gemini API-Key hinterlegt"
+        }
+    ]
+}
