@@ -103,6 +103,8 @@ class SmartAbsenceAI extends IPSModule
                                 $isClosed = ($currentVal === (int)$checkVal);
                             } else if (is_float($currentVal)) {
                                 $isClosed = ($currentVal === (float)$checkVal);
+                            } else if (is_string($currentVal)) {
+                                $isClosed = (strtolower(trim($currentVal)) === strtolower(trim($checkVal)));
                             } else {
                                 $isClosed = ($currentVal == $checkVal);
                             }
