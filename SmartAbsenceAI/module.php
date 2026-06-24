@@ -76,6 +76,7 @@ class SmartAbsenceAI extends IPSModule
             $this->SetTimerInterval('LightExecutionTimer', 60000);
 
             $this->SendDebug("Absence", "Abwesenheitsmodus AKTIVIERT", 0);
+            $this->LogMessage("Abwesenheitsmodus AKTIVIERT - Türen werden verschlossen, Heizung abgesenkt, KI-Plan generiert.", KL_NOTIFY);
         } else {
             // Rückkehr
             // 1. Heizungen wieder auf Auto-Modus
@@ -92,6 +93,7 @@ class SmartAbsenceAI extends IPSModule
             $this->UnlockDoors();
 
             $this->SendDebug("Absence", "Abwesenheitsmodus DEAKTIVIERT", 0);
+            $this->LogMessage("Abwesenheitsmodus DEAKTIVIERT - Türen aufgesperrt, Heizung auf Auto, Licht-Plan gestoppt.", KL_NOTIFY);
         }
     }
 
@@ -167,6 +169,7 @@ class SmartAbsenceAI extends IPSModule
 
         if (empty($apiKey) || $locationId == 0 || $archiveId == 0) {
             $this->SendDebug("GenerateAiSchedule", "Fehlende Konfiguration für KI-Generierung.", 0);
+            $this->LogMessage("KI-Generierung fehlgeschlagen: Konfiguration unvollständig (API-Key, Location oder Archive Control fehlen).", KL_ERROR);
             return;
         }
 
@@ -223,15 +226,27 @@ class SmartAbsenceAI extends IPSModule
             ]
         ];
 
+        $payloadJson = json_encode($payload);
+        
+        $this->SendDebug("Gemini Request", $payloadJson, 0);
+        $this->LogMessage("Sende Request an Gemini API: " . $prompt, KL_NOTIFY);
+
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         curl_close($ch);
 
-        $this->SendDebug("Gemini Request", "Sent request to Gemini", 0);
+        if ($curlError) {
+            $this->LogMessage("cURL Fehler bei Verbindung zu Gemini: " . $curlError, KL_ERROR);
+            return;
+        }
+
+        $this->SendDebug("Gemini Response Raw", $response, 0);
+        $this->LogMessage("Empfangene Antwort von Gemini: " . $response, KL_NOTIFY);
 
         if ($response) {
             $json = json_decode($response, true);
@@ -254,9 +269,17 @@ class SmartAbsenceAI extends IPSModule
                     $this->SetValue('LightScheduleStatus', $formattedSchedule);
 
                     $this->SendDebug("Gemini Response", "Schedule generiert: " . count($scheduleArray) . " Aktionen", 0);
+                    $this->LogMessage("Erfolgreich " . count($scheduleArray) . " Aktionen in den KI-Schaltplan geladen.", KL_NOTIFY);
                 } else {
                     $this->SendDebug("Gemini Error", "Ungültiges JSON empfangen: " . $scheduleText, 0);
+                    $this->LogMessage("Fehler beim Parsen der Gemini-Antwort (ungültiges JSON): " . $scheduleText, KL_ERROR);
                 }
+            } else if (isset($json['error'])) {
+                $errorMsg = json_encode($json['error']);
+                $this->SendDebug("Gemini API Error", $errorMsg, 0);
+                $this->LogMessage("Gemini API meldete einen Fehler: " . $errorMsg, KL_ERROR);
+            } else {
+                $this->LogMessage("Unerwartete Antwortstruktur von Gemini.", KL_WARNING);
             }
         }
     }
@@ -277,6 +300,7 @@ class SmartAbsenceAI extends IPSModule
                 $this->ExecuteLightAction($action['device'], $action['state']);
                 $executedSomething = true;
                 $this->SendDebug("LightAction", "Schalte Gerät " . $action['device'] . " auf " . (string)$action['state'], 0);
+                $this->LogMessage("KI Lichtsteuerung: Schalte Gerät " . $action['device'] . " auf Wert " . (string)$action['state'], KL_NOTIFY);
             } else {
                 // Behalten für spätere Ausführung (wenn Zeit noch in der Zukunft liegt)
                 // Da wir minütlich prüfen, schmeißen wir alte Zeiten direkt raus.
