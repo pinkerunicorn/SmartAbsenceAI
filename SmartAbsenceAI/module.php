@@ -33,6 +33,7 @@ class SmartAbsenceAI extends IPSModule
 
         // Variable für die Anzahl offener Fenster/Türen
         $this->RegisterVariableInteger('OpenSecurityItemsCount', 'Offene Fenster / Türen', '', 4);
+        $this->RegisterVariableString('OpenSecurityItemsList', 'Offene Fenster / Türen (Namen)', '', 5);
 
         // Timers
         // Minütlicher Timer zur Ausführung des generierten KI-Schaltplans
@@ -113,6 +114,7 @@ class SmartAbsenceAI extends IPSModule
     {
         $secVars = json_decode($this->ReadPropertyString('SecurityVariables'), true);
         $count = 0;
+        $openNames = [];
         if (is_array($secVars)) {
             foreach ($secVars as $sec) {
                 $id = $sec['VariableID'];
@@ -136,11 +138,19 @@ class SmartAbsenceAI extends IPSModule
                     
                     if (!$isClosed) {
                         $count++;
+                        $name = isset($sec['Name']) && $sec['Name'] != '' ? $sec['Name'] : IPS_GetName($id);
+                        $openNames[] = $name;
                     }
                 }
             }
         }
         $this->SetValue('OpenSecurityItemsCount', $count);
+        
+        if ($count == 0) {
+            $this->SetValue('OpenSecurityItemsList', 'Alle geschlossen');
+        } else {
+            $this->SetValue('OpenSecurityItemsList', implode(", ", $openNames));
+        }
     }
 
     public function RequestAction($Ident, $Value)
