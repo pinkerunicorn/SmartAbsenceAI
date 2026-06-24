@@ -31,6 +31,9 @@ class SmartAbsenceAI extends IPSModule
         // Status Variable für Fehler
         $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '~Alert', 3);
 
+        // Variable für die Anzahl offener Fenster/Türen
+        $this->RegisterVariableInteger('OpenSecurityItemsCount', 'Offene Fenster / Türen', '', 4);
+
         // Timers
         // Timer für die tägliche Neugenerierung des KI-Plans (z.B. mittags)
         $this->RegisterTimer('DailyScheduleTimer', 0, 'SAI_GenerateAiSchedule($_IPS[\'TARGET\']);');
@@ -78,7 +81,60 @@ class SmartAbsenceAI extends IPSModule
             }
         }
 
+        // MessageSink für Security Variablen registrieren
+        $secVars = json_decode($this->ReadPropertyString('SecurityVariables'), true);
+        if (is_array($secVars)) {
+            foreach ($secVars as $sec) {
+                $id = $sec['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $this->RegisterMessage($id, VM_UPDATE);
+                }
+            }
+        }
+        $this->CalculateOpenItems();
+
         $this->SetStatus(102); // OK
+    }
+
+    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    {
+        if ($Message == VM_UPDATE) {
+            $this->CalculateOpenItems();
+        }
+    }
+
+    private function CalculateOpenItems()
+    {
+        $secVars = json_decode($this->ReadPropertyString('SecurityVariables'), true);
+        $count = 0;
+        if (is_array($secVars)) {
+            foreach ($secVars as $sec) {
+                $id = $sec['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $currentVal = GetValue($id);
+                    $checkVal = $sec['ClosedValue'];
+                    
+                    $isClosed = false;
+                    if (is_bool($currentVal)) {
+                        $targetBool = ($checkVal === 'true' || $checkVal === '1' || strtolower($checkVal) === 'wahr');
+                        $isClosed = ($currentVal === $targetBool);
+                    } else if (is_int($currentVal)) {
+                        $isClosed = ($currentVal === (int)$checkVal);
+                    } else if (is_float($currentVal)) {
+                        $isClosed = ($currentVal === (float)$checkVal);
+                    } else if (is_string($currentVal)) {
+                        $isClosed = (strtolower(trim($currentVal)) === strtolower(trim($checkVal)));
+                    } else {
+                        $isClosed = ($currentVal == $checkVal);
+                    }
+                    
+                    if (!$isClosed) {
+                        $count++;
+                    }
+                }
+            }
+        }
+        $this->SetValue('OpenSecurityItemsCount', $count);
     }
 
     public function RequestAction($Ident, $Value)
