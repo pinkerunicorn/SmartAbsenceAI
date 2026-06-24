@@ -14,6 +14,7 @@ class SmartAbsenceAI extends IPSModule
         
         $this->RegisterPropertyString('HeatingVariables', '[]');
         $this->RegisterPropertyString('DoorVariables', '[]');
+        $this->RegisterPropertyString('SecurityVariables', '[]');
         $this->RegisterPropertyString('LightVariables', '[]');
 
         // Attributes (Internal state)
@@ -83,6 +84,43 @@ class SmartAbsenceAI extends IPSModule
     public function RequestAction($Ident, $Value)
     {
         if ($Ident == 'AbsenceStatus') {
+            if ($Value == true) {
+                // Sicherheitsprüfung
+                $secVars = json_decode($this->ReadPropertyString('SecurityVariables'), true);
+                if (is_array($secVars)) {
+                    $openItems = [];
+                    foreach ($secVars as $sec) {
+                        $id = $sec['VariableID'];
+                        if ($id > 0 && IPS_VariableExists($id)) {
+                            $currentVal = GetValue($id);
+                            $checkVal = $sec['ClosedValue'];
+                            
+                            $isClosed = false;
+                            if (is_bool($currentVal)) {
+                                $targetBool = ($checkVal === 'true' || $checkVal === '1' || strtolower($checkVal) === 'wahr');
+                                $isClosed = ($currentVal === $targetBool);
+                            } else if (is_int($currentVal)) {
+                                $isClosed = ($currentVal === (int)$checkVal);
+                            } else if (is_float($currentVal)) {
+                                $isClosed = ($currentVal === (float)$checkVal);
+                            } else {
+                                $isClosed = ($currentVal == $checkVal);
+                            }
+                            
+                            if (!$isClosed) {
+                                $name = isset($sec['Name']) && $sec['Name'] != '' ? $sec['Name'] : IPS_GetName($id);
+                                $openItems[] = $name;
+                            }
+                        }
+                    }
+                    if (count($openItems) > 0) {
+                        $msg = "Abwesenheit abgelehnt! Folgende Fenster/Türen sind nicht im Soll-Zustand: " . implode(", ", $openItems);
+                        $this->LogMessage($msg, KL_WARNING);
+                        throw new Exception($msg);
+                    }
+                }
+            }
+
             $this->SetValue($Ident, $Value);
             $this->SetAbsence($Value);
         }

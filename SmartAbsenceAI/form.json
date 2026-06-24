@@ -73,6 +73,46 @@
         },
         {
             "type": "Label",
+            "label": "Sicherheitsprüfung vor Abwesenheit"
+        },
+        {
+            "type": "List",
+            "name": "SecurityVariables",
+            "caption": "Fenster/Türen (Müssen diesen Zustand haben)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Variable",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Name",
+                    "name": "Name",
+                    "width": "auto",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Soll-Wert ('Geschlossen', z.B. 0 oder false)",
+                    "name": "ClosedValue",
+                    "width": "auto",
+                    "add": "0",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
             "label": "Licht-Simulation (KI-basiert)"
         },
         {
