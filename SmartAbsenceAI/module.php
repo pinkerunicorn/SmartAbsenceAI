@@ -53,16 +53,23 @@ class SmartAbsenceAI extends IPSModule
 
         if ($archiveId > 0 && IPS_InstanceExists($archiveId)) {
             $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+            $unloggedVars = [];
             if (is_array($lightVars)) {
                 foreach ($lightVars as $light) {
                     $id = $light['VariableID'];
+                    $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Lampe ".$id;
                     if ($id > 0 && IPS_VariableExists($id)) {
                         if (!AC_GetLoggingStatus($archiveId, $id)) {
-                            $this->SetStatus(202); // Fehler: Nicht alle Lichter geloggt
-                            return;
+                            $unloggedVars[] = $name . " (" . $id . ")";
                         }
                     }
                 }
+            }
+            
+            if (count($unloggedVars) > 0) {
+                $this->LogMessage("Archive Control Fehler: Folgende Licht-Variablen werden nicht geloggt: " . implode(", ", $unloggedVars), KL_ERROR);
+                $this->SetStatus(202); // Fehler: Nicht alle Lichter geloggt
+                return;
             }
         }
 
