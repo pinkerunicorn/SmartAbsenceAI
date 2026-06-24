@@ -35,9 +35,7 @@ class SmartAbsenceAI extends IPSModule
         $this->RegisterVariableInteger('OpenSecurityItemsCount', 'Offene Fenster / Türen', '', 4);
 
         // Timers
-        // Timer für die tägliche Neugenerierung des KI-Plans (z.B. mittags)
-        $this->RegisterTimer('DailyScheduleTimer', 0, 'SAI_GenerateAiSchedule($_IPS[\'TARGET\']);');
-        
+        // Minütlicher Timer zur Ausführung des generierten KI-Schaltplans
         // Minütlicher Timer zur Ausführung des generierten KI-Schaltplans
         $this->RegisterTimer('LightExecutionTimer', 0, 'SAI_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
     }
@@ -45,6 +43,12 @@ class SmartAbsenceAI extends IPSModule
     public function ApplyChanges()
     {
         parent::ApplyChanges();
+
+        // Alten Intervall-Timer löschen (falls noch vorhanden, da auf natives Event umgestellt wurde)
+        $oldTimer = @$this->GetIDForIdent('DailyScheduleTimer');
+        if ($oldTimer !== false && IPS_EventExists($oldTimer)) {
+            IPS_DeleteEvent($oldTimer);
+        }
 
         // Variablen bei Bedarf neu anlegen (falls sie manuell gelöscht wurden)
         $this->MaintainVariable('LightScheduleStatus', 'Aktueller KI-Schaltplan', 3, '', 2, true);
@@ -196,8 +200,9 @@ class SmartAbsenceAI extends IPSModule
             // 3. KI Schaltplan generieren
             $this->GenerateAiSchedule();
 
-            // 4. Timer für morgen aktivieren (berechnet auf eine feste Uhrzeit: 12:00 Uhr)
-            $this->SetNextMiddayTimer();
+            // 4. Timer (Zyklisches Ereignis) für morgen aktivieren (12:00 Uhr)
+            $eid = $this->MaintainDailyEvent();
+            IPS_SetEventActive($eid, true);
             
             // Ausführungs-Timer aktivieren (jede Minute prüfen)
             $this->SetTimerInterval('LightExecutionTimer', 60000);
@@ -210,7 +215,8 @@ class SmartAbsenceAI extends IPSModule
             $this->SetHeating(0, false);
 
             // 2. Lichter ausschalten und Timer stoppen
-            $this->SetTimerInterval('DailyScheduleTimer', 0);
+            $eid = $this->MaintainDailyEvent();
+            IPS_SetEventActive($eid, false);
             $this->SetTimerInterval('LightExecutionTimer', 0);
             $this->WriteAttributeString('LightSchedule', '[]');
             $this->SetValue('LightScheduleStatus', 'Abwesenheit inaktiv - Kein Plan generiert');
@@ -447,11 +453,6 @@ class SmartAbsenceAI extends IPSModule
             $this->SetValue('GeminiError', true);
             $this->SetValue('LightScheduleStatus', 'Fehler: Keine Antwort erhalten.');
         }
-
-        // Timer für den nächsten Tag stellen, falls Abwesenheit noch aktiv
-        if (@GetValue($this->GetIDForIdent('AbsenceStatus'))) {
-            $this->SetNextMiddayTimer();
-        }
     }
 
     public function CheckAndExecuteLightSchedule()
@@ -538,14 +539,20 @@ class SmartAbsenceAI extends IPSModule
         }
     }
 
-    private function SetNextMiddayTimer()
+    private function MaintainDailyEvent()
     {
-        $now = time();
-        $target = strtotime("today 12:00:00");
-        if ($now >= $target) {
-            $target = strtotime("tomorrow 12:00:00");
+        $eid = @IPS_GetObjectIDByIdent('DailyScheduleEvent', $this->InstanceID);
+        if ($eid === false) {
+            $eid = IPS_CreateEvent(1); // 1 = Zyklisches Ereignis
+            IPS_SetParent($eid, $this->InstanceID);
+            IPS_SetIdent($eid, 'DailyScheduleEvent');
+            IPS_SetName($eid, 'Täglicher KI Plan (12:00 Uhr)');
+            IPS_SetEventScript($eid, "SAI_GenerateAiSchedule(\$_IPS['TARGET']);");
+            // DateType = 2 (Täglich), Every = 1 (Jeden Tag), TimeType = 0 (Einmalig)
+            IPS_SetEventCyclic($eid, 2, 1, 0, 0, 0, 0); 
+            IPS_SetEventCyclicTimeFrom($eid, 12, 0, 0); // 12:00:00 Uhr
+            IPS_SetEventActive($eid, false);
         }
-        $diff = ($target - $now) * 1000;
-        $this->SetTimerInterval('DailyScheduleTimer', $diff);
+        return $eid;
     }
 }
