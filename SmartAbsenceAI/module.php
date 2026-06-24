@@ -25,7 +25,7 @@ class SmartAbsenceAI extends IPSModule
         $this->EnableAction('AbsenceStatus');
 
         // Status Variable für den KI-Schaltplan
-        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '~HTMLBox', 2);
+        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '~TextBox', 2);
 
         // Status Variable für Fehler
         $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '~Alert', 3);
@@ -288,7 +288,7 @@ class SmartAbsenceAI extends IPSModule
         if ($curlError) {
             $this->LogMessage("cURL Fehler bei Verbindung zu Gemini: " . $curlError, KL_ERROR);
             $this->SetValue('GeminiError', true);
-            $this->SetValue('LightScheduleStatus', '<span style="color:red"><b>Fehler:</b> Verbindung zu Gemini fehlgeschlagen (Timeout?).</span>');
+            $this->SetValue('LightScheduleStatus', 'Fehler: Verbindung zu Gemini fehlgeschlagen (Timeout?).');
             return;
         }
 
@@ -312,15 +312,15 @@ class SmartAbsenceAI extends IPSModule
                         }
                     }
 
-                    // Lesbare Formatierung für die Statusvariable (HTML)
-                    $formattedSchedule = "<b>Geplante Schaltvorgänge für heute:</b><br>";
+                    // Lesbare Formatierung für die Statusvariable
+                    $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
                     foreach ($scheduleArray as $action) {
                         $state = $action['state'] ? "AN" : "AUS";
                         if (is_numeric($action['state']) && $action['state'] > 1) {
                             $state = "Wert: " . $action['state'];
                         }
                         $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                        $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " &rarr; " . $state . "<br>";
+                        $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
                     }
                     $this->SetValue('LightScheduleStatus', $formattedSchedule);
 
@@ -330,23 +330,23 @@ class SmartAbsenceAI extends IPSModule
                     $this->SendDebug("Gemini Error", "Ungültiges JSON empfangen: " . $scheduleText, 0);
                     $this->LogMessage("Fehler beim Parsen der Gemini-Antwort (ungültiges JSON): " . $scheduleText, KL_ERROR);
                     $this->SetValue('GeminiError', true);
-                    $this->SetValue('LightScheduleStatus', '<span style="color:red"><b>Fehler:</b> Ungültige Antwort von Gemini.</span>');
+                    $this->SetValue('LightScheduleStatus', 'Fehler: Ungültige Antwort von Gemini.');
                 }
             } else if (isset($json['error'])) {
                 $errorMsg = json_encode($json['error']);
                 $this->SendDebug("Gemini API Error", $errorMsg, 0);
                 $this->LogMessage("Gemini API meldete einen Fehler: " . $errorMsg, KL_ERROR);
                 $this->SetValue('GeminiError', true);
-                $this->SetValue('LightScheduleStatus', '<span style="color:red"><b>API-Fehler:</b> ' . $errorMsg . '</span>');
+                $this->SetValue('LightScheduleStatus', 'API-Fehler: ' . $errorMsg);
             } else {
                 $this->LogMessage("Unerwartete Antwortstruktur von Gemini.", KL_WARNING);
                 $this->SetValue('GeminiError', true);
-                $this->SetValue('LightScheduleStatus', '<span style="color:red"><b>Fehler:</b> Unerwartete Antwortstruktur.</span>');
+                $this->SetValue('LightScheduleStatus', 'Fehler: Unerwartete Antwortstruktur.');
             }
         } else {
             $this->LogMessage("Keine Antwort von Gemini erhalten.", KL_ERROR);
             $this->SetValue('GeminiError', true);
-            $this->SetValue('LightScheduleStatus', '<span style="color:red"><b>Fehler:</b> Keine Antwort erhalten.</span>');
+            $this->SetValue('LightScheduleStatus', 'Fehler: Keine Antwort erhalten.');
         }
     }
 
@@ -391,7 +391,7 @@ class SmartAbsenceAI extends IPSModule
             }
 
             // Statusvariable aktualisieren (abgearbeitete Punkte entfernen)
-            $formattedSchedule = "<b>Verbleibende Schaltvorgänge für heute:</b><br>";
+            $formattedSchedule = "Verbleibende Schaltvorgänge für heute:\n";
             if (count($remainingSchedule) == 0) {
                 $formattedSchedule = "Keine weiteren Schaltvorgänge für heute geplant.";
             } else {
@@ -401,7 +401,7 @@ class SmartAbsenceAI extends IPSModule
                         $state = "Wert: " . $action['state'];
                     }
                     $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " &rarr; " . $state . "<br>";
+                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
                 }
             }
             $this->SetValue('LightScheduleStatus', $formattedSchedule);
