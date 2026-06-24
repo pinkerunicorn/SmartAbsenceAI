@@ -84,6 +84,9 @@ class SmartAbsenceAI extends IPSModule
             $this->WriteAttributeString('LightSchedule', '[]');
             $this->TurnOffAllSimulatedLights();
 
+            // 3. Türen aufsperren (Tedee: 1)
+            $this->UnlockDoors();
+
             $this->SendDebug("Absence", "Abwesenheitsmodus DEAKTIVIERT", 0);
         }
     }
@@ -132,9 +135,22 @@ class SmartAbsenceAI extends IPSModule
         foreach ($doorVars as $door) {
             $id = $door['VariableID'];
             if ($id > 0 && IPS_VariableExists($id)) {
-                // Je nach System ist Verriegeln true oder false. Wir nehmen hier Standard 'false' = zu.
-                // Anpassung je nach genutztem Schloss-System (z.B. Nuki, Homematic) nötig.
-                RequestAction($id, false);
+                // Tedee: 0 = Zusperren
+                RequestAction($id, 0);
+            }
+        }
+    }
+
+    private function UnlockDoors()
+    {
+        $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
+        if (!is_array($doorVars)) return;
+
+        foreach ($doorVars as $door) {
+            $id = $door['VariableID'];
+            if ($id > 0 && IPS_VariableExists($id)) {
+                // Tedee: 1 = Aufsperren
+                RequestAction($id, 1);
             }
         }
     }
