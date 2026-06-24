@@ -42,6 +42,10 @@ class SmartAbsenceAI extends IPSModule
     {
         parent::ApplyChanges();
 
+        // Variablen bei Bedarf neu anlegen (falls sie manuell gelöscht wurden)
+        $this->MaintainVariable('LightScheduleStatus', 'Aktueller KI-Schaltplan', 3, '', 2, true);
+        $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '~Alert', 3, true);
+
         // Status prüfen
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');
         $archiveId = $this->ReadPropertyInteger('ArchiveControlID');
