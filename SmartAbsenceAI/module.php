@@ -118,7 +118,8 @@ class SmartAbsenceAI extends IPSModule
                     if (count($openItems) > 0) {
                         $msg = "Abwesenheit abgelehnt! Folgende Fenster/Türen sind nicht im Soll-Zustand: " . implode(", ", $openItems);
                         $this->LogMessage($msg, KL_WARNING);
-                        throw new Exception($msg);
+                        echo $msg;
+                        return;
                     }
                 }
             }
