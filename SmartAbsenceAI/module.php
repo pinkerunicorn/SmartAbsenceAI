@@ -25,7 +25,7 @@ class SmartAbsenceAI extends IPSModule
         $this->EnableAction('AbsenceStatus');
 
         // Status Variable für den KI-Schaltplan
-        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '~TextBox', 2);
+        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '', 2);
 
         // Status Variable für Fehler
         $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '~Alert', 3);
