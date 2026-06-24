@@ -36,8 +36,10 @@ class SmartAbsenceAI extends IPSModule
 
         // Timers
         // Minütlicher Timer zur Ausführung des generierten KI-Schaltplans
-        // Minütlicher Timer zur Ausführung des generierten KI-Schaltplans
         $this->RegisterTimer('LightExecutionTimer', 0, 'SAI_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
+        
+        // Timer für automatische Wiederholungen bei API-Fehlern
+        $this->RegisterTimer('GeminiRetryTimer', 0, 'SAI_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
     }
 
     public function ApplyChanges()
@@ -218,6 +220,7 @@ class SmartAbsenceAI extends IPSModule
             $eid = $this->MaintainDailyEvent();
             IPS_SetEventActive($eid, false);
             $this->SetTimerInterval('LightExecutionTimer', 0);
+            $this->SetTimerInterval('GeminiRetryTimer', 0);
             $this->WriteAttributeString('LightSchedule', '[]');
             $this->SetValue('LightScheduleStatus', 'Abwesenheit inaktiv - Kein Plan generiert');
             $this->SetValue('GeminiError', false);
@@ -295,8 +298,13 @@ class SmartAbsenceAI extends IPSModule
         }
     }
 
-    public function GenerateAiSchedule()
+    public function GenerateAiSchedule(bool $isRetry = false)
     {
+        if (!$isRetry) {
+            $this->SetBuffer('GeminiRetryCount', '0');
+            $this->SetTimerInterval('GeminiRetryTimer', 0);
+        }
+
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');
         $locationId = $this->ReadPropertyInteger('LocationControlID');
         $archiveId = $this->ReadPropertyInteger('ArchiveControlID');
@@ -391,9 +399,7 @@ class SmartAbsenceAI extends IPSModule
         curl_close($ch);
 
         if ($curlError) {
-            $this->LogMessage("cURL Fehler bei Verbindung zu Gemini: " . $curlError, KL_ERROR);
-            $this->SetValue('GeminiError', true);
-            $this->SetValue('LightScheduleStatus', 'Fehler: Verbindung zu Gemini fehlgeschlagen (Timeout?).');
+            $this->HandleGeminiError("cURL Fehler bei Verbindung zu Gemini: " . $curlError);
             return;
         }
 
@@ -409,6 +415,11 @@ class SmartAbsenceAI extends IPSModule
                 if (is_array($scheduleArray)) {
                     $this->WriteAttributeString('LightSchedule', json_encode($scheduleArray));
                     
+                    // Erfolgreich -> Fehler/Retry-Zähler zurücksetzen
+                    $this->SetBuffer('GeminiRetryCount', '0');
+                    $this->SetTimerInterval('GeminiRetryTimer', 0);
+                    $this->SetValue('GeminiError', false);
+
                     // Map für die Namen erstellen
                     $lightNames = [];
                     foreach ($lightVars as $l) {
@@ -433,25 +444,34 @@ class SmartAbsenceAI extends IPSModule
                     $this->LogMessage("Erfolgreich " . count($scheduleArray) . " Aktionen in den KI-Schaltplan geladen.", KL_NOTIFY);
                 } else {
                     $this->SendDebug("Gemini Error", "Ungültiges JSON empfangen: " . $scheduleText, 0);
-                    $this->LogMessage("Fehler beim Parsen der Gemini-Antwort (ungültiges JSON): " . $scheduleText, KL_ERROR);
-                    $this->SetValue('GeminiError', true);
-                    $this->SetValue('LightScheduleStatus', 'Fehler: Ungültige Antwort von Gemini.');
+                    $this->HandleGeminiError("Fehler beim Parsen der Gemini-Antwort (ungültiges JSON): " . $scheduleText);
                 }
             } else if (isset($json['error'])) {
                 $errorMsg = json_encode($json['error']);
                 $this->SendDebug("Gemini API Error", $errorMsg, 0);
-                $this->LogMessage("Gemini API meldete einen Fehler: " . $errorMsg, KL_ERROR);
-                $this->SetValue('GeminiError', true);
-                $this->SetValue('LightScheduleStatus', 'API-Fehler: ' . $errorMsg);
+                $this->HandleGeminiError("Gemini API meldete einen Fehler: " . $errorMsg);
             } else {
-                $this->LogMessage("Unerwartete Antwortstruktur von Gemini.", KL_WARNING);
-                $this->SetValue('GeminiError', true);
-                $this->SetValue('LightScheduleStatus', 'Fehler: Unerwartete Antwortstruktur.');
+                $this->HandleGeminiError("Unerwartete Antwortstruktur von Gemini.");
             }
         } else {
-            $this->LogMessage("Keine Antwort von Gemini erhalten.", KL_ERROR);
+            $this->HandleGeminiError("Keine Antwort von Gemini erhalten.");
+        }
+    }
+
+    private function HandleGeminiError($errorMsg)
+    {
+        $retryCount = (int)$this->GetBuffer('GeminiRetryCount');
+        if ($retryCount < 5) {
+            $retryCount++;
+            $this->SetBuffer('GeminiRetryCount', (string)$retryCount);
+            $this->SetTimerInterval('GeminiRetryTimer', 5 * 60 * 1000); // 5 Minuten
+            $this->LogMessage($errorMsg . " - Neuer Versuch $retryCount/5 in 5 Minuten.", KL_WARNING);
+            $this->SetValue('LightScheduleStatus', "Fehler aufgetreten. Starte Versuch $retryCount/5 in 5 Minuten...");
+        } else {
+            $this->SetTimerInterval('GeminiRetryTimer', 0);
+            $this->LogMessage($errorMsg . " - Alle 5 Wiederholungsversuche fehlgeschlagen.", KL_ERROR);
             $this->SetValue('GeminiError', true);
-            $this->SetValue('LightScheduleStatus', 'Fehler: Keine Antwort erhalten.');
+            $this->SetValue('LightScheduleStatus', 'Fehler: API nicht erreichbar (Max Retries erreicht).');
         }
     }
 
