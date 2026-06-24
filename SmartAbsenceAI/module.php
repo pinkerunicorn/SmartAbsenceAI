@@ -311,14 +311,14 @@ class SmartAbsenceAI extends IPSModule
                     }
 
                     // Lesbare Formatierung für die Statusvariable
-                    $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
+                    $formattedSchedule = "Geplante Schaltvorgänge für heute:\r\n";
                     foreach ($scheduleArray as $action) {
                         $state = $action['state'] ? "AN" : "AUS";
                         if (is_numeric($action['state']) && $action['state'] > 1) {
                             $state = "Wert: " . $action['state'];
                         }
                         $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                        $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
+                        $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\r\n";
                     }
                     $this->SetValue('LightScheduleStatus', $formattedSchedule);
 
@@ -385,7 +385,7 @@ class SmartAbsenceAI extends IPSModule
             }
 
             // Statusvariable aktualisieren (abgearbeitete Punkte entfernen)
-            $formattedSchedule = "Verbleibende Schaltvorgänge für heute:\n";
+            $formattedSchedule = "Verbleibende Schaltvorgänge für heute:\r\n";
             if (count($remainingSchedule) == 0) {
                 $formattedSchedule = "Keine weiteren Schaltvorgänge für heute geplant.";
             } else {
@@ -395,7 +395,7 @@ class SmartAbsenceAI extends IPSModule
                         $state = "Wert: " . $action['state'];
                     }
                     $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
+                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\r\n";
                 }
             }
             $this->SetValue('LightScheduleStatus', $formattedSchedule);
