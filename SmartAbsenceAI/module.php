@@ -196,9 +196,8 @@ class SmartAbsenceAI extends IPSModule
             // 3. KI Schaltplan generieren
             $this->GenerateAiSchedule();
 
-            // 4. Timer für morgen aktivieren (24h Rhythmus, oder berechnet auf eine feste Uhrzeit wie 12:00 Uhr)
-            // Einfachheitshalber: Ausführung in 24 Stunden (86400000 ms)
-            $this->SetTimerInterval('DailyScheduleTimer', 86400000);
+            // 4. Timer für morgen aktivieren (berechnet auf eine feste Uhrzeit: 12:00 Uhr)
+            $this->SetNextMiddayTimer();
             
             // Ausführungs-Timer aktivieren (jede Minute prüfen)
             $this->SetTimerInterval('LightExecutionTimer', 60000);
@@ -448,6 +447,11 @@ class SmartAbsenceAI extends IPSModule
             $this->SetValue('GeminiError', true);
             $this->SetValue('LightScheduleStatus', 'Fehler: Keine Antwort erhalten.');
         }
+
+        // Timer für den nächsten Tag stellen, falls Abwesenheit noch aktiv
+        if (@GetValue($this->GetIDForIdent('AbsenceStatus'))) {
+            $this->SetNextMiddayTimer();
+        }
     }
 
     public function CheckAndExecuteLightSchedule()
@@ -532,5 +536,16 @@ class SmartAbsenceAI extends IPSModule
                 }
             }
         }
+    }
+
+    private function SetNextMiddayTimer()
+    {
+        $now = time();
+        $target = strtotime("today 12:00:00");
+        if ($now >= $target) {
+            $target = strtotime("tomorrow 12:00:00");
+        }
+        $diff = ($target - $now) * 1000;
+        $this->SetTimerInterval('DailyScheduleTimer', $diff);
     }
 }
