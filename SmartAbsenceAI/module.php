@@ -35,6 +35,10 @@ class SmartAbsenceAI extends IPSModule
         $this->RegisterVariableInteger('OpenSecurityItemsCount', 'Offene Fenster / Türen (Zähler)', '', 4);
         $this->RegisterVariableString('OpenSecurityItemsList', 'Offene Fenster / Türen (Namen)', '', 5);
 
+        // Variable für aktive Lampen
+        $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', '', 6);
+        $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', '', 7);
+
         // Timers
         // Minütlicher Timer zur Ausführung des generierten KI-Schaltplans
         $this->RegisterTimer('LightExecutionTimer', 0, 'SAI_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
@@ -105,6 +109,18 @@ class SmartAbsenceAI extends IPSModule
         }
         $this->CalculateOpenItems();
 
+        // MessageSink für Light Variablen registrieren
+        $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+        if (is_array($lightVars)) {
+            foreach ($lightVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $this->RegisterMessage($id, VM_UPDATE);
+                }
+            }
+        }
+        $this->CalculateActiveLights();
+
         $this->SetStatus(102); // OK
     }
 
@@ -112,6 +128,7 @@ class SmartAbsenceAI extends IPSModule
     {
         if ($Message == VM_UPDATE) {
             $this->CalculateOpenItems();
+            $this->CalculateActiveLights();
         }
     }
 
@@ -155,6 +172,43 @@ class SmartAbsenceAI extends IPSModule
             $this->SetValue('OpenSecurityItemsList', 'Alle geschlossen');
         } else {
             $this->SetValue('OpenSecurityItemsList', implode(", ", $openNames));
+        }
+    }
+
+    private function CalculateActiveLights()
+    {
+        $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+        $count = 0;
+        $activeNames = [];
+        if (is_array($lightVars)) {
+            foreach ($lightVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $currentVal = GetValue($id);
+                    $isActive = false;
+                    
+                    if (is_bool($currentVal)) {
+                        $isActive = $currentVal;
+                    } else if (is_int($currentVal) || is_float($currentVal)) {
+                        $isActive = ($currentVal > 0);
+                    } else if (is_string($currentVal)) {
+                        $isActive = (strtolower(trim($currentVal)) === 'true' || trim($currentVal) === '1');
+                    }
+                    
+                    if ($isActive) {
+                        $count++;
+                        $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : IPS_GetName($id);
+                        $activeNames[] = $name;
+                    }
+                }
+            }
+        }
+        $this->SetValue('ActiveLightsCount', $count);
+        
+        if ($count == 0) {
+            $this->SetValue('ActiveLightsList', 'Alle aus');
+        } else {
+            $this->SetValue('ActiveLightsList', implode(", ", $activeNames));
         }
     }
 
