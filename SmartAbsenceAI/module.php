@@ -257,8 +257,8 @@ class SmartAbsenceAI extends IPSModule
                         
                         $wfc = $this->ReadPropertyInteger('WebFrontInstance');
                         if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyWindows')) {
-                            if (function_exists('VISU_PushNotification')) {
-                                @VISU_PushNotification($wfc, "Achtung beim Verlassen", "Offen: " . implode(", ", $openItems), "", 0);
+                            if (function_exists('VISU_PostNotification')) {
+                                @VISU_PostNotification($wfc, "Achtung beim Verlassen", "Offen: " . implode(", ", $openItems), "Warning", 0);
                             }
                             if (function_exists('WFC_PushNotification')) {
                                 @WFC_PushNotification($wfc, "Achtung beim Verlassen", "Offen: " . implode(", ", $openItems), "", 0);
@@ -271,8 +271,8 @@ class SmartAbsenceAI extends IPSModule
                 if (!empty($activeLights)) {
                     $wfc = $this->ReadPropertyInteger('WebFrontInstance');
                     if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyLights')) {
-                        if (function_exists('VISU_PushNotification')) {
-                            @VISU_PushNotification($wfc, "Achtung beim Verlassen", "Noch an: " . $activeLights, "", 0);
+                        if (function_exists('VISU_PostNotification')) {
+                            @VISU_PostNotification($wfc, "Achtung beim Verlassen", "Noch an: " . $activeLights, "Light", 0);
                         }
                         if (function_exists('WFC_PushNotification')) {
                             @WFC_PushNotification($wfc, "Achtung beim Verlassen", "Noch an: " . $activeLights, "", 0);
