@@ -16,13 +16,27 @@ class SmartAbsenceController extends IPSModule
         $this->RegisterPropertyInteger('LightingInstance', 0);
 
         // Status Variable (Schalter für Abwesenheit)
-        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', 'SAC.AbsenceStatus', 1);
+        if (defined('VARIABLE_PRESENTATION_SWITCH')) {
+            $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '', 1);
+        } else {
+            $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', 'SAC.AbsenceStatus', 1);
+        }
         $this->EnableAction('AbsenceStatus');
     }
 
     public function ApplyChanges()
     {
         parent::ApplyChanges();
+
+        // Moderne IP-Symcon 8 Darstellung anwenden
+        if (defined('VARIABLE_PRESENTATION_SWITCH') && function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AbsenceStatus'), [
+                'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH,
+                'ICON'           => 'power-off',
+                'GLOW_COLOR'     => 16776960, // 0xFFFF00 (Gelb)
+                'GLOW_INTENSITY' => 50
+            ]);
+        }
         $this->SetStatus(102);
     }
 
