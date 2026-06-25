@@ -13,11 +13,11 @@ class SmartAbsenceLighting extends IPSModule
 
         $this->RegisterAttributeString('LightSchedule', '[]');
 
-        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', 'SAL.ScheduleStatus', 1);
-        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', 'SAL.Error', 2);
+        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '', 1);
+        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '', 2);
 
-        $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', 'SAL.LightCount', 3);
-        $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', 'SAL.LightList', 4);
+        $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', '', 3);
+        $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', '', 4);
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SAL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SAL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
@@ -29,6 +29,31 @@ class SmartAbsenceLighting extends IPSModule
 
         $this->MaintainVariable('LightScheduleStatus', 'Aktueller KI-Schaltplan', 3, '', 1, true);
         $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '', 2, true);
+        $this->MaintainVariable('ActiveLightsCount', 'Aktive Lampen (Zähler)', 1, '', 3, true);
+        $this->MaintainVariable('ActiveLightsList', 'Aktive Lampen (Namen)', 3, '', 4, true);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightScheduleStatus'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Clock'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('GeminiError'), [
+            'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'           => 'Warning',
+            'GLOW_COLOR'     => 16711680, // Rot
+            'GLOW_INTENSITY' => 50
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsCount'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Bulb',
+            'SUFFIX'       => ' an'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsList'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Information'
+        ]);
 
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');
         if (empty($apiKey)) {

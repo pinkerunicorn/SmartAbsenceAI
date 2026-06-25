@@ -10,13 +10,24 @@ class SmartAbsenceSecurity extends IPSModule
         $this->RegisterPropertyString('WindowVariables', '[]');
 
         // Variablen für den WebFront-Status
-        $this->RegisterVariableInteger('OpenWindowsCount', 'Offene Fenster / Türen (Zähler)', 'SAS.WindowCount', 1);
-        $this->RegisterVariableString('OpenWindowsList', 'Offene Fenster / Türen (Namen)', 'SAS.WindowList', 2);
+        $this->RegisterVariableInteger('OpenWindowsCount', 'Offene Fenster / Türen (Zähler)', '', 1);
+        $this->RegisterVariableString('OpenWindowsList', 'Offene Fenster / Türen (Namen)', '', 2);
     }
 
     public function ApplyChanges()
     {
         parent::ApplyChanges();
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('OpenWindowsCount'), [
+            'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'           => 'Window',
+            'SUFFIX'         => ' offen'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('OpenWindowsList'), [
+            'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'           => 'Information'
+        ]);
 
         $windowVars = json_decode($this->ReadPropertyString('WindowVariables'), true);
         if (is_array($windowVars)) {

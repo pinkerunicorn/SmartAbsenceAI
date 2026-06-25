@@ -9,18 +9,5 @@
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAS",
-    "profiles": [
-        {
-            "name": "SAS.WindowCount",
-            "type": 1,
-            "icon": "Window",
-            "suffix": " offen"
-        },
-        {
-            "name": "SAS.WindowList",
-            "type": 3,
-            "icon": "Information"
-        }
-    ]
+    "prefix": "SAS"
 }
