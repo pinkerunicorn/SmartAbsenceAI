@@ -16,11 +16,27 @@ class SmartAbsenceHeating extends IPSModuleStrict
 
         // Internal attribute to save previous states
         $this->RegisterAttributeString('PreviousStates', '{}');
+
+        // GUI Variables
+        $this->RegisterVariableString('HeatingStatus', 'Status', '', 1);
+        $this->RegisterVariableFloat('AverageTemperature', 'Ø Haus-Temperatur', '~Temperature', 2);
+
+        // Timer for periodic temperature update
+        $this->RegisterTimer('UpdateTempTimer', 0, 'SAH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingStatus'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Information'
+        ]);
+
+        $this->SetTimerInterval('UpdateTempTimer', 15 * 60 * 1000); // 15 Minuten
+        $this->UpdateAverageTemperature();
+
         $this->SetStatus(102);
     }
 
@@ -78,6 +94,7 @@ class SmartAbsenceHeating extends IPSModuleStrict
                 }
             }
             $this->WriteAttributeString('PreviousStates', json_encode($previousStates));
+            $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (Alle Räume manuell abgesenkt)');
             $this->LogMessage("SmartAbsenceHeating: Absenktemperatur (mit Manu-Modus) aktiviert.", KL_NOTIFY);
         } else {
             $previousStatesStr = $this->ReadAttributeString('PreviousStates');
@@ -97,7 +114,54 @@ class SmartAbsenceHeating extends IPSModuleStrict
                 }
             }
             $this->WriteAttributeString('PreviousStates', '{}');
+            $this->SetValue('HeatingStatus', '🟢 Normalbetrieb (Profil gesteuert)');
             $this->LogMessage("SmartAbsenceHeating: Normaltemperatur / Auto-Modus wiederhergestellt.", KL_NOTIFY);
+        }
+        $this->UpdateAverageTemperature();
+    }
+
+    public function UpdateAverageTemperature(): void
+    {
+        $heatingInsts = json_decode($this->ReadPropertyString('HeatingInstances'), true);
+        if (!is_array($heatingInsts) || count($heatingInsts) == 0) return;
+
+        $sumTemp = 0.0;
+        $count = 0;
+
+        foreach ($heatingInsts as $heating) {
+            $instId = $heating['InstanceID'];
+            if ($instId <= 0 || !IPS_InstanceExists($instId)) continue;
+
+            $actualTemp = 0.0;
+            $fallbackTemp = 0.0;
+
+            foreach (IPS_GetChildrenIDs($instId) as $childId) {
+                $obj = IPS_GetObject($childId);
+                $ident = $obj['ObjectIdent'];
+                $name = $obj['ObjectName'];
+
+                if (strpos($name, 'Aktuelle Temperatur') !== false || $ident === 'ACTUAL_TEMPERATURE') {
+                    $val = (float)GetValue($childId);
+                    if ($val > 0) $actualTemp = $val;
+                }
+                if (strpos($name, 'Ventil-Ist-Temperatur') !== false || $ident === 'VALVE_ACTUAL_TEMPERATURE') {
+                    $val = (float)GetValue($childId);
+                    if ($val > 0) $fallbackTemp = $val;
+                }
+            }
+
+            if ($actualTemp > 0) {
+                $sumTemp += $actualTemp;
+                $count++;
+            } elseif ($fallbackTemp > 0) {
+                $sumTemp += $fallbackTemp;
+                $count++;
+            }
+        }
+
+        if ($count > 0) {
+            $avg = round($sumTemp / $count, 1);
+            $this->SetValue('AverageTemperature', $avg);
         }
     }
 }
