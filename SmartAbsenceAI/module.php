@@ -267,8 +267,9 @@ class SmartAbsenceAI extends IPSModule
                     }
                 }
                 
+                $activeLightsCount = GetValue($this->GetIDForIdent('ActiveLightsCount'));
                 $activeLights = GetValue($this->GetIDForIdent('ActiveLightsList'));
-                if (!empty($activeLights)) {
+                if ($activeLightsCount > 0 && !empty($activeLights)) {
                     $wfc = $this->ReadPropertyInteger('WebFrontInstance');
                     if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyLights')) {
                         if (function_exists('VISU_PostNotification')) {
