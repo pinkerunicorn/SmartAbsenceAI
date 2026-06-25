@@ -27,14 +27,14 @@ class SmartAbsenceAI extends IPSModule
         $this->RegisterAttributeString('PreviousHeatingStates', '{}');
 
         // Status Variable (Schalter für Abwesenheit)
-        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '~Switch', 1);
+        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '', 1);
         $this->EnableAction('AbsenceStatus');
 
         // Status Variable für den KI-Schaltplan
         $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '', 2);
 
         // Status Variable für Fehler
-        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '~Alert', 3);
+        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '', 3);
 
         // Variable für die Anzahl offener Fenster/Türen
         $this->RegisterVariableInteger('OpenSecurityItemsCount', 'Offene Fenster / Türen (Zähler)', '', 4);
@@ -62,9 +62,9 @@ class SmartAbsenceAI extends IPSModule
             IPS_DeleteEvent($oldTimer);
         }
 
-        // Variablen bei Bedarf neu anlegen (falls sie manuell gelöscht wurden)
+        $this->MaintainVariable('AbsenceStatus', 'Abwesenheitsmodus', 0, '', 1, true);
         $this->MaintainVariable('LightScheduleStatus', 'Aktueller KI-Schaltplan', 3, '', 2, true);
-        $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '~Alert', 3, true);
+        $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '', 3, true);
 
         $countId = @$this->GetIDForIdent('OpenSecurityItemsCount');
         if ($countId !== false) {
