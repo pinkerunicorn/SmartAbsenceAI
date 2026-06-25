@@ -38,5 +38,17 @@
             "name": "PushNotifyLights",
             "caption": "Warnung bei aktiven Lichtern (Push)"
         }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Abwesenheit AKTIVIEREN",
+            "onClick": "RequestAction(IPS_GetObjectIDByIdent('AbsenceStatus', $id), true);"
+        },
+        {
+            "type": "Button",
+            "caption": "Abwesenheit DEAKTIVIEREN",
+            "onClick": "RequestAction(IPS_GetObjectIDByIdent('AbsenceStatus', $id), false);"
+        }
     ]
 }
