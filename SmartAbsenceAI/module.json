@@ -12,7 +12,7 @@
     "prefix": "SAC",
     "profiles": [
         {
-            "name": "SAC.AbsenceStatus",
+            "name": "AbsenceStatus",
             "type": 0,
             "icon": "Presence",
             "associations": [

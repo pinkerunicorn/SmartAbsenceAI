@@ -12,13 +12,13 @@
     "prefix": "SAS",
     "profiles": [
         {
-            "name": "SAS.WindowCount",
+            "name": "WindowCount",
             "type": 1,
             "icon": "Window",
             "suffix": " offen"
         },
         {
-            "name": "SAS.WindowList",
+            "name": "WindowList",
             "type": 3,
             "icon": "Information"
         }
