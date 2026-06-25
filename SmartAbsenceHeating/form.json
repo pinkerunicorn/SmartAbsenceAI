@@ -10,19 +10,31 @@
         },
         {
             "type": "List",
-            "name": "HeatingVariables",
-            "caption": "Thermostat-Variablen (Zieltemperatur)",
+            "name": "HeatingInstances",
+            "caption": "Thermostat-Gruppen (HCU Instanzen)",
             "rowCount": 5,
             "add": true,
             "delete": true,
             "columns": [
                 {
-                    "caption": "Variable",
-                    "name": "VariableID",
-                    "width": "500px",
+                    "caption": "Thermostat-Instanz",
+                    "name": "InstanceID",
+                    "width": "400px",
                     "add": 0,
                     "edit": {
-                        "type": "SelectVariable"
+                        "type": "SelectInstance"
+                    }
+                },
+                {
+                    "caption": "Indiv. Absenktemp. (°C)",
+                    "name": "TargetTemperature",
+                    "width": "200px",
+                    "add": 17.0,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "digits": 1,
+                        "minimum": 10.0,
+                        "maximum": 25.0
                     }
                 }
             ]
