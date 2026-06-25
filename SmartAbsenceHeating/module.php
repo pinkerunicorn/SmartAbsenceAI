@@ -44,6 +44,8 @@ class SmartAbsenceHeating extends IPSModuleStrict
     {
         $heatingInsts = json_decode($this->ReadPropertyString('HeatingInstances'), true);
         if (!is_array($heatingInsts)) return;
+        
+        $roomCount = count($heatingInsts);
 
         if ($status) {
             $globalTargetTemp = $this->ReadPropertyFloat('TargetTemperature');
@@ -94,7 +96,7 @@ class SmartAbsenceHeating extends IPSModuleStrict
                 }
             }
             $this->WriteAttributeString('PreviousStates', json_encode($previousStates));
-            $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (Alle Räume manuell abgesenkt)');
+            $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (' . $roomCount . ' Räume manuell abgesenkt)');
             $this->LogMessage("SmartAbsenceHeating: Absenktemperatur (mit Manu-Modus) aktiviert.", KL_NOTIFY);
         } else {
             $previousStatesStr = $this->ReadAttributeString('PreviousStates');
