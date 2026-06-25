@@ -1,6 +1,16 @@
 {
     "elements": [
         {
+            "type": "CheckBox",
+            "name": "LockOnAbsence",
+            "caption": "Türen bei Abwesenheit automatisch abschließen"
+        },
+        {
+            "type": "CheckBox",
+            "name": "UnlockOnPresence",
+            "caption": "Türen bei Rückkehr automatisch aufschließen"
+        },
+        {
             "type": "List",
             "name": "DoorVariables",
             "caption": "Türschloss-Variablen",
