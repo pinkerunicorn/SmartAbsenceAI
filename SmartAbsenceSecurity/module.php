@@ -8,8 +8,6 @@ class SmartAbsenceSecurity extends IPSModule
 
         $this->RegisterPropertyString('DoorVariables', '[]');
         $this->RegisterPropertyString('WindowVariables', '[]');
-        $this->RegisterPropertyBoolean('LockOnAbsence', true);
-        $this->RegisterPropertyBoolean('UnlockOnPresence', false);
 
         // Variablen für den WebFront-Status
         $this->RegisterVariableInteger('OpenWindowsCount', 'Offene Fenster / Türen (Zähler)', '', 1);
@@ -101,27 +99,29 @@ class SmartAbsenceSecurity extends IPSModule
         if (!is_array($doorVars)) return;
 
         if ($status) {
-            if ($this->ReadPropertyBoolean('LockOnAbsence')) {
-                // Türen verriegeln (Tedee: 0 = Zusperren)
-                foreach ($doorVars as $door) {
+            foreach ($doorVars as $door) {
+                // Fallback für alte Konfigurationen: true
+                $lock = isset($door['LockOnAbsence']) ? $door['LockOnAbsence'] : true;
+                if ($lock) {
                     $id = $door['VariableID'];
                     if ($id > 0 && IPS_VariableExists($id)) {
                         RequestAction($id, 0);
                     }
                 }
-                $this->LogMessage("SmartAbsenceSecurity: Türen wurden verriegelt.", KL_NOTIFY);
             }
+            $this->LogMessage("SmartAbsenceSecurity: Verriegelung der konfigurierten Türen durchgeführt.", KL_NOTIFY);
         } else {
-            if ($this->ReadPropertyBoolean('UnlockOnPresence')) {
-                // Türen aufsperren (Tedee: 1 = Aufsperren)
-                foreach ($doorVars as $door) {
+            foreach ($doorVars as $door) {
+                // Fallback für alte Konfigurationen: false
+                $unlock = isset($door['UnlockOnPresence']) ? $door['UnlockOnPresence'] : false;
+                if ($unlock) {
                     $id = $door['VariableID'];
                     if ($id > 0 && IPS_VariableExists($id)) {
                         RequestAction($id, 1);
                     }
                 }
-                $this->LogMessage("SmartAbsenceSecurity: Türen wurden aufgesperrt.", KL_NOTIFY);
             }
+            $this->LogMessage("SmartAbsenceSecurity: Aufsperren der konfigurierten Türen durchgeführt.", KL_NOTIFY);
         }
     }
 }

@@ -1,16 +1,6 @@
 {
     "elements": [
         {
-            "type": "CheckBox",
-            "name": "LockOnAbsence",
-            "caption": "Türen bei Abwesenheit automatisch abschließen"
-        },
-        {
-            "type": "CheckBox",
-            "name": "UnlockOnPresence",
-            "caption": "Türen bei Rückkehr automatisch aufschließen"
-        },
-        {
             "type": "List",
             "name": "DoorVariables",
             "caption": "Türschloss-Variablen",
@@ -21,10 +11,28 @@
                 {
                     "caption": "Variable",
                     "name": "VariableID",
-                    "width": "500px",
+                    "width": "300px",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Verriegeln (Abwesenheit)",
+                    "name": "LockOnAbsence",
+                    "width": "180px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Aufsperren (Rückkehr)",
+                    "name": "UnlockOnPresence",
+                    "width": "180px",
+                    "add": false,
+                    "edit": {
+                        "type": "CheckBox"
                     }
                 }
             ]
