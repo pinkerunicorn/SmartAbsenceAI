@@ -144,6 +144,25 @@
                     }
                 }
             ]
+        },
+        {
+            "type": "Label",
+            "label": "Push-Benachrichtigungen (WebFront / App)"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "WebFrontInstance",
+            "caption": "WebFront Configurator Instanz"
+        },
+        {
+            "type": "CheckBox",
+            "name": "PushNotifyWindows",
+            "caption": "Beim Verlassen: Push senden, wenn Fenster/Türen offen sind"
+        },
+        {
+            "type": "CheckBox",
+            "name": "PushNotifyLights",
+            "caption": "Beim Verlassen: Push senden, wenn Lichter noch brennen"
         }
     ],
     "actions": [

@@ -17,6 +17,11 @@ class SmartAbsenceAI extends IPSModule
         $this->RegisterPropertyString('SecurityVariables', '[]');
         $this->RegisterPropertyString('LightVariables', '[]');
 
+        // Push Notifications
+        $this->RegisterPropertyInteger('WebFrontInstance', 0);
+        $this->RegisterPropertyBoolean('PushNotifyWindows', true);
+        $this->RegisterPropertyBoolean('PushNotifyLights', true);
+
         // Attributes (Internal state)
         $this->RegisterAttributeString('LightSchedule', '[]');
         $this->RegisterAttributeString('PreviousHeatingStates', '{}');
@@ -249,7 +254,19 @@ class SmartAbsenceAI extends IPSModule
                     if (count($openItems) > 0) {
                         $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem vollständig aktiviert.";
                         $this->LogMessage($msg, KL_WARNING);
-                        echo $msg;
+                        
+                        $wfc = $this->ReadPropertyInteger('WebFrontInstance');
+                        if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyWindows')) {
+                            WFC_PushNotification($wfc, "Achtung beim Verlassen", "Offen: " . implode(", ", $openItems), "", 0);
+                        }
+                    }
+                }
+                
+                $activeLights = GetValue($this->GetIDForIdent('ActiveLightsList'));
+                if (!empty($activeLights)) {
+                    $wfc = $this->ReadPropertyInteger('WebFrontInstance');
+                    if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyLights')) {
+                        WFC_PushNotification($wfc, "Achtung beim Verlassen", "Noch an: " . $activeLights, "", 0);
                     }
                 }
             }
