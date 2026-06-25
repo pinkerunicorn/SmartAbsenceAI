@@ -16,7 +16,7 @@ class SmartAbsenceController extends IPSModule
         $this->RegisterPropertyInteger('LightingInstance', 0);
 
         // Status Variable (Schalter für Abwesenheit)
-        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '~Switch', 1);
+        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', 'SAC.AbsenceStatus', 1);
         $this->EnableAction('AbsenceStatus');
     }
 

@@ -9,5 +9,16 @@
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAC"
+    "prefix": "SAC",
+    "profiles": [
+        {
+            "name": "SAC.AbsenceStatus",
+            "type": 0,
+            "icon": "Presence",
+            "associations": [
+                [false, "Anwesend", "", -1],
+                [true, "Abwesend", "", 16711680]
+            ]
+        }
+    ]
 }

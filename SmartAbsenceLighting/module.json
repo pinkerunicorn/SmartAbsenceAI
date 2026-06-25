@@ -9,5 +9,32 @@
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAL"
+    "prefix": "SAL",
+    "profiles": [
+        {
+            "name": "SAL.ScheduleStatus",
+            "type": 3,
+            "icon": "Clock"
+        },
+        {
+            "name": "SAL.Error",
+            "type": 0,
+            "icon": "Warning",
+            "associations": [
+                [false, "OK", "", 65280],
+                [true, "Fehler", "", 16711680]
+            ]
+        },
+        {
+            "name": "SAL.LightCount",
+            "type": 1,
+            "icon": "Bulb",
+            "suffix": " an"
+        },
+        {
+            "name": "SAL.LightList",
+            "type": 3,
+            "icon": "Information"
+        }
+    ]
 }

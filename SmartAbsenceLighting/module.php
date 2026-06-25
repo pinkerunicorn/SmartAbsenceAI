@@ -13,11 +13,11 @@ class SmartAbsenceLighting extends IPSModule
 
         $this->RegisterAttributeString('LightSchedule', '[]');
 
-        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '', 1);
-        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '', 2);
+        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', 'SAL.ScheduleStatus', 1);
+        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', 'SAL.Error', 2);
 
-        $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', '', 3);
-        $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', '', 4);
+        $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', 'SAL.LightCount', 3);
+        $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', 'SAL.LightList', 4);
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SAL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SAL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
