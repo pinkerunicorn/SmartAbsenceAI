@@ -1,13 +1,13 @@
 {
-    "id": "{460D7C60-0766-4534-BFD8-5920737B1845}",
-    "name": "SmartAbsenceController",
+    "id": "{C3D4E5F6-A7B8-49AB-A1B2-C3D4E5F6A7B8}",
+    "name": "SmartAbsenceLighting",
     "type": 3,
     "vendor": "Florian Graßinger",
     "aliases": [
-        "SmartAbsenceController"
+        "SmartAbsenceLighting"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAC"
+    "prefix": "SAL"
 }

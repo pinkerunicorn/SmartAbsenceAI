@@ -2,191 +2,41 @@
     "elements": [
         {
             "type": "Label",
-            "label": "Google Gemini API Einstellungen"
-        },
-        {
-            "type": "ValidationTextBox",
-            "name": "GeminiAPIKey",
-            "caption": "API Key"
-        },
-        {
-            "type": "SelectVariable",
-            "name": "SunsetVariableID",
-            "caption": "Sonnenuntergang (Uhrzeit Variable, String/Integer)"
+            "caption": "Orchestrierung der SmartAbsence-Submodule"
         },
         {
             "type": "SelectInstance",
-            "name": "ArchiveControlID",
-            "caption": "Archive Control Instanz"
+            "name": "HeatingInstance",
+            "caption": "Heating (Thermostat) Instanz"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "SecurityInstance",
+            "caption": "Security (Türen/Fenster) Instanz"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "LightingInstance",
+            "caption": "Lighting (KI Lichtsteuerung) Instanz"
         },
         {
             "type": "Label",
-            "label": "Heizungssteuerung (Homematic)"
-        },
-        {
-            "type": "NumberSpinner",
-            "name": "HeatingTargetTemperature",
-            "caption": "Absenktemperatur bei Abwesenheit (°C)",
-            "digits": 1,
-            "minimum": 5.0,
-            "maximum": 25.0
-        },
-        {
-            "type": "List",
-            "name": "HeatingVariables",
-            "caption": "Thermostate (SET_POINT_TEMPERATURE Variablen)",
-            "rowCount": 10,
-            "add": true,
-            "delete": true,
-            "columns": [
-                {
-                    "caption": "Variable",
-                    "name": "VariableID",
-                    "width": "auto",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectVariable"
-                    }
-                }
-            ]
-        },
-        {
-            "type": "Label",
-            "label": "Türen verriegeln"
-        },
-        {
-            "type": "List",
-            "name": "DoorVariables",
-            "caption": "Türschlösser (Status Variablen)",
-            "add": true,
-            "delete": true,
-            "columns": [
-                {
-                    "caption": "Variable",
-                    "name": "VariableID",
-                    "width": "auto",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectVariable"
-                    }
-                }
-            ]
-        },
-        {
-            "type": "Label",
-            "label": "Sicherheitsprüfung vor Abwesenheit"
-        },
-        {
-            "type": "List",
-            "name": "SecurityVariables",
-            "caption": "Fenster/Türen (Müssen diesen Zustand haben)",
-            "rowCount": 15,
-            "add": true,
-            "delete": true,
-            "columns": [
-                {
-                    "caption": "Variable",
-                    "name": "VariableID",
-                    "width": "auto",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectVariable"
-                    }
-                },
-                {
-                    "caption": "Name",
-                    "name": "Name",
-                    "width": "auto",
-                    "add": "",
-                    "edit": {
-                        "type": "ValidationTextBox"
-                    }
-                },
-                {
-                    "caption": "Soll-Wert ('Geschlossen', z.B. 0 oder false)",
-                    "name": "ClosedValue",
-                    "width": "auto",
-                    "add": "0",
-                    "edit": {
-                        "type": "ValidationTextBox"
-                    }
-                }
-            ]
-        },
-        {
-            "type": "Label",
-            "label": "Licht-Simulation (KI-basiert)"
-        },
-        {
-            "type": "List",
-            "name": "LightVariables",
-            "caption": "Zu simulierende Lampen (Ein/Aus oder Dimmer)",
-            "rowCount": 15,
-            "add": true,
-            "delete": true,
-            "columns": [
-                {
-                    "caption": "Variable",
-                    "name": "VariableID",
-                    "width": "auto",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectVariable"
-                    }
-                },
-                {
-                    "caption": "Name / Raum (für die KI)",
-                    "name": "Name",
-                    "width": "auto",
-                    "add": "",
-                    "edit": {
-                        "type": "ValidationTextBox"
-                    }
-                }
-            ]
-        },
-        {
-            "type": "Label",
-            "label": "Push-Benachrichtigungen (WebFront / App)"
+            "caption": "Benachrichtigungen"
         },
         {
             "type": "SelectInstance",
             "name": "WebFrontInstance",
-            "caption": "WebFront Configurator Instanz"
+            "caption": "WebFront / Visu Instanz (für Push)"
         },
         {
             "type": "CheckBox",
             "name": "PushNotifyWindows",
-            "caption": "Beim Verlassen: Push senden, wenn Fenster/Türen offen sind"
+            "caption": "Warnung bei offenen Fenstern (Push)"
         },
         {
             "type": "CheckBox",
             "name": "PushNotifyLights",
-            "caption": "Beim Verlassen: Push senden, wenn Lichter noch brennen"
-        }
-    ],
-    "actions": [
-        {
-            "type": "Button",
-            "label": "KI Schaltplan für heute generieren",
-            "onClick": "SAI_GenerateAiSchedule($id);"
-        }
-    ],
-    "status": [
-        {
-            "code": 102,
-            "icon": "active",
-            "caption": "Modul ist aktiv"
-        },
-        {
-            "code": 201,
-            "icon": "error",
-            "caption": "Kein Gemini API-Key hinterlegt"
-        },
-        {
-            "code": 202,
-            "icon": "error",
-            "caption": "Licht-Variablen nicht im Archiv geloggt!"
+            "caption": "Warnung bei aktiven Lichtern (Push)"
         }
     ]
 }

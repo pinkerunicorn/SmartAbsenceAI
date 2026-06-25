@@ -1,0 +1,47 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "GeminiAPIKey",
+            "caption": "Gemini API Key"
+        },
+        {
+            "type": "SelectVariable",
+            "name": "SunsetVariableID",
+            "caption": "Sonnenuntergangs-Variable (Unix Timestamp oder H:i String)"
+        },
+        {
+            "type": "SelectInstance",
+            "name": "ArchiveControlID",
+            "caption": "Archive Control Instanz"
+        },
+        {
+            "type": "List",
+            "name": "LightVariables",
+            "caption": "Lampen (Präsenzsimulation)",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Raum/Name (Kontext für KI)",
+                    "name": "Name",
+                    "width": "200px",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Variable (Schalten/Dimmen)",
+                    "name": "VariableID",
+                    "width": "300px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                }
+            ]
+        }
+    ]
+}

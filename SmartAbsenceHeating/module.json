@@ -1,13 +1,13 @@
 {
-    "id": "{460D7C60-0766-4534-BFD8-5920737B1845}",
-    "name": "SmartAbsenceController",
+    "id": "{A1B2C3D4-E5F6-4789-8A9B-C1D2E3F4A5B6}",
+    "name": "SmartAbsenceHeating",
     "type": 3,
     "vendor": "Florian Graßinger",
     "aliases": [
-        "SmartAbsenceController"
+        "SmartAbsenceHeating"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAC"
+    "prefix": "SAH"
 }

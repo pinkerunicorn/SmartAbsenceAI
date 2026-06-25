@@ -1,0 +1,31 @@
+{
+    "elements": [
+        {
+            "type": "NumberSpinner",
+            "name": "TargetTemperature",
+            "caption": "Absenktemperatur (°C)",
+            "digits": 1,
+            "minimum": 10.0,
+            "maximum": 25.0
+        },
+        {
+            "type": "List",
+            "name": "HeatingVariables",
+            "caption": "Thermostat-Variablen (Zieltemperatur)",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Variable",
+                    "name": "VariableID",
+                    "width": "500px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                }
+            ]
+        }
+    ]
+}
