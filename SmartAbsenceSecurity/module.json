@@ -9,5 +9,6 @@
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAS"
+    "prefix": "SAS",
+    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
 }

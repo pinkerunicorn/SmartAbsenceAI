@@ -1,8 +1,10 @@
 <?php
 
-class SmartAbsenceSecurity extends IPSModule
+declare(strict_types=1);
+
+class SmartAbsenceSecurity extends IPSModuleStrict
 {
-    public function Create()
+    public function Create(): void
     {
         parent::Create();
 
@@ -14,7 +16,7 @@ class SmartAbsenceSecurity extends IPSModule
         $this->RegisterVariableString('OpenWindowsList', 'Offene Fenster / Türen (Namen)', '', 2);
     }
 
-    public function ApplyChanges()
+    public function ApplyChanges(): void
     {
         parent::ApplyChanges();
 
@@ -43,14 +45,14 @@ class SmartAbsenceSecurity extends IPSModule
         $this->SetStatus(102);
     }
 
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
     {
         if ($Message == VM_UPDATE) {
             $this->CalculateOpenWindows();
         }
     }
 
-    private function CalculateOpenWindows()
+    private function CalculateOpenWindows(): void
     {
         $windowVars = json_decode($this->ReadPropertyString('WindowVariables'), true);
         $count = 0;
@@ -104,7 +106,7 @@ class SmartAbsenceSecurity extends IPSModule
         return [];
     }
 
-    public function SetAbsence(bool $status)
+    public function SetAbsence(bool $status): void
     {
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
         if (!is_array($doorVars)) return;

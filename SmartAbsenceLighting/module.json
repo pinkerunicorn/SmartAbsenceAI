@@ -9,5 +9,6 @@
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAL"
+    "prefix": "SAL",
+    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
 }

@@ -1,8 +1,10 @@
 <?php
 
-class SmartAbsenceController extends IPSModule
+declare(strict_types=1);
+
+class SmartAbsenceController extends IPSModuleStrict
 {
-    public function Create()
+    public function Create(): void
     {
         parent::Create();
 
@@ -20,7 +22,7 @@ class SmartAbsenceController extends IPSModule
         $this->EnableAction('AbsenceStatus');
     }
 
-    public function ApplyChanges()
+    public function ApplyChanges(): void
     {
         parent::ApplyChanges();
 
@@ -35,7 +37,7 @@ class SmartAbsenceController extends IPSModule
         $this->SetStatus(102);
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction(string $Ident, $Value): void
     {
         if ($Ident == 'AbsenceStatus') {
             if ($Value == true) {
@@ -89,7 +91,7 @@ class SmartAbsenceController extends IPSModule
         }
     }
 
-    public function SetAbsence(bool $status)
+    public function SetAbsence(bool $status): void
     {
         $heatingInst = $this->ReadPropertyInteger('HeatingInstance');
         $secInst = $this->ReadPropertyInteger('SecurityInstance');

@@ -1,8 +1,10 @@
 <?php
 
-class SmartAbsenceHeating extends IPSModule
+declare(strict_types=1);
+
+class SmartAbsenceHeating extends IPSModuleStrict
 {
-    public function Create()
+    public function Create(): void
     {
         parent::Create();
 
@@ -16,13 +18,13 @@ class SmartAbsenceHeating extends IPSModule
         $this->RegisterAttributeString('PreviousStates', '{}');
     }
 
-    public function ApplyChanges()
+    public function ApplyChanges(): void
     {
         parent::ApplyChanges();
         $this->SetStatus(102);
     }
 
-    public function SetAbsence(bool $status)
+    public function SetAbsence(bool $status): void
     {
         $heatingVars = json_decode($this->ReadPropertyString('HeatingVariables'), true);
         if (!is_array($heatingVars)) return;

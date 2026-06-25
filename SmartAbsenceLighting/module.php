@@ -1,8 +1,10 @@
 <?php
 
-class SmartAbsenceLighting extends IPSModule
+declare(strict_types=1);
+
+class SmartAbsenceLighting extends IPSModuleStrict
 {
-    public function Create()
+    public function Create(): void
     {
         parent::Create();
 
@@ -23,7 +25,7 @@ class SmartAbsenceLighting extends IPSModule
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SAL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
     }
 
-    public function ApplyChanges()
+    public function ApplyChanges(): void
     {
         parent::ApplyChanges();
 
@@ -74,14 +76,14 @@ class SmartAbsenceLighting extends IPSModule
         $this->SetStatus(102);
     }
 
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
     {
         if ($Message == VM_UPDATE) {
             $this->CalculateActiveLights();
         }
     }
 
-    private function CalculateActiveLights()
+    private function CalculateActiveLights(): void
     {
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
         $count = 0;
@@ -129,7 +131,7 @@ class SmartAbsenceLighting extends IPSModule
         return [];
     }
 
-    public function SetAbsence(bool $status)
+    public function SetAbsence(bool $status): void
     {
         if ($status) {
             $this->GenerateAiSchedule();
@@ -150,7 +152,7 @@ class SmartAbsenceLighting extends IPSModule
         }
     }
 
-    public function GenerateAiSchedule(bool $isRetry = false)
+    public function GenerateAiSchedule(bool $isRetry = false): void
     {
         if (!$isRetry) {
             $this->SetBuffer('GeminiRetryCount', '0');
@@ -273,7 +275,7 @@ class SmartAbsenceLighting extends IPSModule
         }
     }
 
-    private function HandleGeminiError($errorMsg)
+    private function HandleGeminiError(string $errorMsg): void
     {
         $retryCount = (int)$this->GetBuffer('GeminiRetryCount');
         if ($retryCount < 5) {
@@ -288,7 +290,7 @@ class SmartAbsenceLighting extends IPSModule
         }
     }
 
-    public function CheckAndExecuteLightSchedule()
+    public function CheckAndExecuteLightSchedule(): void
     {
         $scheduleStr = $this->ReadAttributeString('LightSchedule');
         $schedule = json_decode($scheduleStr, true);
@@ -341,7 +343,7 @@ class SmartAbsenceLighting extends IPSModule
         }
     }
 
-    private function TurnOffAllSimulatedLights()
+    private function TurnOffAllSimulatedLights(): void
     {
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
         if (!is_array($lightVars)) return;
@@ -359,7 +361,7 @@ class SmartAbsenceLighting extends IPSModule
         }
     }
 
-    private function MaintainDailyEvent()
+    private function MaintainDailyEvent(): int
     {
         $eid = @IPS_GetObjectIDByIdent('DailyScheduleEvent', $this->InstanceID);
         if ($eid === false) {
