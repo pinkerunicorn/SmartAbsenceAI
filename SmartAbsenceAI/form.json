@@ -5,19 +5,49 @@
             "caption": "Orchestrierung der SmartAbsence-Submodule"
         },
         {
-            "type": "SelectInstance",
-            "name": "HeatingInstance",
-            "caption": "Heating (Thermostat) Instanz"
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectInstance",
+                    "name": "HeatingInstance",
+                    "caption": "Heating (Thermostat) Instanz"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "EnableHeating",
+                    "caption": "Aktiv"
+                }
+            ]
         },
         {
-            "type": "SelectInstance",
-            "name": "SecurityInstance",
-            "caption": "Security (Türen/Fenster) Instanz"
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectInstance",
+                    "name": "SecurityInstance",
+                    "caption": "Security (Türen/Fenster) Instanz"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "EnableSecurity",
+                    "caption": "Aktiv"
+                }
+            ]
         },
         {
-            "type": "SelectInstance",
-            "name": "LightingInstance",
-            "caption": "Lighting (KI Lichtsteuerung) Instanz"
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectInstance",
+                    "name": "LightingInstance",
+                    "caption": "Lighting (KI Licht) Instanz"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "EnableLighting",
+                    "caption": "Aktiv"
+                }
+            ]
         },
         {
             "type": "Label",

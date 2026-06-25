@@ -66,7 +66,7 @@ class SmartAbsenceHeating extends IPSModuleStrict
                 if ($controlModeId > 0 && IPS_VariableExists($controlModeId)) {
                     $currentMode = GetValue($controlModeId);
                     if (is_string($currentMode)) {
-                        RequestAction($controlModeId, 'Manual');
+                        RequestAction($controlModeId, 'MANUAL');
                     } else {
                         RequestAction($controlModeId, 1); // Meistens 1 = Manu
                     }

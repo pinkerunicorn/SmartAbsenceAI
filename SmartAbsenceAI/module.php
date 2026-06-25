@@ -14,8 +14,13 @@ class SmartAbsenceController extends IPSModuleStrict
 
         // Instance links
         $this->RegisterPropertyInteger('HeatingInstance', 0);
+        $this->RegisterPropertyBoolean('EnableHeating', true);
+
         $this->RegisterPropertyInteger('SecurityInstance', 0);
+        $this->RegisterPropertyBoolean('EnableSecurity', true);
+
         $this->RegisterPropertyInteger('LightingInstance', 0);
+        $this->RegisterPropertyBoolean('EnableLighting', true);
 
         // Status Variable (Schalter für Abwesenheit)
         $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '', 1);
@@ -100,25 +105,25 @@ class SmartAbsenceController extends IPSModuleStrict
         if ($status) {
             $this->LogMessage("SmartAbsenceController: Abwesenheitsmodus AKTIVIERT.", KL_NOTIFY);
             
-            if ($heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetAbsence')) {
+            if ($this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetAbsence')) {
                 SAH_SetAbsence($heatingInst, true);
             }
-            if ($secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetAbsence')) {
+            if ($this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetAbsence')) {
                 SAS_SetAbsence($secInst, true);
             }
-            if ($lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetAbsence')) {
+            if ($this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetAbsence')) {
                 SAL_SetAbsence($lightInst, true);
             }
         } else {
             $this->LogMessage("SmartAbsenceController: Abwesenheitsmodus DEAKTIVIERT.", KL_NOTIFY);
 
-            if ($heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetAbsence')) {
+            if ($this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetAbsence')) {
                 SAH_SetAbsence($heatingInst, false);
             }
-            if ($lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetAbsence')) {
+            if ($this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetAbsence')) {
                 SAL_SetAbsence($lightInst, false);
             }
-            if ($secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetAbsence')) {
+            if ($this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetAbsence')) {
                 SAS_SetAbsence($secInst, false);
             }
         }
