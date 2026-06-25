@@ -12,12 +12,12 @@
     "prefix": "SAL",
     "profiles": [
         {
-            "name": "ScheduleStatus",
+            "name": "SAL.ScheduleStatus",
             "type": 3,
             "icon": "Clock"
         },
         {
-            "name": "Error",
+            "name": "SAL.Error",
             "type": 0,
             "icon": "Warning",
             "associations": [
@@ -26,13 +26,13 @@
             ]
         },
         {
-            "name": "LightCount",
+            "name": "SAL.LightCount",
             "type": 1,
             "icon": "Bulb",
             "suffix": " an"
         },
         {
-            "name": "LightList",
+            "name": "SAL.LightList",
             "type": 3,
             "icon": "Information"
         }
