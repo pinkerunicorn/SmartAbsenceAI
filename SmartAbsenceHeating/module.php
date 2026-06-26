@@ -19,7 +19,7 @@ class SmartAbsenceHeating extends IPSModuleStrict
 
         // GUI Variables
         $this->RegisterVariableString('HeatingStatus', 'Status', '', 1);
-        $this->RegisterVariableFloat('AverageTemperature', 'Ø Haus-Temperatur', '~Temperature', 2);
+        $this->RegisterVariableFloat('AverageTemperature', 'Ø Haus-Temperatur', '', 2);
 
         // Timer for periodic temperature update
         $this->RegisterTimer('UpdateTempTimer', 0, 'SAH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
@@ -33,6 +33,14 @@ class SmartAbsenceHeating extends IPSModuleStrict
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Information'
         ]);
+
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AverageTemperature'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'Temperature',
+                'SUFFIX'       => ' °C'
+            ]);
+        }
 
         $this->SetTimerInterval('UpdateTempTimer', 15 * 60 * 1000); // 15 Minuten
         $this->UpdateAverageTemperature();
