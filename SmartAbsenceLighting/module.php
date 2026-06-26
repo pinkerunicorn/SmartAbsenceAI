@@ -224,7 +224,7 @@ class SmartAbsenceLighting extends IPSModuleStrict
         $payloadJson = json_encode($payload);
 
         // Asynchroner Aufruf über IPS_RunScriptText, um den IP-Symcon Thread nicht zu blockieren
-        $script = '
+        $script = '<?php
             $ch = curl_init("' . $url . '");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
