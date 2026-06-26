@@ -9,6 +9,7 @@ class SmartAbsenceLighting extends IPSModuleStrict
         parent::Create();
 
         $this->RegisterPropertyString('GeminiAPIKey', '');
+        $this->RegisterPropertyString('GeminiModel', 'gemini-1.5-flash');
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('ArchiveControlID', 0);
         $this->RegisterPropertyString('LightVariables', '[]');
@@ -211,67 +212,88 @@ class SmartAbsenceLighting extends IPSModuleStrict
         $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen), verwende für 'device' zwingend die übermittelte numerische ID:\n";
         $prompt .= "[ {\"time\":\"HH:MM\", \"device\": 12345, \"state\": true/false/dimvalue} ]";
 
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=" . $apiKey;
+        $model = $this->ReadPropertyString('GeminiModel');
+        if (empty($model)) $model = 'gemini-1.5-flash';
+
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/" . $model . ":generateContent?key=" . $apiKey;
         $payload = [
             "contents" => [["parts" => [["text" => $prompt]]]],
             "generationConfig" => ["response_mime_type" => "application/json"]
         ];
 
         $payloadJson = json_encode($payload);
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payloadJson);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-        $response = curl_exec($ch);
-        $curlError = curl_error($ch);
-        curl_close($ch);
 
-        if ($curlError) {
-            $this->HandleGeminiError("cURL Fehler: " . $curlError);
+        // Asynchroner Aufruf über IPS_RunScriptText, um den IP-Symcon Thread nicht zu blockieren
+        $script = '
+            $ch = curl_init("' . $url . '");
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, ' . var_export($payloadJson, true) . ');
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            $response = curl_exec($ch);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                SAL_ProcessGeminiResponse(' . $this->InstanceID . ', json_encode(["error" => "cURL Fehler: " . $error]));
+            } else {
+                SAL_ProcessGeminiResponse(' . $this->InstanceID . ', $response);
+            }
+        ';
+        IPS_RunScriptText($script);
+    }
+
+    public function ProcessGeminiResponse(string $response): void
+    {
+        if (!$response) {
+            $this->HandleGeminiError("Keine Antwort erhalten.");
             return;
         }
 
-        if ($response) {
-            $json = json_decode($response, true);
-            if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
-                $scheduleText = $json['candidates'][0]['content']['parts'][0]['text'];
-                $scheduleArray = json_decode($scheduleText, true);
-                if (is_array($scheduleArray)) {
-                    $this->WriteAttributeString('LightSchedule', json_encode($scheduleArray));
-                    $this->SetBuffer('GeminiRetryCount', '0');
-                    $this->SetTimerInterval('GeminiRetryTimer', 0);
-                    $this->SetValue('GeminiError', false);
+        $json = json_decode($response, true);
+        if (isset($json["error"]) && is_string($json["error"]) && strpos($json["error"], "cURL") !== false) {
+            $this->HandleGeminiError($json["error"]);
+            return;
+        }
 
-                    $lightNames = [];
+        if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
+            $scheduleText = $json['candidates'][0]['content']['parts'][0]['text'];
+            $scheduleArray = json_decode($scheduleText, true);
+            if (is_array($scheduleArray)) {
+                $this->WriteAttributeString('LightSchedule', json_encode($scheduleArray));
+                $this->SetBuffer('GeminiRetryCount', '0');
+                $this->SetTimerInterval('GeminiRetryTimer', 0);
+                $this->SetValue('GeminiError', false);
+
+                $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+                $lightNames = [];
+                if (is_array($lightVars)) {
                     foreach ($lightVars as $l) {
                         if (isset($l['Name']) && $l['Name'] != "") {
                             $lightNames[$l['VariableID']] = $l['Name'];
                         }
                     }
-
-                    $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
-                    foreach ($scheduleArray as $action) {
-                        $state = $action['state'] ? "AN" : "AUS";
-                        if (is_numeric($action['state']) && $action['state'] > 1) {
-                            $state = "Wert: " . $action['state'];
-                        }
-                        $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                        $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
-                    }
-                    $this->SetValue('LightScheduleStatus', $formattedSchedule);
-                } else {
-                    $this->HandleGeminiError("Ungültiges JSON empfangen.");
                 }
-            } else if (isset($json['error'])) {
-                $this->HandleGeminiError("Gemini API Error: " . json_encode($json['error']));
+
+                $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
+                foreach ($scheduleArray as $action) {
+                    $state = $action['state'] ? "AN" : "AUS";
+                    if (is_numeric($action['state']) && $action['state'] > 1) {
+                        $state = "Wert: " . $action['state'];
+                    }
+                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
+                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
+                }
+                $this->SetValue('LightScheduleStatus', $formattedSchedule);
             } else {
-                $this->HandleGeminiError("Unerwartete Antwortstruktur.");
+                $this->HandleGeminiError("Ungültiges JSON empfangen.");
             }
+        } else if (isset($json['error'])) {
+            $this->HandleGeminiError("Gemini API Error: " . json_encode($json['error']));
         } else {
-            $this->HandleGeminiError("Keine Antwort erhalten.");
+            $this->HandleGeminiError("Unerwartete Antwortstruktur.");
         }
     }
 
