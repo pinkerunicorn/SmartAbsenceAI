@@ -38,6 +38,35 @@
             ]
         },
         {
+            "type": "Label",
+            "label": "Automatische Türschloss-Steuerung"
+        },
+        {
+            "type": "CheckBox",
+            "name": "AutoLockActive",
+            "caption": "Automatisch Verschließen"
+        },
+        {
+            "type": "SelectTime",
+            "name": "AutoLockTime",
+            "caption": "Uhrzeit zum Verschließen"
+        },
+        {
+            "type": "CheckBox",
+            "name": "AutoUnlockActive",
+            "caption": "Automatisch Aufsperren"
+        },
+        {
+            "type": "SelectTime",
+            "name": "AutoUnlockTime",
+            "caption": "Uhrzeit zum Aufsperren"
+        },
+        {
+            "type": "CheckBox",
+            "name": "AutoUnlockOnlyWhenPresent",
+            "caption": "Aufsperren nur bei Anwesenheit"
+        },
+        {
             "type": "List",
             "name": "WindowVariables",
             "caption": "Fenster/Tür-Kontakte (Sicherheit)",

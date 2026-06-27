@@ -11,6 +11,17 @@ class SmartAbsenceSecurity extends IPSModuleStrict
         $this->RegisterPropertyString('DoorVariables', '[]');
         $this->RegisterPropertyString('WindowVariables', '[]');
 
+        $this->RegisterPropertyBool('AutoLockActive', false);
+        $this->RegisterPropertyString('AutoLockTime', '{"hour":22,"minute":0,"second":0}');
+        $this->RegisterPropertyBool('AutoUnlockActive', false);
+        $this->RegisterPropertyString('AutoUnlockTime', '{"hour":7,"minute":0,"second":0}');
+        $this->RegisterPropertyBool('AutoUnlockOnlyWhenPresent', true);
+
+        $this->RegisterAttributeBool('IsAbsent', false);
+
+        $this->RegisterTimer('TimerAutoLock', 0, 'SAS_TimerAutoLock($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('TimerAutoUnlock', 0, 'SAS_TimerAutoUnlock($_IPS[\'TARGET\']);');
+
         // Variablen für den WebFront-Status
         $this->RegisterVariableInteger('OpenWindowsCount', 'Offene Fenster / Türen (Zähler)', '', 1);
         $this->RegisterVariableString('OpenWindowsList', 'Offene Fenster / Türen (Namen)', '', 2);
@@ -41,6 +52,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
             }
         }
         $this->CalculateOpenWindows();
+        $this->UpdateTimers();
 
         $this->SetStatus(102);
     }
@@ -108,6 +120,8 @@ class SmartAbsenceSecurity extends IPSModuleStrict
 
     public function SetAbsence(bool $status): void
     {
+        $this->WriteAttributeBool('IsAbsent', $status);
+
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
         if (!is_array($doorVars)) return;
 
@@ -136,5 +150,75 @@ class SmartAbsenceSecurity extends IPSModuleStrict
             }
             $this->LogMessage("SmartAbsenceSecurity: Aufsperren der konfigurierten Türen durchgeführt.", KL_NOTIFY);
         }
+    }
+
+    private function UpdateTimers(): void
+    {
+        if ($this->ReadPropertyBool('AutoLockActive')) {
+            $this->SetTimerInterval('TimerAutoLock', $this->GetMillisecondsToTime($this->ReadPropertyString('AutoLockTime')));
+        } else {
+            $this->SetTimerInterval('TimerAutoLock', 0);
+        }
+
+        if ($this->ReadPropertyBool('AutoUnlockActive')) {
+            $this->SetTimerInterval('TimerAutoUnlock', $this->GetMillisecondsToTime($this->ReadPropertyString('AutoUnlockTime')));
+        } else {
+            $this->SetTimerInterval('TimerAutoUnlock', 0);
+        }
+    }
+
+    private function GetMillisecondsToTime(string $timeStr): int
+    {
+        $time = json_decode($timeStr, true);
+        if (!is_array($time)) return 0;
+        
+        $now = time();
+        $targetTime = mktime($time['hour'], $time['minute'], $time['second'], (int)date('m'), (int)date('d'), (int)date('Y'));
+        
+        if ($targetTime <= $now) {
+            $targetTime += 86400; // Nächster Tag
+        }
+        
+        return ($targetTime - $now) * 1000;
+    }
+
+    public function TimerAutoLock(): void
+    {
+        $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
+        if (is_array($doorVars)) {
+            foreach ($doorVars as $door) {
+                $id = $door['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    RequestAction($id, 0); // 0 = Verriegeln
+                }
+            }
+        }
+        $this->LogMessage("SmartAbsenceSecurity: Automatisches Verriegeln der Türen durchgeführt.", KL_NOTIFY);
+        
+        $this->UpdateTimers();
+    }
+
+    public function TimerAutoUnlock(): void
+    {
+        $this->UpdateTimers();
+
+        $onlyWhenPresent = $this->ReadPropertyBool('AutoUnlockOnlyWhenPresent');
+        $isAbsent = $this->ReadAttributeBool('IsAbsent');
+        
+        if ($onlyWhenPresent && $isAbsent) {
+            $this->LogMessage("SmartAbsenceSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).", KL_NOTIFY);
+            return;
+        }
+
+        $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
+        if (is_array($doorVars)) {
+            foreach ($doorVars as $door) {
+                $id = $door['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    RequestAction($id, 1); // 1 = Aufsperren
+                }
+            }
+        }
+        $this->LogMessage("SmartAbsenceSecurity: Automatisches Aufsperren der Türen durchgeführt.", KL_NOTIFY);
     }
 }

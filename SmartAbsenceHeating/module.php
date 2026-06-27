@@ -42,6 +42,25 @@ class SmartAbsenceHeating extends IPSModuleStrict
             ]);
         }
 
+        // Variable Aggregation (Logging) für Ø Haus-Temperatur aktivieren
+        $avgTempId = $this->GetIDForIdent('AverageTemperature');
+        $archiveIDs = IPS_GetInstanceListByModuleID('{43192F0B-135B-4CE7-A0A7-1475603F3060}');
+        if (count($archiveIDs) > 0) {
+            $archiveID = $archiveIDs[0];
+            $changed = false;
+            if (!AC_GetLoggingStatus($archiveID, $avgTempId)) {
+                AC_SetLoggingStatus($archiveID, $avgTempId, true);
+                $changed = true;
+            }
+            if (AC_GetAggregationType($archiveID, $avgTempId) !== 0) { // 0 = Standard (Ø)
+                AC_SetAggregationType($archiveID, $avgTempId, 0);
+                $changed = true;
+            }
+            if ($changed) {
+                IPS_ApplyChanges($archiveID);
+            }
+        }
+
         $this->SetTimerInterval('UpdateTempTimer', 15 * 60 * 1000); // 15 Minuten
         $this->UpdateAverageTemperature();
 
