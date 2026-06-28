@@ -66,5 +66,12 @@
                 }
             ]
         }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Sequenz jetzt testen",
+            "onClick": "VKSQ_TestSequence($id);"
+        }
     ]
 }

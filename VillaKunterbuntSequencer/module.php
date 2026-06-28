@@ -74,6 +74,12 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         }
     }
 
+    public function TestSequence(): void
+    {
+        $this->LogMessage("Manuelle Test-Auslösung der Sequenz über den Test-Button.", KL_NOTIFY);
+        $this->TriggerSequence();
+    }
+
     private function TriggerSequence(): void
     {
         if (!$this->GetValue('Active')) {
