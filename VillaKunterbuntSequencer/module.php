@@ -77,12 +77,12 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
     public function TestSequence(): void
     {
         $this->LogMessage("Manuelle Test-Auslösung der Sequenz über den Test-Button.", KL_NOTIFY);
-        $this->TriggerSequence();
+        $this->TriggerSequence(true);
     }
 
-    private function TriggerSequence(): void
+    private function TriggerSequence(bool $force = false): void
     {
-        if (!$this->GetValue('Active')) {
+        if (!$force && !$this->GetValue('Active')) {
             $this->LogMessage("Sequenz-Trigger empfangen, aber Sequencer ist deaktiviert.", KL_NOTIFY);
             return;
         }
