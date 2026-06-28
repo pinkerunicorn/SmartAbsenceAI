@@ -68,7 +68,8 @@
                 {
                     "caption": "Instanz",
                     "name": "InstanceID",
-                    "width": "100%",
+                    "width": "600px",
+                    "add": 0,
                     "edit": {
                         "type": "SelectInstance"
                     }
