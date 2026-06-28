@@ -202,7 +202,9 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
                         $val = (float)$valStr;
                     }
                     
-                    @RequestAction($targetID, $val);
+                    if (!@RequestAction($targetID, $val)) {
+                        $this->LogMessage("RequestAction fehlgeschlagen! Hat die Variable " . $targetID . " überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?", KL_ERROR);
+                    }
                     break;
                 case 2: // Wake On LAN
                     $this->LogMessage("Sende WOL an Instanz: " . $targetID, KL_NOTIFY);
