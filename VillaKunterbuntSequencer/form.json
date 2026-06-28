@@ -56,7 +56,7 @@
                     "caption": "Wert (Nur für Schalten)",
                     "name": "Value",
                     "width": "150px",
-                    "add": "true",
+                    "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
                     }
