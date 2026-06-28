@@ -66,10 +66,6 @@ class SmartAbsenceController extends IPSModuleStrict
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
                 'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             ]);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ControllerLog'), [
-                'PRESENTATION'   => VARIABLE_PRESENTATION_HTML,
-                'ICON'           => 'Menu'
-            ]);
         }
         
         // Legacy Variable verstecken/löschen, falls noch da
