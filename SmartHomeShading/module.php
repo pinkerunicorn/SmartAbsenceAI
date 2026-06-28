@@ -148,6 +148,19 @@ class SmartHomeShading extends IPSModuleStrict
         
         $isHotAndBright = ($temp >= $tempThreshold && $brightness >= $brightnessThreshold);
         
+        $sunriseTime = $this->GetFloatVal('SunriseVariableID');
+        $sunsetTime = $this->GetFloatVal('SunsetVariableID');
+        $now = time();
+        $isNight = false;
+        
+        // Location-Modul speichert Sonnenauf/untergang als Unix-Timestamp
+        if ($sunriseTime > 0 && $sunsetTime > 0) {
+            // Wenn es nach Sonnenuntergang oder noch vor Sonnenaufgang ist
+            if ($now >= $sunsetTime || $now < $sunriseTime) {
+                $isNight = true;
+            }
+        }
+        
         foreach ($blinds as $blind) {
             $id = $blind['VariableID'] ?? 0;
             if ($id <= 0) continue;
@@ -180,6 +193,9 @@ class SmartHomeShading extends IPSModuleStrict
             if ($isOpen) {
                 $targetState = 'VENTILATE';
                 $targetValueStr = $blind['ValueVentilate'] ?? "0.3";
+            } elseif ($isNight) {
+                $targetState = 'NIGHT';
+                $targetValueStr = "0"; // Zu
             } elseif ($sunInSector && $isHotAndBright) {
                 $targetState = 'SHADING';
                 $targetValueStr = $blind['ValueShade'] ?? "0.1";
