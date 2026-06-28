@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class SmartAbsenceController extends IPSModuleStrict
+class SmartHomeControl extends IPSModuleStrict
 {
     public function Create(): void
     {
@@ -22,10 +22,13 @@ class SmartAbsenceController extends IPSModuleStrict
         $this->RegisterPropertyInteger('LightingInstance', 0);
         $this->RegisterPropertyBoolean('EnableLighting', true);
         
+        $this->RegisterPropertyInteger('ShadingInstance', 0);
+        $this->RegisterPropertyBoolean('EnableShading', true);
+        
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifySonos' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifySonos' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifySonos' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -36,8 +39,8 @@ class SmartAbsenceController extends IPSModuleStrict
 
         // Neues Profil für Hausmodus
         // Profil für Haus-Modus dynamisch anlegen
-        if (!IPS_VariableProfileExists('SmartAbsence.HouseMode')) {
-            IPS_CreateVariableProfile('SmartAbsence.HouseMode', 1);
+        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
+            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
         }
         
         $modesJson = $this->ReadPropertyString('HouseModes');
@@ -47,21 +50,21 @@ class SmartAbsenceController extends IPSModuleStrict
         }
         
         // Zuerst alte Assoziationen löschen
-        $profileInfo = IPS_GetVariableProfile('SmartAbsence.HouseMode');
+        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
         foreach ($profileInfo['Associations'] as $ass) {
-            IPS_SetVariableProfileAssociation('SmartAbsence.HouseMode', $ass['Value'], "", "", -1);
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
         }
         
         // Neue Assoziationen anlegen
         foreach ($modes as $mode) {
-            IPS_SetVariableProfileAssociation('SmartAbsence.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
         }
 
-        $this->RegisterVariableInteger('HouseMode', 'Haus Modus', 'SmartAbsence.HouseMode', 1);
+        $this->RegisterVariableInteger('HouseMode', 'Haus Modus', 'SmartHome.HouseMode', 1);
         $this->EnableAction('HouseMode');
         
         // Timer für Kalender-Check
-        $this->RegisterTimer('CalendarCheck', 0, 'SAC_CheckCalendar($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('CalendarCheck', 0, 'SHC_CheckCalendar($_IPS[\'TARGET\']);');
         
         // Attribut für Log-Daten
         $this->RegisterAttributeString('LogData', '[]');
@@ -161,6 +164,7 @@ class SmartAbsenceController extends IPSModuleStrict
         $heatingInst = $this->ReadPropertyInteger('HeatingInstance');
         $secInst = $this->ReadPropertyInteger('SecurityInstance');
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
+        $shadeInst = $this->ReadPropertyInteger('ShadingInstance');
 
         $modesJson = $this->ReadPropertyString('HouseModes');
         $modes = json_decode($modesJson, true);
@@ -176,31 +180,36 @@ class SmartAbsenceController extends IPSModuleStrict
         }
         
         $modeName = $currentModeConfig ? $currentModeConfig['ModeName'] : "Unbekannt ($mode)";
-        $this->LogMessage("VillaKunterbuntController: Haus-Modus gewechselt auf " . $modeName, KL_NOTIFY);
+        $this->LogMessage("SmartHomeControl: Haus-Modus gewechselt auf " . $modeName, KL_NOTIFY);
 
         // Standard-Matrix (falls nichts konfiguriert ist, alles ausführen)
         $notifyHeating = $currentModeConfig ? ($currentModeConfig['NotifyHeating'] ?? true) : true;
         $notifySecurity = $currentModeConfig ? ($currentModeConfig['NotifySecurity'] ?? true) : true;
         $notifyLighting = $currentModeConfig ? ($currentModeConfig['NotifyLighting'] ?? true) : true;
+        $notifyShading = $currentModeConfig ? ($currentModeConfig['NotifyShading'] ?? true) : true;
         $notifySonos = $currentModeConfig ? ($currentModeConfig['NotifySonos'] ?? true) : true;
         $sequencerInst = $currentModeConfig ? ($currentModeConfig['SequencerInstance'] ?? 0) : 0;
 
         $this->AddLogEvent("Modus geändert zu: " . $modeName, '🏠');
 
-        if ($notifyHeating && $this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetHouseMode')) {
-            SAH_SetHouseMode($heatingInst, $mode, $vacationEndTime);
+        if ($notifyHeating && $this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SHH_SetHouseMode')) {
+            SHH_SetHouseMode($heatingInst, $mode, $vacationEndTime);
         }
 
-        if ($notifySecurity && $this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetHouseMode')) {
-            SAS_SetHouseMode($secInst, $mode);
+        if ($notifySecurity && $this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SHS_SetHouseMode')) {
+            SHS_SetHouseMode($secInst, $mode);
         }
 
-        if ($notifyLighting && $this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetHouseMode')) {
-            SAL_SetHouseMode($lightInst, $mode);
+        if ($notifyLighting && $this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SHL_SetHouseMode')) {
+            SHL_SetHouseMode($lightInst, $mode);
         }
         
-        if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('VKSQ_RunSequence')) {
-            VKSQ_RunSequence($sequencerInst);
+        if ($notifyShading && $this->ReadPropertyBoolean('EnableShading') && $shadeInst > 0 && IPS_InstanceExists($shadeInst) && function_exists('SHSH_SetHouseMode')) {
+            SHSH_SetHouseMode($shadeInst, $mode);
+        }
+        
+        if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {
+            SHSQ_RunSequence($sequencerInst);
             $this->AddLogEvent("Sequencer ausgelöst.", '⚡');
         }
 

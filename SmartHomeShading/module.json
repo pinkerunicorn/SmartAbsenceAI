@@ -1,0 +1,12 @@
+{
+    "id": "{72F50C1B-873B-49E8-ACFE-0C1B036928C4}",
+    "name": "SmartHomeShading",
+    "type": 3,
+    "vendor": "SmartHome",
+    "aliases": ["SmartHome Shading"],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SHSH",
+    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
+}

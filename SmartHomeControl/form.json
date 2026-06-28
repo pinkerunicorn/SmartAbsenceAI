@@ -2,7 +2,7 @@
     "elements": [
         {
             "type": "Label",
-            "caption": "Orchestrierung der SmartAbsence-Submodule"
+            "caption": "Orchestrierung der SmartHome-Submodule"
         },
         {
             "type": "List",
@@ -91,6 +91,15 @@
                     "edit": {
                         "type": "CheckBox"
                     }
+                },
+                {
+                    "caption": "Beschattung",
+                    "name": "NotifyShading",
+                    "width": "80px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
                 }
             ]
         },
@@ -135,6 +144,21 @@
                 {
                     "type": "CheckBox",
                     "name": "EnableLighting",
+                    "caption": "Aktiv"
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectInstance",
+                    "name": "ShadingInstance",
+                    "caption": "Shading (Rollläden) Instanz"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "EnableShading",
                     "caption": "Aktiv"
                 }
             ]
@@ -199,7 +223,7 @@
         {
             "type": "Button",
             "caption": "Manueller Kalender Sync",
-            "onClick": "SAC_CheckCalendar($id);"
+            "onClick": "SHC_CheckCalendar($id);"
         }
     ]
 }

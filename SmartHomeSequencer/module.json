@@ -1,14 +1,14 @@
 {
-    "id": "{B2C3D4E5-F6A7-489A-9B0C-D1E2F3A4B5C6}",
-    "name": "SmartAbsenceSecurity",
+    "id": "{9F8E7D6C-5B4A-3C2D-1E0F-A1B2C3D4E5F6}",
+    "name": "SmartHomeSequencer",
     "type": 3,
-    "vendor": "Florian Graßinger",
+    "vendor": "VillaKunterbunt",
     "aliases": [
-        "SmartAbsenceSecurity"
+        "Villa Kunterbunt Sequencer"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAS",
+    "prefix": "SHSQ",
     "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
 }

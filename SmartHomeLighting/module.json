@@ -1,14 +1,14 @@
 {
     "id": "{C3D4E5F6-A7B8-49AB-A1B2-C3D4E5F6A7B8}",
-    "name": "SmartAbsenceLighting",
+    "name": "SmartHomeLighting",
     "type": 3,
     "vendor": "Florian Graßinger",
     "aliases": [
-        "SmartAbsenceLighting"
+        "SmartHomeLighting"
     ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "SAL",
+    "prefix": "SHL",
     "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
 }

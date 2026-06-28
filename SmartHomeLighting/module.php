@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class SmartAbsenceLighting extends IPSModuleStrict
+class SmartHomeLighting extends IPSModuleStrict
 {
     public function Create(): void
     {
@@ -22,8 +22,8 @@ class SmartAbsenceLighting extends IPSModuleStrict
         $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', '', 3);
         $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', '', 4);
 
-        $this->RegisterTimer('LightExecutionTimer', 0, 'SAL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
-        $this->RegisterTimer('GeminiRetryTimer', 0, 'SAL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
+        $this->RegisterTimer('LightExecutionTimer', 0, 'SHL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('GeminiRetryTimer', 0, 'SHL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
     }
 
     public function ApplyChanges(): void
@@ -143,7 +143,7 @@ class SmartAbsenceLighting extends IPSModuleStrict
             $this->GenerateAiSchedule();
             IPS_SetEventActive($eid, true);
             $this->SetTimerInterval('LightExecutionTimer', 60000);
-            $this->LogMessage("SmartAbsenceLighting: Präsenzsimulation gestartet.", KL_NOTIFY);
+            $this->LogMessage("SmartHomeLighting: Präsenzsimulation gestartet.", KL_NOTIFY);
             $this->TurnOffAllSimulatedLights(); // Zuerst alles aus
         } else {
             // Wenn Präsenzsimulation lief, schalten wir sie ab
@@ -158,16 +158,16 @@ class SmartAbsenceLighting extends IPSModuleStrict
             
             if ($mode == 5) { // Schlafen
                 $this->TurnOffAllSimulatedLights();
-                $this->LogMessage("SmartAbsenceLighting: Schlafen aktiv - Alle Lichter aus.", KL_NOTIFY);
+                $this->LogMessage("SmartHomeLighting: Schlafen aktiv - Alle Lichter aus.", KL_NOTIFY);
             } elseif ($mode == 6) { // Putzen
                 $this->TurnOnAllSimulatedLights();
-                $this->LogMessage("SmartAbsenceLighting: Putzen aktiv - Alle Lichter an.", KL_NOTIFY);
+                $this->LogMessage("SmartHomeLighting: Putzen aktiv - Alle Lichter an.", KL_NOTIFY);
             } else {
                 // Bei Rückkehr (0, 3, 4) machen wir die simulierten Lichter aus, 
                 // aber nur wenn die Simulation davor lief.
                 if ($wasActive) {
                     $this->TurnOffAllSimulatedLights();
-                    $this->LogMessage("SmartAbsenceLighting: Präsenzsimulation gestoppt und Lichter aus.", KL_NOTIFY);
+                    $this->LogMessage("SmartHomeLighting: Präsenzsimulation gestoppt und Lichter aus.", KL_NOTIFY);
                 }
             }
         }
@@ -257,9 +257,9 @@ class SmartAbsenceLighting extends IPSModuleStrict
             curl_close($ch);
             
             if ($error) {
-                SAL_ProcessGeminiResponse(' . $this->InstanceID . ', json_encode(["error" => "cURL Fehler: " . $error]));
+                SHL_ProcessGeminiResponse(' . $this->InstanceID . ', json_encode(["error" => "cURL Fehler: " . $error]));
             } else {
-                SAL_ProcessGeminiResponse(' . $this->InstanceID . ', $response);
+                SHL_ProcessGeminiResponse(' . $this->InstanceID . ', $response);
             }
         ';
         IPS_RunScriptText($script);
@@ -430,7 +430,7 @@ class SmartAbsenceLighting extends IPSModuleStrict
             IPS_SetParent($eid, $this->InstanceID);
             IPS_SetIdent($eid, 'DailyScheduleEvent');
             IPS_SetName($eid, 'Täglicher KI Plan (12:00 Uhr)');
-            IPS_SetEventScript($eid, "SAL_GenerateAiSchedule(\$_IPS['TARGET']);");
+            IPS_SetEventScript($eid, "SHL_GenerateAiSchedule(\$_IPS['TARGET']);");
             IPS_SetEventCyclic($eid, 2, 1, 0, 0, 0, 0); 
             IPS_SetEventCyclicTimeFrom($eid, 12, 0, 0);
             IPS_SetEventActive($eid, false);

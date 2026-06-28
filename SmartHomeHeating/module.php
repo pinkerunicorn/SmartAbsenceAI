@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class SmartAbsenceHeating extends IPSModuleStrict
+class SmartHomeHeating extends IPSModuleStrict
 {
     public function Create(): void
     {
@@ -22,7 +22,7 @@ class SmartAbsenceHeating extends IPSModuleStrict
         $this->RegisterVariableFloat('AverageTemperature', 'Ø Haus-Temperatur', '', 2);
 
         // Timer for periodic temperature update
-        $this->RegisterTimer('UpdateTempTimer', 0, 'SAH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('UpdateTempTimer', 0, 'SHH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges(): void
@@ -139,10 +139,10 @@ class SmartAbsenceHeating extends IPSModuleStrict
             if ($isVacation) {
                 $dateStr = ($vacationEndTime > 0) ? " bis " . date('d.m. H:i', $vacationEndTime) : "";
                 $this->SetValue('HeatingStatus', '🧳 Urlaub aktiv' . $dateStr . ' (' . $roomCount . ' Räume tief abgesenkt)');
-                $this->LogMessage("SmartAbsenceHeating: Urlaubs-Absenktemperatur aktiviert.", KL_NOTIFY);
+                $this->LogMessage("SmartHomeHeating: Urlaubs-Absenktemperatur aktiviert.", KL_NOTIFY);
             } else {
                 $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (' . $roomCount . ' Räume manuell abgesenkt)');
-                $this->LogMessage("SmartAbsenceHeating: Absenktemperatur (mit Manu-Modus) aktiviert.", KL_NOTIFY);
+                $this->LogMessage("SmartHomeHeating: Absenktemperatur (mit Manu-Modus) aktiviert.", KL_NOTIFY);
             }
         } else {
             // Modus 0 (Anwesenheit), 3 (Party), 4 (Heimkino), 6 (Putzen) -> Heizung normal!
@@ -164,7 +164,7 @@ class SmartAbsenceHeating extends IPSModuleStrict
             }
             $this->WriteAttributeString('PreviousStates', '{}');
             $this->SetValue('HeatingStatus', '🟢 Normalbetrieb (Profil gesteuert)');
-            $this->LogMessage("SmartAbsenceHeating: Normaltemperatur / Auto-Modus wiederhergestellt.", KL_NOTIFY);
+            $this->LogMessage("SmartHomeHeating: Normaltemperatur / Auto-Modus wiederhergestellt.", KL_NOTIFY);
         }
         $this->UpdateAverageTemperature();
     }

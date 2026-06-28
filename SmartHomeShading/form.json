@@ -1,0 +1,72 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "caption": "SmartHome Shading - Beschattungssteuerung & Anwesenheitssimulation"
+        },
+        {
+            "type": "Label",
+            "caption": "Hinweis: Trage hier deine Rollläden ein. Bei Abwesenheit/Urlaub werden sie morgens und abends zufällig simuliert."
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "SunriseVariableID",
+                    "caption": "Sonnenaufgang Variable (Astro)"
+                },
+                {
+                    "type": "SelectVariable",
+                    "name": "SunsetVariableID",
+                    "caption": "Sonnenuntergang Variable (Astro)"
+                }
+            ]
+        },
+        {
+            "type": "List",
+            "name": "BlindVariables",
+            "caption": "Rollläden / Jalousien",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Rollladen Variable",
+                    "name": "VariableID",
+                    "width": "200px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Wert für 'Ganz Auf'",
+                    "name": "ValueOpen",
+                    "width": "120px",
+                    "add": "0",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Wert für 'Ganz Zu'",
+                    "name": "ValueClosed",
+                    "width": "120px",
+                    "add": "1",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Wert für 'Schlafen'",
+                    "name": "ValueSleep",
+                    "width": "150px",
+                    "add": "1",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                }
+            ]
+        }
+    ]
+}

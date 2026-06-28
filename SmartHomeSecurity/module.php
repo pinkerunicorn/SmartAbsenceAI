@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class SmartAbsenceSecurity extends IPSModuleStrict
+class SmartHomeSecurity extends IPSModuleStrict
 {
     public function Create(): void
     {
@@ -19,8 +19,8 @@ class SmartAbsenceSecurity extends IPSModuleStrict
 
         $this->RegisterAttributeBoolean('IsAbsent', false);
 
-        $this->RegisterTimer('TimerAutoLock', 0, 'SAS_TimerAutoLock($_IPS[\'TARGET\']);');
-        $this->RegisterTimer('TimerAutoUnlock', 0, 'SAS_TimerAutoUnlock($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('TimerAutoLock', 0, 'SHS_TimerAutoLock($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('TimerAutoUnlock', 0, 'SHS_TimerAutoUnlock($_IPS[\'TARGET\']);');
 
         // Variablen für den WebFront-Status
         $this->RegisterVariableInteger('OpenWindowsCount', 'Offene Fenster / Türen (Zähler)', '', 1);
@@ -138,7 +138,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
                     }
                 }
             }
-            $this->LogMessage("SmartAbsenceSecurity: Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
+            $this->LogMessage("SmartHomeSecurity: Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
         } else {
             foreach ($doorVars as $door) {
                 // Fallback für alte Konfigurationen: false
@@ -150,7 +150,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
                     }
                 }
             }
-            $this->LogMessage("SmartAbsenceSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
+            $this->LogMessage("SmartHomeSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
         }
     }
 
@@ -195,7 +195,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
                 }
             }
         }
-        $this->LogMessage("SmartAbsenceSecurity: Automatisches Verriegeln der Türen durchgeführt.", KL_NOTIFY);
+        $this->LogMessage("SmartHomeSecurity: Automatisches Verriegeln der Türen durchgeführt.", KL_NOTIFY);
         
         $this->UpdateTimers();
     }
@@ -208,7 +208,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
         $isAbsent = $this->ReadAttributeBoolean('IsAbsent');
         
         if ($onlyWhenPresent && $isAbsent) {
-            $this->LogMessage("SmartAbsenceSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).", KL_NOTIFY);
+            $this->LogMessage("SmartHomeSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).", KL_NOTIFY);
             return;
         }
 
@@ -221,6 +221,6 @@ class SmartAbsenceSecurity extends IPSModuleStrict
                 }
             }
         }
-        $this->LogMessage("SmartAbsenceSecurity: Automatisches Aufsperren der Türen durchgeführt.", KL_NOTIFY);
+        $this->LogMessage("SmartHomeSecurity: Automatisches Aufsperren der Türen durchgeführt.", KL_NOTIFY);
     }
 }

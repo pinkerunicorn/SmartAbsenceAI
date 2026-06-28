@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class VillaKunterbuntSequencer extends IPSModuleStrict
+class SmartHomeSequencer extends IPSModuleStrict
 {
     public function Create(): void
     {
@@ -15,7 +15,7 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         $this->RegisterAttributeString('Queue', '[]');
         
         // Timer für die Ausführung der Warteschlange
-        $this->RegisterTimer('QueueTimer', 0, 'VKSQ_ProcessQueue($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('QueueTimer', 0, 'SHSQ_ProcessQueue($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges(): void

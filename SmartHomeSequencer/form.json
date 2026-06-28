@@ -61,7 +61,7 @@
         {
             "type": "Button",
             "caption": "Ablauf jetzt auslösen (Test)",
-            "onClick": "VKSQ_RunSequence($id);"
+            "onClick": "SHSQ_RunSequence($id);"
         }
     ]
 }

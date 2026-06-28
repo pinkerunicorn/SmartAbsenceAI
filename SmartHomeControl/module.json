@@ -1,0 +1,14 @@
+{
+    "id": "{460D7C60-0766-4534-BFD8-5920737B1845}",
+    "name": "SmartHomeControl",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "Villa Kunterbunt Controller"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SHC",
+    "url": "https://github.com/pinkerunicorn/SmartHomeControl"
+}
