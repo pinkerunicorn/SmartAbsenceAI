@@ -199,6 +199,8 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
                     } elseif ($var['VariableType'] == 1) { // Integer
                         $val = (int)$valStr;
                     } elseif ($var['VariableType'] == 2) { // Float
+                        // Erlaube auch Komma als Dezimaltrenner (z.B. "0,2")
+                        $valStr = str_replace(',', '.', $valStr);
                         $val = (float)$valStr;
                     }
                     
