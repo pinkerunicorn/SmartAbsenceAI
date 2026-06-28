@@ -177,10 +177,18 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         try {
             switch ($actionType) {
                 case 0: // Skript / Ablaufplan ausführen
+                    if (!IPS_ScriptExists($targetID)) {
+                        $this->LogMessage("Fehler: Ziel " . $targetID . " ist kein ausführbares Skript!", KL_ERROR);
+                        return;
+                    }
                     $this->LogMessage("Führe Skript/Ablaufplan aus: " . $targetID, KL_NOTIFY);
-                    IPS_RunScript($targetID);
+                    @IPS_RunScript($targetID);
                     break;
                 case 1: // Gerät/Variable schalten (RequestAction)
+                    if (!IPS_VariableExists($targetID)) {
+                        $this->LogMessage("Fehler: Ziel " . $targetID . " ist keine Status-Variable!", KL_ERROR);
+                        return;
+                    }
                     $this->LogMessage("Schalte Variable " . $targetID . " auf Wert: " . $valStr, KL_NOTIFY);
                     
                     // Datentyp bestimmen für korrekten Cast
@@ -194,7 +202,7 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
                         $val = (float)$valStr;
                     }
                     
-                    RequestAction($targetID, $val);
+                    @RequestAction($targetID, $val);
                     break;
                 case 2: // Wake On LAN
                     $this->LogMessage("Sende WOL an Instanz: " . $targetID, KL_NOTIFY);
