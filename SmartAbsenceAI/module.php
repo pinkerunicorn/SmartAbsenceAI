@@ -46,6 +46,12 @@ class SmartAbsenceController extends IPSModuleStrict
         
         // Timer für Kalender-Check
         $this->RegisterTimer('CalendarCheck', 0, 'SAC_CheckCalendar($_IPS[\'TARGET\']);');
+        
+        // Attribut für Log-Daten
+        $this->RegisterAttributeString('LogData', '[]');
+        
+        // HTML Log Variable
+        $this->RegisterVariableString('ControllerLog', 'System Log', '', 2);
     }
 
     public function ApplyChanges(): void
@@ -56,6 +62,10 @@ class SmartAbsenceController extends IPSModuleStrict
         if (function_exists('IPS_SetVariableCustomPresentation')) {
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
                 'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            ]);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ControllerLog'), [
+                'PRESENTATION'   => VARIABLE_PRESENTATION_HTML,
+                'ICON'           => 'Menu'
             ]);
         }
         
@@ -87,6 +97,7 @@ class SmartAbsenceController extends IPSModuleStrict
                     if (count($openItems) > 0) {
                         $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem aktiviert.";
                         $this->LogMessage($msg, KL_WARNING);
+                        $this->AddLogEvent($msg, '⚠️');
                         
                         $wfc = $this->ReadPropertyInteger('WebFrontInstance');
                         if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyWindows')) {
@@ -140,6 +151,9 @@ class SmartAbsenceController extends IPSModuleStrict
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
 
         $this->LogMessage("VillaKunterbuntController: Haus-Modus gewechselt auf " . $mode, KL_NOTIFY);
+        $modeNames = ['Anwesenheit', 'Abwesenheit', 'Urlaub', 'Party', 'Heimkino', 'Schlafen', 'Putzen'];
+        $mName = isset($modeNames[$mode]) ? $modeNames[$mode] : "Unbekannt ($mode)";
+        $this->AddLogEvent("Haus-Modus manuell auf '$mName' gewechselt.", '🏠');
 
         if ($this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetHouseMode')) {
             SAH_SetHouseMode($heatingInst, $mode, $vacationEndTime);
@@ -178,11 +192,15 @@ class SmartAbsenceController extends IPSModuleStrict
     public function CheckCalendar(): void
     {
         $url = $this->ReadPropertyString('CalendarURL');
-        if (empty($url)) return;
+        if (empty($url)) {
+            $this->AddLogEvent("CheckCalendar: Keine iCal-URL hinterlegt.", 'ℹ️');
+            return;
+        }
         
         $icalData = @file_get_contents($url);
         if (!$icalData) {
             $this->LogMessage("CheckCalendar: Konnte iCal-Daten nicht abrufen.", KL_ERROR);
+            $this->AddLogEvent("Fehler: Konnte Kalenderdaten nicht abrufen.", '❌');
             return;
         }
         
@@ -237,12 +255,63 @@ class SmartAbsenceController extends IPSModuleStrict
         
         if ($vacationFound && $currentMode !== 2) {
             $this->LogMessage("CheckCalendar: Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: " . date('d.m.Y H:i', $vacationEndTime) . ").", KL_NOTIFY);
+            $this->AddLogEvent("Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '🧳');
             $this->SetValue('HouseMode', 2);
             $this->SetHouseMode(2, $vacationEndTime);
         } elseif (!$vacationFound && $currentMode === 2) {
             $this->LogMessage("CheckCalendar: Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.", KL_NOTIFY);
+            $this->AddLogEvent("Kalender: Urlaubstermin beendet! Wechsle zurück auf Anwesenheit.", '🟢');
             $this->SetValue('HouseMode', 0);
             $this->SetHouseMode(0);
+        } elseif (!$vacationFound) {
+            $this->AddLogEvent("Kalender geprüft: Aktuell ist kein Urlaub eingetragen.", '📅');
+        } else {
+            $this->AddLogEvent("Kalender geprüft: Urlaub ist aktiv (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '📅');
         }
+    }
+
+    private function AddLogEvent(string $message, string $icon = 'ℹ️'): void
+    {
+        $logJson = $this->ReadAttributeString('LogData');
+        $log = json_decode($logJson, true);
+        if (!is_array($log)) $log = [];
+        
+        array_unshift($log, [
+            'time' => time(),
+            'msg' => $message,
+            'icon' => $icon
+        ]);
+        
+        if (count($log) > 50) {
+            $log = array_slice($log, 0, 50);
+        }
+        
+        $this->WriteAttributeString('LogData', json_encode($log));
+        $this->RenderLog($log);
+    }
+
+    private function RenderLog(array $log): void
+    {
+        if (count($log) === 0) {
+            $this->SetValue('ControllerLog', '<div style="padding: 10px; color: #888;">Noch keine Ereignisse protokolliert.</div>');
+            return;
+        }
+
+        $html = '<div style="display: flex; flex-direction: column; gap: 8px; padding: 5px;">';
+        foreach ($log as $entry) {
+            $timeStr = date('d.m.Y H:i:s', $entry['time']);
+            $msg = htmlspecialchars($entry['msg']);
+            $icon = $entry['icon'];
+
+            $html .= '<div style="background: rgba(255,255,255,0.05); border-left: 3px solid #00a8ff; padding: 8px 12px; border-radius: 4px;">';
+            $html .= '<div style="font-size: 0.8em; color: #aaa; margin-bottom: 3px;">' . $timeStr . '</div>';
+            $html .= '<div style="display: flex; align-items: center; gap: 8px;">';
+            $html .= '<span style="font-size: 1.2em;">' . $icon . '</span>';
+            $html .= '<span>' . $msg . '</span>';
+            $html .= '</div></div>';
+        }
+        $html .= '</div>';
+
+        $this->SetValue('ControllerLog', $html);
     }
 }
