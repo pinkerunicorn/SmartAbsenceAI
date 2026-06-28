@@ -1,0 +1,78 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "caption": "Aktionen, die beim Wechsel des Haus-Modus ausgeführt werden sollen"
+        },
+        {
+            "type": "List",
+            "name": "Sequences",
+            "caption": "Sequenzen (Abläufe)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Modus",
+                    "name": "HouseMode",
+                    "width": "150px",
+                    "add": 4,
+                    "edit": {
+                        "type": "Select",
+                        "options": [
+                            {"caption": "Anwesenheit", "value": 0},
+                            {"caption": "Abwesenheit", "value": 1},
+                            {"caption": "Urlaub", "value": 2},
+                            {"caption": "Party", "value": 3},
+                            {"caption": "Heimkino", "value": 4},
+                            {"caption": "Schlafen", "value": 5},
+                            {"caption": "Putzen", "value": 6}
+                        ]
+                    }
+                },
+                {
+                    "caption": "Aktion",
+                    "name": "ActionType",
+                    "width": "150px",
+                    "add": 0,
+                    "edit": {
+                        "type": "Select",
+                        "options": [
+                            {"caption": "Skript / Ablaufplan ausführen", "value": 0},
+                            {"caption": "Gerät/Variable schalten", "value": 1},
+                            {"caption": "Wake on LAN (WOL)", "value": 2}
+                        ]
+                    }
+                },
+                {
+                    "caption": "Ziel Instanz / Skript",
+                    "name": "TargetID",
+                    "width": "200px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectObject"
+                    }
+                },
+                {
+                    "caption": "Wert (Nur für Schalten)",
+                    "name": "Value",
+                    "width": "150px",
+                    "add": "true",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Verzögerung (Sek)",
+                    "name": "Delay",
+                    "width": "100px",
+                    "add": 0,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "minimum": 0,
+                        "maximum": 3600
+                    }
+                }
+            ]
+        }
+    ]
+}
