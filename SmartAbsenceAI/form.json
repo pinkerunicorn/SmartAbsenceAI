@@ -5,6 +5,96 @@
             "caption": "Orchestrierung der SmartAbsence-Submodule"
         },
         {
+            "type": "List",
+            "name": "HouseModes",
+            "caption": "Haus-Modi (Matrix & Zuweisungen)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "ID",
+                    "name": "ModeID",
+                    "width": "60px",
+                    "add": 0,
+                    "edit": {
+                        "type": "NumberSpinner"
+                    }
+                },
+                {
+                    "caption": "Modus Name",
+                    "name": "ModeName",
+                    "width": "150px",
+                    "add": "Neuer Modus",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Icon",
+                    "name": "Icon",
+                    "width": "100px",
+                    "add": "",
+                    "edit": {
+                        "type": "SelectIcon"
+                    }
+                },
+                {
+                    "caption": "Farbe",
+                    "name": "Color",
+                    "width": "80px",
+                    "add": -1,
+                    "edit": {
+                        "type": "SelectColor"
+                    }
+                },
+                {
+                    "caption": "Sequencer (Optional)",
+                    "name": "SequencerInstance",
+                    "width": "200px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
+                },
+                {
+                    "caption": "Heizung",
+                    "name": "NotifyHeating",
+                    "width": "70px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Licht",
+                    "name": "NotifyLighting",
+                    "width": "70px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Sicherheit",
+                    "name": "NotifySecurity",
+                    "width": "70px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Sonos",
+                    "name": "NotifySonos",
+                    "width": "70px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                }
+            ]
+        },
+        {
             "type": "RowLayout",
             "items": [
                 {

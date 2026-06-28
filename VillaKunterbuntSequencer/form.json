@@ -2,22 +2,12 @@
     "elements": [
         {
             "type": "Label",
-            "caption": "Eigenständiger Sequencer, der auf eine Variable lauscht."
-        },
-        {
-            "type": "SelectVariable",
-            "name": "TriggerVariable",
-            "caption": "Auslöser-Variable (z.B. Haus Modus)"
-        },
-        {
-            "type": "ValidationTextBox",
-            "name": "TriggerValue",
-            "caption": "Auslöser-Wert (z.B. 4 für Heimkino)"
+            "caption": "Makro-Baustein: Definiert eine Liste von Aktionen, die vom Controller oder manuell ausgelöst werden können."
         },
         {
             "type": "List",
             "name": "Sequences",
-            "caption": "Sequenz (Ablauf)",
+            "caption": "Ablauf (wird von oben nach unten abgearbeitet)",
             "add": true,
             "delete": true,
             "columns": [
@@ -70,8 +60,8 @@
     "actions": [
         {
             "type": "Button",
-            "caption": "Sequenz jetzt testen",
-            "onClick": "VKSQ_TestSequence($id);"
+            "caption": "Ablauf jetzt auslösen (Test)",
+            "onClick": "VKSQ_RunSequence($id);"
         }
     ]
 }

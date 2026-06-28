@@ -9,13 +9,7 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         parent::Create();
 
         // Konfiguration
-        $this->RegisterPropertyInteger('TriggerVariable', 0);
-        $this->RegisterPropertyString('TriggerValue', '');
         $this->RegisterPropertyString('Sequences', '[]');
-
-        // Aktiv-Schalter
-        $this->RegisterVariableBoolean('Active', 'Aktiv', '~Switch', 0);
-        $this->EnableAction('Active');
 
         // Warteschlange für verzögerte Aktionen
         $this->RegisterAttributeString('Queue', '[]');
@@ -27,66 +21,13 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
-        
-        // Message Sink aufräumen
-        foreach ($this->GetMessageList() as $senderID => $messages) {
-            foreach ($messages as $message) {
-                if ($message === VM_UPDATE) {
-                    $this->UnregisterMessage($senderID, VM_UPDATE);
-                }
-            }
-        }
-        
-        $triggerVar = $this->ReadPropertyInteger('TriggerVariable');
-        if ($triggerVar > 0 && IPS_VariableExists($triggerVar)) {
-            $this->RegisterMessage($triggerVar, VM_UPDATE);
-        }
-        
         $this->ProcessQueue();
     }
 
-    public function RequestAction($Ident, $Value): void
+    public function RunSequence(): void
     {
-        if ($Ident === 'Active') {
-            $this->SetValue($Ident, $Value);
-            
-            if (!$Value) {
-                // Warteschlange leeren bei Deaktivierung
-                $this->WriteAttributeString('Queue', '[]');
-                $this->SetTimerInterval('QueueTimer', 0);
-                $this->LogMessage("Sequencer deaktiviert, Warteschlange geleert.", KL_NOTIFY);
-            }
-        }
-    }
-
-    public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
-    {
-        if ($Message === VM_UPDATE) {
-            $triggerVar = $this->ReadPropertyInteger('TriggerVariable');
-            if ($SenderID === $triggerVar) {
-                $newValue = (string)$Data[0]; // Konvertiere immer zu String für einfachen Vergleich
-                $targetValue = $this->ReadPropertyString('TriggerValue');
-                
-                if ($newValue === $targetValue) {
-                    $this->TriggerSequence();
-                }
-            }
-        }
-    }
-
-    public function TestSequence(): void
-    {
-        $this->LogMessage("Manuelle Test-Auslösung der Sequenz über den Test-Button.", KL_NOTIFY);
-        $this->TriggerSequence(true);
-    }
-
-    private function TriggerSequence(bool $force = false): void
-    {
-        if (!$force && !$this->GetValue('Active')) {
-            $this->LogMessage("Sequenz-Trigger empfangen, aber Sequencer ist deaktiviert.", KL_NOTIFY);
-            return;
-        }
-
+        $this->LogMessage("Manuelle Auslösung der Sequenz vom Controller oder Test-Button.", KL_NOTIFY);
+        
         $sequencesJson = $this->ReadPropertyString('Sequences');
         $sequences = json_decode($sequencesJson, true);
 
@@ -103,7 +44,7 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         $now = time();
         $itemsAdded = false;
 
-        $this->LogMessage("Sequenz ausgelöst. Verarbeite " . count($sequences) . " Aktionen.", KL_NOTIFY);
+        $this->LogMessage("Sequenz gestartet. Verarbeite " . count($sequences) . " Aktionen.", KL_NOTIFY);
 
         foreach ($sequences as $seq) {
             $delay = isset($seq['Delay']) ? (int)$seq['Delay'] : 0;
@@ -128,6 +69,12 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
             $this->WriteAttributeString('Queue', json_encode($queue));
             $this->SetTimerInterval('QueueTimer', 1000); // Check every second
         }
+    }
+
+    // Für Abwärtskompatibilität, falls der Button noch den alten Namen nutzt
+    public function TestSequence(): void
+    {
+        $this->RunSequence();
     }
 
     public function ProcessQueue(): void
