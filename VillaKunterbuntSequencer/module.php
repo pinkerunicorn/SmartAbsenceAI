@@ -9,7 +9,13 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         parent::Create();
 
         // Konfiguration
+        $this->RegisterPropertyInteger('TriggerVariable', 0);
+        $this->RegisterPropertyString('TriggerValue', '');
         $this->RegisterPropertyString('Sequences', '[]');
+
+        // Aktiv-Schalter
+        $this->RegisterVariableBoolean('Active', 'Aktiv', '~Switch', 0);
+        $this->EnableAction('Active');
 
         // Warteschlange für verzögerte Aktionen
         $this->RegisterAttributeString('Queue', '[]');
@@ -22,15 +28,63 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
     {
         parent::ApplyChanges();
         
+        // Message Sink aufräumen
+        foreach ($this->GetMessageList() as $senderID => $messages) {
+            foreach ($messages as $message) {
+                if ($message === VM_UPDATE) {
+                    $this->UnregisterMessage($senderID, VM_UPDATE);
+                }
+            }
+        }
+        
+        $triggerVar = $this->ReadPropertyInteger('TriggerVariable');
+        if ($triggerVar > 0 && IPS_VariableExists($triggerVar)) {
+            $this->RegisterMessage($triggerVar, VM_UPDATE);
+        }
+        
         $this->ProcessQueue();
     }
 
-    public function SetHouseMode(int $mode): void
+    public function RequestAction($Ident, $Value): void
     {
+        if ($Ident === 'Active') {
+            $this->SetValue($Ident, $Value);
+            
+            if (!$Value) {
+                // Warteschlange leeren bei Deaktivierung
+                $this->WriteAttributeString('Queue', '[]');
+                $this->SetTimerInterval('QueueTimer', 0);
+                $this->LogMessage("Sequencer deaktiviert, Warteschlange geleert.", KL_NOTIFY);
+            }
+        }
+    }
+
+    public function MessageSink($TimeStamp, $SenderID, $Message, $Data): void
+    {
+        if ($Message === VM_UPDATE) {
+            $triggerVar = $this->ReadPropertyInteger('TriggerVariable');
+            if ($SenderID === $triggerVar) {
+                $newValue = (string)$Data[0]; // Konvertiere immer zu String für einfachen Vergleich
+                $targetValue = $this->ReadPropertyString('TriggerValue');
+                
+                if ($newValue === $targetValue) {
+                    $this->TriggerSequence();
+                }
+            }
+        }
+    }
+
+    private function TriggerSequence(): void
+    {
+        if (!$this->GetValue('Active')) {
+            $this->LogMessage("Sequenz-Trigger empfangen, aber Sequencer ist deaktiviert.", KL_NOTIFY);
+            return;
+        }
+
         $sequencesJson = $this->ReadPropertyString('Sequences');
         $sequences = json_decode($sequencesJson, true);
 
-        if (!is_array($sequences)) {
+        if (!is_array($sequences) || count($sequences) === 0) {
             return;
         }
 
@@ -43,24 +97,24 @@ class VillaKunterbuntSequencer extends IPSModuleStrict
         $now = time();
         $itemsAdded = false;
 
-        foreach ($sequences as $seq) {
-            if (isset($seq['HouseMode']) && $seq['HouseMode'] == $mode) {
-                $delay = isset($seq['Delay']) ? (int)$seq['Delay'] : 0;
-                
-                $item = [
-                    'ActionType' => $seq['ActionType'] ?? 0,
-                    'TargetID' => $seq['TargetID'] ?? 0,
-                    'Value' => $seq['Value'] ?? '',
-                    'ExecuteTime' => $now + $delay
-                ];
+        $this->LogMessage("Sequenz ausgelöst. Verarbeite " . count($sequences) . " Aktionen.", KL_NOTIFY);
 
-                if ($delay <= 0) {
-                    $this->ExecuteAction($item);
-                } else {
-                    $queue[] = $item;
-                    $itemsAdded = true;
-                    $this->LogMessage("Aktion für Ziel " . $item['TargetID'] . " zur Warteschlange hinzugefügt (Verzögerung: " . $delay . "s).", KL_NOTIFY);
-                }
+        foreach ($sequences as $seq) {
+            $delay = isset($seq['Delay']) ? (int)$seq['Delay'] : 0;
+            
+            $item = [
+                'ActionType' => $seq['ActionType'] ?? 0,
+                'TargetID' => $seq['TargetID'] ?? 0,
+                'Value' => $seq['Value'] ?? '',
+                'ExecuteTime' => $now + $delay
+            ];
+
+            if ($delay <= 0) {
+                $this->ExecuteAction($item);
+            } else {
+                $queue[] = $item;
+                $itemsAdded = true;
+                $this->LogMessage("Aktion für Ziel " . $item['TargetID'] . " zur Warteschlange hinzugefügt (Verzögerung: " . $delay . "s).", KL_NOTIFY);
             }
         }
 

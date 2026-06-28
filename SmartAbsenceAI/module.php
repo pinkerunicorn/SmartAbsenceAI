@@ -22,9 +22,6 @@ class SmartAbsenceController extends IPSModuleStrict
         $this->RegisterPropertyInteger('LightingInstance', 0);
         $this->RegisterPropertyBoolean('EnableLighting', true);
         
-        $this->RegisterPropertyInteger('SequencerInstance', 0);
-        $this->RegisterPropertyBoolean('EnableSequencer', true);
-        
         $this->RegisterPropertyString('SonosInstances', '[]');
         $this->RegisterPropertyBoolean('EnableSonos', true);
         
@@ -148,7 +145,6 @@ class SmartAbsenceController extends IPSModuleStrict
         $heatingInst = $this->ReadPropertyInteger('HeatingInstance');
         $secInst = $this->ReadPropertyInteger('SecurityInstance');
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
-        $seqInst = $this->ReadPropertyInteger('SequencerInstance');
 
         $this->LogMessage("VillaKunterbuntController: Haus-Modus gewechselt auf " . $mode, KL_NOTIFY);
         $modeNames = ['Anwesenheit', 'Abwesenheit', 'Urlaub', 'Party', 'Heimkino', 'Schlafen', 'Putzen'];
@@ -163,11 +159,6 @@ class SmartAbsenceController extends IPSModuleStrict
         }
         if ($this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetHouseMode')) {
             SAL_SetHouseMode($lightInst, $mode);
-        }
-        
-        if ($this->ReadPropertyBoolean('EnableSequencer') && $seqInst > 0 && IPS_InstanceExists($seqInst) && function_exists('VKSQ_SetHouseMode')) {
-            VKSQ_SetHouseMode($seqInst, $mode);
-            $this->AddLogEvent("Sequencer informiert.", '⚡');
         }
 
         // Sonos ansteuern

@@ -50,21 +50,6 @@
             ]
         },
         {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "SelectInstance",
-                    "name": "SequencerInstance",
-                    "caption": "Sequencer (Sub-Modul)"
-                },
-                {
-                    "type": "CheckBox",
-                    "name": "EnableSequencer",
-                    "caption": "Aktiv"
-                }
-            ]
-        },
-        {
             "type": "Label",
             "caption": "Sonos Integration (Putzmodus etc.)"
         },
