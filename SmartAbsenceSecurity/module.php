@@ -11,13 +11,13 @@ class SmartAbsenceSecurity extends IPSModuleStrict
         $this->RegisterPropertyString('DoorVariables', '[]');
         $this->RegisterPropertyString('WindowVariables', '[]');
 
-        $this->RegisterPropertyBool('AutoLockActive', false);
+        $this->RegisterPropertyBoolean('AutoLockActive', false);
         $this->RegisterPropertyString('AutoLockTime', '{"hour":22,"minute":0,"second":0}');
-        $this->RegisterPropertyBool('AutoUnlockActive', false);
+        $this->RegisterPropertyBoolean('AutoUnlockActive', false);
         $this->RegisterPropertyString('AutoUnlockTime', '{"hour":7,"minute":0,"second":0}');
-        $this->RegisterPropertyBool('AutoUnlockOnlyWhenPresent', true);
+        $this->RegisterPropertyBoolean('AutoUnlockOnlyWhenPresent', true);
 
-        $this->RegisterAttributeBool('IsAbsent', false);
+        $this->RegisterAttributeBoolean('IsAbsent', false);
 
         $this->RegisterTimer('TimerAutoLock', 0, 'SAS_TimerAutoLock($_IPS[\'TARGET\']);');
         $this->RegisterTimer('TimerAutoUnlock', 0, 'SAS_TimerAutoUnlock($_IPS[\'TARGET\']);');
@@ -120,7 +120,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
 
     public function SetAbsence(bool $status): void
     {
-        $this->WriteAttributeBool('IsAbsent', $status);
+        $this->WriteAttributeBoolean('IsAbsent', $status);
 
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
         if (!is_array($doorVars)) return;
@@ -154,13 +154,13 @@ class SmartAbsenceSecurity extends IPSModuleStrict
 
     private function UpdateTimers(): void
     {
-        if ($this->ReadPropertyBool('AutoLockActive')) {
+        if ($this->ReadPropertyBoolean('AutoLockActive')) {
             $this->SetTimerInterval('TimerAutoLock', $this->GetMillisecondsToTime($this->ReadPropertyString('AutoLockTime')));
         } else {
             $this->SetTimerInterval('TimerAutoLock', 0);
         }
 
-        if ($this->ReadPropertyBool('AutoUnlockActive')) {
+        if ($this->ReadPropertyBoolean('AutoUnlockActive')) {
             $this->SetTimerInterval('TimerAutoUnlock', $this->GetMillisecondsToTime($this->ReadPropertyString('AutoUnlockTime')));
         } else {
             $this->SetTimerInterval('TimerAutoUnlock', 0);
@@ -202,8 +202,8 @@ class SmartAbsenceSecurity extends IPSModuleStrict
     {
         $this->UpdateTimers();
 
-        $onlyWhenPresent = $this->ReadPropertyBool('AutoUnlockOnlyWhenPresent');
-        $isAbsent = $this->ReadAttributeBool('IsAbsent');
+        $onlyWhenPresent = $this->ReadPropertyBoolean('AutoUnlockOnlyWhenPresent');
+        $isAbsent = $this->ReadAttributeBoolean('IsAbsent');
         
         if ($onlyWhenPresent && $isAbsent) {
             $this->LogMessage("SmartAbsenceSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).", KL_NOTIFY);
