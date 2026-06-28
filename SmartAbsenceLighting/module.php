@@ -9,7 +9,7 @@ class SmartAbsenceLighting extends IPSModuleStrict
         parent::Create();
 
         $this->RegisterPropertyString('GeminiAPIKey', '');
-        $this->RegisterPropertyString('GeminiModel', 'gemini-1.5-flash');
+        $this->RegisterPropertyString('GeminiModel', 'gemini-3.5-flash');
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('ArchiveControlID', 0);
         $this->RegisterPropertyString('LightVariables', '[]');
@@ -213,7 +213,7 @@ class SmartAbsenceLighting extends IPSModuleStrict
         $prompt .= "[ {\"time\":\"HH:MM\", \"device\": 12345, \"state\": true/false/dimvalue} ]";
 
         $model = $this->ReadPropertyString('GeminiModel');
-        if (empty($model)) $model = 'gemini-1.5-flash';
+        if (empty($model)) $model = 'gemini-3.5-flash';
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/" . $model . ":generateContent?key=" . $apiKey;
         $payload = [
