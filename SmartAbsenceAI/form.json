@@ -51,6 +51,41 @@
         },
         {
             "type": "Label",
+            "caption": "Sonos Integration (Putzmodus etc.)"
+        },
+        {
+            "type": "CheckBox",
+            "name": "EnableSonos",
+            "caption": "Sonos Steuerung aktivieren"
+        },
+        {
+            "type": "List",
+            "name": "SonosInstances",
+            "caption": "Sonos Instanzen",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Instanz",
+                    "name": "InstanceID",
+                    "width": "100%",
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "caption": "Urlaubs-Automatik"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "CalendarURL",
+            "caption": "Google Kalender (iCal) URL (privater Link)"
+        },
+        {
+            "type": "Label",
             "caption": "Benachrichtigungen"
         },
         {
@@ -72,13 +107,8 @@
     "actions": [
         {
             "type": "Button",
-            "caption": "Abwesenheit AKTIVIEREN",
-            "onClick": "RequestAction(IPS_GetObjectIDByIdent('AbsenceStatus', $id), true);"
-        },
-        {
-            "type": "Button",
-            "caption": "Abwesenheit DEAKTIVIEREN",
-            "onClick": "RequestAction(IPS_GetObjectIDByIdent('AbsenceStatus', $id), false);"
+            "caption": "Manueller Kalender Sync",
+            "onClick": "SAC_CheckCalendar($id);"
         }
     ]
 }

@@ -21,10 +21,31 @@ class SmartAbsenceController extends IPSModuleStrict
 
         $this->RegisterPropertyInteger('LightingInstance', 0);
         $this->RegisterPropertyBoolean('EnableLighting', true);
+        
+        $this->RegisterPropertyString('SonosInstances', '[]');
+        $this->RegisterPropertyBoolean('EnableSonos', true);
+        
+        $this->RegisterPropertyString('CalendarURL', '');
 
-        // Status Variable (Schalter für Abwesenheit)
-        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheitsmodus', '', 1);
-        $this->EnableAction('AbsenceStatus');
+        // Neues Profil für Hausmodus
+        if (!IPS_VariableProfileExists('VKC.HouseMode')) {
+            IPS_CreateVariableProfile('VKC.HouseMode', 1); // 1 = Integer
+            IPS_SetVariableProfileIcon('VKC.HouseMode', 'House');
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 0, 'Anwesenheit', 'House', 0x00FF00);
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 1, 'Abwesenheit', 'LockClosed', 0xFF0000);
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 2, 'Urlaub', 'Suitcase', 0x0000FF);
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 3, 'Party', 'Cocktail', 0xFF00FF);
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 4, 'Heimkino', 'TV', 0xFFFF00);
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 5, 'Schlafen', 'Moon', 0x000080);
+            IPS_SetVariableProfileAssociation('VKC.HouseMode', 6, 'Putzen', 'Broom', 0x00FFFF);
+        }
+
+        // Status Variable (Haus-Modus)
+        $this->RegisterVariableInteger('HouseMode', 'Haus Modus', 'VKC.HouseMode', 1);
+        $this->EnableAction('HouseMode');
+        
+        // Timer für Kalender-Check
+        $this->RegisterTimer('CalendarCheck', 0, 'SAC_CheckCalendar($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges(): void
@@ -32,20 +53,29 @@ class SmartAbsenceController extends IPSModuleStrict
         parent::ApplyChanges();
 
         // Moderne IP-Symcon 8+ Darstellung anwenden
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AbsenceStatus'), [
-            'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'           => 'power-off',
-            'GLOW_COLOR'     => 16776960, // 0xFFFF00 (Gelb)
-            'GLOW_INTENSITY' => 50
-        ]);
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
+                'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            ]);
+        }
+        
+        // Legacy Variable verstecken/löschen, falls noch da
+        $legacyID = @$this->GetIDForIdent('AbsenceStatus');
+        if ($legacyID > 0) {
+            IPS_SetHidden($legacyID, true);
+        }
+
+        // Timer starten (alle 30 Minuten)
+        $this->SetTimerInterval('CalendarCheck', 30 * 60 * 1000);
 
         $this->SetStatus(102);
     }
 
     public function RequestAction(string $Ident, $Value): void
     {
-        if ($Ident == 'AbsenceStatus') {
-            if ($Value == true) {
+        if ($Ident == 'HouseMode') {
+            // Prüfungen bei Abwesenheit oder Urlaub
+            if ($Value == 1 || $Value == 2) {
                 // Prüfen auf offene Fenster
                 $secInst = $this->ReadPropertyInteger('SecurityInstance');
                 if ($secInst > 0 && IPS_InstanceExists($secInst)) {
@@ -55,7 +85,7 @@ class SmartAbsenceController extends IPSModuleStrict
                         $openItems = SAS_GetOpenWindows($secInst);
                     }
                     if (count($openItems) > 0) {
-                        $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem vollständig aktiviert.";
+                        $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem aktiviert.";
                         $this->LogMessage($msg, KL_WARNING);
                         
                         $wfc = $this->ReadPropertyInteger('WebFrontInstance');
@@ -92,40 +122,127 @@ class SmartAbsenceController extends IPSModuleStrict
             }
 
             $this->SetValue($Ident, $Value);
-            $this->SetAbsence($Value);
+            $this->SetHouseMode($Value);
+        }
+        
+        // Legacy fallback
+        if ($Ident == 'AbsenceStatus') {
+            $mode = $Value ? 1 : 0;
+            $this->SetValue('HouseMode', $mode);
+            $this->SetHouseMode($mode);
         }
     }
 
-    public function SetAbsence(bool $status): void
+    public function SetHouseMode(int $mode, int $vacationEndTime = 0): void
     {
         $heatingInst = $this->ReadPropertyInteger('HeatingInstance');
         $secInst = $this->ReadPropertyInteger('SecurityInstance');
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
 
-        if ($status) {
-            $this->LogMessage("SmartAbsenceController: Abwesenheitsmodus AKTIVIERT.", KL_NOTIFY);
-            
-            if ($this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetAbsence')) {
-                SAH_SetAbsence($heatingInst, true);
-            }
-            if ($this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetAbsence')) {
-                SAS_SetAbsence($secInst, true);
-            }
-            if ($this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetAbsence')) {
-                SAL_SetAbsence($lightInst, true);
-            }
-        } else {
-            $this->LogMessage("SmartAbsenceController: Abwesenheitsmodus DEAKTIVIERT.", KL_NOTIFY);
+        $this->LogMessage("VillaKunterbuntController: Haus-Modus gewechselt auf " . $mode, KL_NOTIFY);
 
-            if ($this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetAbsence')) {
-                SAH_SetAbsence($heatingInst, false);
+        if ($this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SAH_SetHouseMode')) {
+            SAH_SetHouseMode($heatingInst, $mode, $vacationEndTime);
+        }
+        if ($this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetHouseMode')) {
+            SAS_SetHouseMode($secInst, $mode);
+        }
+        if ($this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetHouseMode')) {
+            SAL_SetHouseMode($lightInst, $mode);
+        }
+        
+        // Sonos ansteuern
+        $this->ControlSonos($mode);
+    }
+    
+    private function ControlSonos(int $mode): void
+    {
+        if (!$this->ReadPropertyBoolean('EnableSonos')) return;
+        
+        $sonosJson = $this->ReadPropertyString('SonosInstances');
+        $sonosList = json_decode($sonosJson, true);
+        if (!is_array($sonosList)) return;
+        
+        foreach ($sonosList as $sonos) {
+            $instId = $sonos['InstanceID'] ?? 0;
+            if ($instId <= 0 || !IPS_InstanceExists($instId)) continue;
+            
+            if ($mode == 6) { // Putzen = Play
+                @SNS_Play($instId);
+            } elseif ($mode == 1 || $mode == 2 || $mode == 5) { // Abwesenheit, Urlaub, Schlafen = Pause
+                @SNS_Pause($instId);
             }
-            if ($this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SAL_SetAbsence')) {
-                SAL_SetAbsence($lightInst, false);
+        }
+    }
+    
+    public function CheckCalendar(): void
+    {
+        $url = $this->ReadPropertyString('CalendarURL');
+        if (empty($url)) return;
+        
+        $icalData = @file_get_contents($url);
+        if (!$icalData) {
+            $this->LogMessage("CheckCalendar: Konnte iCal-Daten nicht abrufen.", KL_ERROR);
+            return;
+        }
+        
+        // Sehr simpler iCal Parser für VEVENT
+        $events = [];
+        $lines = explode("\n", $icalData);
+        $currentEvent = null;
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === 'BEGIN:VEVENT') {
+                $currentEvent = [];
+            } elseif ($line === 'END:VEVENT') {
+                if ($currentEvent !== null) {
+                    $events[] = $currentEvent;
+                    $currentEvent = null;
+                }
+            } elseif ($currentEvent !== null) {
+                if (strpos($line, 'SUMMARY:') === 0) {
+                    $currentEvent['SUMMARY'] = substr($line, 8);
+                } elseif (strpos($line, 'DTSTART') === 0) {
+                    $parts = explode(':', $line);
+                    if (count($parts) >= 2) {
+                        $currentEvent['DTSTART'] = strtotime($parts[1]);
+                    }
+                } elseif (strpos($line, 'DTEND') === 0) {
+                    $parts = explode(':', $line);
+                    if (count($parts) >= 2) {
+                        $currentEvent['DTEND'] = strtotime($parts[1]);
+                    }
+                }
             }
-            if ($this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SAS_SetAbsence')) {
-                SAS_SetAbsence($secInst, false);
+        }
+        
+        $now = time();
+        $vacationFound = false;
+        $vacationEndTime = 0;
+        
+        foreach ($events as $event) {
+            if (isset($event['SUMMARY']) && strtoupper(trim($event['SUMMARY'])) === 'URLAUB') {
+                if (isset($event['DTSTART']) && isset($event['DTEND'])) {
+                    if ($now >= $event['DTSTART'] && $now <= $event['DTEND']) {
+                        $vacationFound = true;
+                        $vacationEndTime = $event['DTEND'];
+                        break;
+                    }
+                }
             }
+        }
+        
+        $currentMode = GetValue($this->GetIDForIdent('HouseMode'));
+        
+        if ($vacationFound && $currentMode !== 2) {
+            $this->LogMessage("CheckCalendar: Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: " . date('d.m.Y H:i', $vacationEndTime) . ").", KL_NOTIFY);
+            $this->SetValue('HouseMode', 2);
+            $this->SetHouseMode(2, $vacationEndTime);
+        } elseif (!$vacationFound && $currentMode === 2) {
+            $this->LogMessage("CheckCalendar: Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.", KL_NOTIFY);
+            $this->SetValue('HouseMode', 0);
+            $this->SetHouseMode(0);
         }
     }
 }

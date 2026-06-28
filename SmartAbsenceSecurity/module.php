@@ -118,14 +118,16 @@ class SmartAbsenceSecurity extends IPSModuleStrict
         return [];
     }
 
-    public function SetAbsence(bool $status): void
+    public function SetHouseMode(int $mode): void
     {
-        $this->WriteAttributeBoolean('IsAbsent', $status);
+        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
+        $shouldLock = ($mode == 1 || $mode == 2 || $mode == 4 || $mode == 5);
+        $this->WriteAttributeBoolean('IsAbsent', ($mode == 1 || $mode == 2)); // Nur für interne Logik belassen, falls verwendet
 
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
         if (!is_array($doorVars)) return;
 
-        if ($status) {
+        if ($shouldLock) {
             foreach ($doorVars as $door) {
                 // Fallback für alte Konfigurationen: true
                 $lock = isset($door['LockOnAbsence']) ? $door['LockOnAbsence'] : true;
@@ -136,7 +138,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
                     }
                 }
             }
-            $this->LogMessage("SmartAbsenceSecurity: Verriegelung der konfigurierten Türen durchgeführt.", KL_NOTIFY);
+            $this->LogMessage("SmartAbsenceSecurity: Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
         } else {
             foreach ($doorVars as $door) {
                 // Fallback für alte Konfigurationen: false
@@ -148,7 +150,7 @@ class SmartAbsenceSecurity extends IPSModuleStrict
                     }
                 }
             }
-            $this->LogMessage("SmartAbsenceSecurity: Aufsperren der konfigurierten Türen durchgeführt.", KL_NOTIFY);
+            $this->LogMessage("SmartAbsenceSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
         }
     }
 

@@ -67,21 +67,33 @@ class SmartAbsenceHeating extends IPSModuleStrict
         $this->SetStatus(102);
     }
 
-    public function SetAbsence(bool $status): void
+    public function SetHouseMode(int $mode, int $vacationEndTime = 0): void
     {
         $heatingInsts = json_decode($this->ReadPropertyString('HeatingInstances'), true);
         if (!is_array($heatingInsts)) return;
         
         $roomCount = count($heatingInsts);
 
-        if ($status) {
+        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
+        $isAbsence = ($mode == 1 || $mode == 5);
+        $isVacation = ($mode == 2);
+        
+        if ($isAbsence || $isVacation) {
             $globalTargetTemp = $this->ReadPropertyFloat('TargetTemperature');
+            // Bei Urlaub noch weiter absenken (2 Grad kühler als normale Abwesenheit)
+            if ($isVacation) {
+                $globalTargetTemp = max(12.0, $globalTargetTemp - 2.0); 
+            }
+            
             $previousStates = [];
             foreach ($heatingInsts as $heating) {
                 $instId = $heating['InstanceID'];
                 if ($instId <= 0 || !IPS_InstanceExists($instId)) continue;
                 
                 $individualTemp = isset($heating['TargetTemperature']) ? (float)$heating['TargetTemperature'] : $globalTargetTemp;
+                if ($isVacation) {
+                    $individualTemp = max(12.0, $individualTemp - 2.0);
+                }
 
                 $targetTempId = 0;
                 $controlModeId = 0;
@@ -123,9 +135,17 @@ class SmartAbsenceHeating extends IPSModuleStrict
                 }
             }
             $this->WriteAttributeString('PreviousStates', json_encode($previousStates));
-            $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (' . $roomCount . ' Räume manuell abgesenkt)');
-            $this->LogMessage("SmartAbsenceHeating: Absenktemperatur (mit Manu-Modus) aktiviert.", KL_NOTIFY);
+            
+            if ($isVacation) {
+                $dateStr = ($vacationEndTime > 0) ? " bis " . date('d.m. H:i', $vacationEndTime) : "";
+                $this->SetValue('HeatingStatus', '🧳 Urlaub aktiv' . $dateStr . ' (' . $roomCount . ' Räume tief abgesenkt)');
+                $this->LogMessage("SmartAbsenceHeating: Urlaubs-Absenktemperatur aktiviert.", KL_NOTIFY);
+            } else {
+                $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (' . $roomCount . ' Räume manuell abgesenkt)');
+                $this->LogMessage("SmartAbsenceHeating: Absenktemperatur (mit Manu-Modus) aktiviert.", KL_NOTIFY);
+            }
         } else {
+            // Modus 0 (Anwesenheit), 3 (Party), 4 (Heimkino), 6 (Putzen) -> Heizung normal!
             $previousStatesStr = $this->ReadAttributeString('PreviousStates');
             $previousStates = json_decode($previousStatesStr, true);
             if (is_array($previousStates)) {

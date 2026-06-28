@@ -132,24 +132,44 @@ class SmartAbsenceLighting extends IPSModuleStrict
         return [];
     }
 
-    public function SetAbsence(bool $status): void
+    public function SetHouseMode(int $mode): void
     {
-        if ($status) {
+        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
+        $isAbsence = ($mode == 1 || $mode == 2);
+        
+        $eid = $this->MaintainDailyEvent();
+        
+        if ($isAbsence) {
             $this->GenerateAiSchedule();
-            $eid = $this->MaintainDailyEvent();
             IPS_SetEventActive($eid, true);
             $this->SetTimerInterval('LightExecutionTimer', 60000);
             $this->LogMessage("SmartAbsenceLighting: Präsenzsimulation gestartet.", KL_NOTIFY);
+            $this->TurnOffAllSimulatedLights(); // Zuerst alles aus
         } else {
-            $eid = $this->MaintainDailyEvent();
+            // Wenn Präsenzsimulation lief, schalten wir sie ab
+            $wasActive = IPS_GetEvent($eid)['EventActive'];
+            
             IPS_SetEventActive($eid, false);
             $this->SetTimerInterval('LightExecutionTimer', 0);
             $this->SetTimerInterval('GeminiRetryTimer', 0);
             $this->WriteAttributeString('LightSchedule', '[]');
             $this->SetValue('LightScheduleStatus', 'Abwesenheit inaktiv - Kein Plan generiert');
             $this->SetValue('GeminiError', false);
-            $this->TurnOffAllSimulatedLights();
-            $this->LogMessage("SmartAbsenceLighting: Präsenzsimulation gestoppt.", KL_NOTIFY);
+            
+            if ($mode == 5) { // Schlafen
+                $this->TurnOffAllSimulatedLights();
+                $this->LogMessage("SmartAbsenceLighting: Schlafen aktiv - Alle Lichter aus.", KL_NOTIFY);
+            } elseif ($mode == 6) { // Putzen
+                $this->TurnOnAllSimulatedLights();
+                $this->LogMessage("SmartAbsenceLighting: Putzen aktiv - Alle Lichter an.", KL_NOTIFY);
+            } else {
+                // Bei Rückkehr (0, 3, 4) machen wir die simulierten Lichter aus, 
+                // aber nur wenn die Simulation davor lief.
+                if ($wasActive) {
+                    $this->TurnOffAllSimulatedLights();
+                    $this->LogMessage("SmartAbsenceLighting: Präsenzsimulation gestoppt und Lichter aus.", KL_NOTIFY);
+                }
+            }
         }
     }
 
@@ -378,6 +398,25 @@ class SmartAbsenceLighting extends IPSModuleStrict
                     RequestAction($id, false);
                 } else {
                     RequestAction($id, 0);
+                }
+            }
+        }
+    }
+
+    private function TurnOnAllSimulatedLights(): void
+    {
+        $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+        if (!is_array($lightVars)) return;
+
+        foreach ($lightVars as $light) {
+            $id = $light['VariableID'];
+            if ($id > 0 && IPS_VariableExists($id)) {
+                $varObj = IPS_GetVariable($id);
+                if ($varObj['VariableType'] == 0) {
+                    RequestAction($id, true);
+                } else {
+                    // Für Dimmer: Auf 100% (je nach Profil evtl. 100 oder 255) - Wir nehmen 100 an
+                    RequestAction($id, 100);
                 }
             }
         }
