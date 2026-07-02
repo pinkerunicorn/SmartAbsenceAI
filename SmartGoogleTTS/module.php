@@ -14,6 +14,9 @@ class SmartGoogleTTS extends IPSModule
         $this->RegisterPropertyString("VoiceName", "de-DE-Wavenet-C");
         $this->RegisterPropertyInteger("TargetSonosID", 0);
         $this->RegisterPropertyString("SymconBaseURL", "http://192.168.1.100:3777");
+
+        // Register Timer in Create (interval 0 disables it initially)
+        $this->RegisterTimer("CleanupTimer", 0, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges()
@@ -23,8 +26,8 @@ class SmartGoogleTTS extends IPSModule
 
         $this->RegisterHook("/hook/SmartGoogleTTS_" . $this->InstanceID);
 
-        // Run cleanup every 24 hours
-        $this->RegisterTimer("CleanupTimer", 24 * 3600 * 1000, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
+        // Set Timer Interval to 24 hours (86400000 ms) in ApplyChanges
+        $this->SetTimerInterval("CleanupTimer", 86400000);
     }
 
     public function ClearCache()
