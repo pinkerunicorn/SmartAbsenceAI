@@ -40,7 +40,8 @@
         {
             "type": "ValidationTextBox",
             "name": "TestText",
-            "caption": "Test Text"
+            "caption": "Test Text",
+            "value": "Die Waschmaschine ist fertig!"
         },
         {
             "type": "Button",

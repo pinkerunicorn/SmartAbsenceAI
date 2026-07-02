@@ -213,9 +213,6 @@ class SmartGoogleTTS extends IPSModule
             $this->SendDebug("GoogleTTS", "Audio existiert bereits im Cache. Überspringe Google API Anfrage.", 0);
         }
 
-        // Output absolute path for debugging
-        echo "Erfolgreich gespeichert unter: " . $filePath . "\n";
-
         // Construct URL via Webhook
         $baseURL = rtrim($baseURL, "/");
         $fileURL = $baseURL . "/hook/SmartGoogleTTS_" . $this->InstanceID . "/" . $fileName;
