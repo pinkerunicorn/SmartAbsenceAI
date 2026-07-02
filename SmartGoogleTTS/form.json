@@ -1,0 +1,51 @@
+{
+    "elements": [
+        {
+            "type": "PasswordTextBox",
+            "name": "ApiKey",
+            "caption": "Google Cloud API Key"
+        },
+        {
+            "type": "Select",
+            "name": "VoiceName",
+            "caption": "Sprache / Stimme",
+            "options": [
+                {"label": "Deutsch (Wavenet A, Weiblich)", "value": "de-DE-Wavenet-A"},
+                {"label": "Deutsch (Wavenet B, Männlich)", "value": "de-DE-Wavenet-B"},
+                {"label": "Deutsch (Wavenet C, Weiblich)", "value": "de-DE-Wavenet-C"},
+                {"label": "Deutsch (Wavenet D, Männlich)", "value": "de-DE-Wavenet-D"},
+                {"label": "Deutsch (Wavenet E, Männlich)", "value": "de-DE-Wavenet-E"},
+                {"label": "Deutsch (Wavenet F, Weiblich)", "value": "de-DE-Wavenet-F"},
+                {"label": "Deutsch (Standard A, Weiblich)", "value": "de-DE-Standard-A"},
+                {"label": "Deutsch (Standard B, Männlich)", "value": "de-DE-Standard-B"},
+                {"label": "English (Wavenet A, Female)", "value": "en-US-Wavenet-A"},
+                {"label": "English (Wavenet B, Male)", "value": "en-US-Wavenet-B"},
+                {"label": "English (Wavenet C, Female)", "value": "en-US-Wavenet-C"},
+                {"label": "English (Wavenet D, Male)", "value": "en-US-Wavenet-D"}
+            ]
+        },
+        {
+            "type": "SelectInstance",
+            "name": "TargetSonosID",
+            "caption": "Sonos Ziel-Instanz"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "SymconBaseURL",
+            "caption": "IP-Symcon Base URL (z.B. http://192.168.1.100:3777)",
+            "validate": "^https?://.+"
+        }
+    ],
+    "actions": [
+        {
+            "type": "ValidationTextBox",
+            "name": "TestText",
+            "caption": "Test Text"
+        },
+        {
+            "type": "Button",
+            "caption": "Test Sprachausgabe",
+            "onClick": "SGTTS_PlayMessage($id, $TestText);"
+        }
+    ]
+}
