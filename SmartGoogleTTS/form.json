@@ -25,14 +25,9 @@
             ]
         },
         {
-            "type": "SelectInstance",
-            "name": "TargetSonosID",
-            "caption": "Sonos Haupt-Instanz"
-        },
-        {
             "type": "List",
-            "name": "AdditionalSonosIDs",
-            "caption": "Weitere Sonos Systeme (synchron abspielen)",
+            "name": "SonosInstances",
+            "caption": "Sonos Systeme",
             "add": true,
             "delete": true,
             "columns": [
@@ -73,11 +68,6 @@
             "digits": 1,
             "minimum": -20.0,
             "maximum": 20.0
-        },
-        {
-            "type": "ValidationTextBox",
-            "name": "PrependAudioURL",
-            "caption": "Gong / Vorab-Audio URL (leer lassen für keinen Ton)"
         }
     ],
     "actions": [

@@ -12,14 +12,12 @@ class SmartGoogleTTS extends IPSModule
         // Register Properties
         $this->RegisterPropertyString("ApiKey", "");
         $this->RegisterPropertyString("VoiceName", "de-DE-Wavenet-C");
-        $this->RegisterPropertyInteger("TargetSonosID", 0);
         $this->RegisterPropertyString("SymconBaseURL", "http://192.168.1.100:3777");
         
         $this->RegisterPropertyString("SonosVolume", "+0");
         $this->RegisterPropertyFloat("SpeakingRate", 1.0);
         $this->RegisterPropertyFloat("Pitch", 0.0);
-        $this->RegisterPropertyString("PrependAudioURL", "");
-        $this->RegisterPropertyString("AdditionalSonosIDs", "[]");
+        $this->RegisterPropertyString("SonosInstances", "[]");
 
         // Register Timer in Create (interval 0 disables it initially)
         $this->RegisterTimer("CleanupTimer", 0, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
@@ -130,16 +128,12 @@ class SmartGoogleTTS extends IPSModule
 
         $apiKey = $this->ReadPropertyString("ApiKey");
         $voiceName = $this->ReadPropertyString("VoiceName");
-        $targetSonosID = $this->ReadPropertyInteger("TargetSonosID");
         $baseURL = $this->ReadPropertyString("SymconBaseURL");
         
         $allSonosIDs = [];
-        if ($targetSonosID > 0) {
-            $allSonosIDs[] = $targetSonosID;
-        }
-        $additionalSonos = json_decode($this->ReadPropertyString("AdditionalSonosIDs"), true);
-        if (is_array($additionalSonos)) {
-            foreach ($additionalSonos as $item) {
+        $sonosList = json_decode($this->ReadPropertyString("SonosInstances"), true);
+        if (is_array($sonosList)) {
+            foreach ($sonosList as $item) {
                 $id = (int)($item['InstanceID'] ?? 0);
                 if ($id > 0 && !in_array($id, $allSonosIDs)) {
                     $allSonosIDs[] = $id;
@@ -247,15 +241,7 @@ class SmartGoogleTTS extends IPSModule
         $this->SendDebug("GoogleTTS", "Generierte Webhook-URL für Sonos: " . $fileURL, 0);
 
         // Play on Sonos
-        $prependAudio = $this->ReadPropertyString("PrependAudioURL");
-        $urlsToPlay = [];
-        if (!empty($prependAudio)) {
-            $urlsToPlay[] = $prependAudio;
-            $this->SendDebug("GoogleTTS", "Füge Vorab-Audio (Gong) hinzu: " . $prependAudio, 0);
-        }
-        $urlsToPlay[] = $fileURL;
-
-        $filesArray = json_encode($urlsToPlay);
+        $filesArray = json_encode([$fileURL]);
         
         $Volume = $this->ReadPropertyString("SonosVolume");
         if ($Volume === "") {
