@@ -20,6 +20,57 @@ class SmartGoogleTTS extends IPSModule
     {
         // Never delete this line!
         parent::ApplyChanges();
+
+        $this->RegisterHook("/hook/SmartGoogleTTS_" . $this->InstanceID);
+    }
+
+    protected function RegisterHook($WebHook)
+    {
+        $ids = IPS_GetInstanceListByModuleID("{015A6EB8-D6E5-4B93-B496-0D3F77AE9FE1}");
+        if (sizeof($ids) > 0) {
+            $hooks = json_decode(IPS_GetProperty($ids[0], "Hooks"), true);
+            $found = false;
+            foreach ($hooks as $index => $hook) {
+                if ($hook['Hook'] == $WebHook) {
+                    if ($hook['TargetID'] == $this->InstanceID) {
+                        return;
+                    }
+                    $hooks[$index]['TargetID'] = $this->InstanceID;
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $hooks[] = ["Hook" => $WebHook, "TargetID" => $this->InstanceID];
+            }
+            IPS_SetProperty($ids[0], "Hooks", json_encode($hooks));
+            IPS_ApplyChanges($ids[0]);
+        }
+    }
+
+    protected function ProcessHookData()
+    {
+        $file = $_GET['file'] ?? '';
+        if ($file === '') {
+            http_response_code(400);
+            echo "No file specified";
+            return;
+        }
+
+        // Prevent directory traversal
+        $file = basename($file);
+
+        $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
+        $moduleDir = $userDir . "SmartGoogleTTS";
+        $filePath = $moduleDir . DIRECTORY_SEPARATOR . $file;
+
+        if (file_exists($filePath)) {
+            header("Content-Type: audio/mpeg");
+            header("Content-Length: " . filesize($filePath));
+            readfile($filePath);
+        } else {
+            http_response_code(404);
+            echo "File not found";
+        }
     }
 
     public function PlayMessage(string $Text)
@@ -116,11 +167,11 @@ class SmartGoogleTTS extends IPSModule
         // Output absolute path for debugging
         echo "Erfolgreich gespeichert unter: " . $filePath . "\n";
 
-        // Construct URL
+        // Construct URL via Webhook
         $baseURL = rtrim($baseURL, "/");
-        $fileURL = $baseURL . "/user/SmartGoogleTTS/" . $fileName;
+        $fileURL = $baseURL . "/hook/SmartGoogleTTS_" . $this->InstanceID . "?file=" . $fileName;
 
-        $this->SendDebug("GoogleTTS", "Generierte Datei-URL für Sonos: " . $fileURL, 0);
+        $this->SendDebug("GoogleTTS", "Generierte Webhook-URL für Sonos: " . $fileURL, 0);
 
         // Play on Sonos
         $filesArray = json_encode([$fileURL]);
