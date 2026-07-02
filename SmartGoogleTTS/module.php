@@ -254,8 +254,9 @@ class SmartGoogleTTS extends IPSModule
         if (function_exists('SNS_PlayFiles')) {
             foreach ($allSonosIDs as $sonosID) {
                 if (IPS_InstanceExists($sonosID)) {
-                    $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $sonosID . " auf mit Lautstärke " . $Volume . "...", 0);
-                    SNS_PlayFiles($sonosID, $filesArray, $Volume);
+                    $this->SendDebug("GoogleTTS", "Starte asynchrone Wiedergabe auf Instanz " . $sonosID . " auf mit Lautstärke " . $Volume . "...", 0);
+                    $scriptCode = "SNS_PlayFiles(" . $sonosID . ", '" . $filesArray . "', '" . $Volume . "');";
+                    IPS_RunScriptText($scriptCode);
                 } else {
                     $this->SendDebug("GoogleTTS", "Warnung: Sonos Instanz " . $sonosID . " existiert nicht mehr.", 0);
                 }
