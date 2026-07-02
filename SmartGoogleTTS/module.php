@@ -22,6 +22,46 @@ class SmartGoogleTTS extends IPSModule
         parent::ApplyChanges();
 
         $this->RegisterHook("/hook/SmartGoogleTTS_" . $this->InstanceID);
+
+        // Run cleanup every 24 hours
+        $this->RegisterTimer("CleanupTimer", 24 * 3600 * 1000, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
+    }
+
+    public function ClearCache()
+    {
+        $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
+        $moduleDir = $userDir . "SmartGoogleTTS";
+        if (is_dir($moduleDir)) {
+            $files = glob($moduleDir . DIRECTORY_SEPARATOR . "*.mp3");
+            $count = 0;
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                    $count++;
+                }
+            }
+            echo "Cache geleert. " . $count . " Dateien gelöscht.";
+        } else {
+            echo "Cache-Verzeichnis existiert nicht.";
+        }
+    }
+
+    public function CleanupCache()
+    {
+        $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
+        $moduleDir = $userDir . "SmartGoogleTTS";
+        if (is_dir($moduleDir)) {
+            $files = glob($moduleDir . DIRECTORY_SEPARATOR . "*.mp3");
+            $now = time();
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    // Delete files older than 30 days
+                    if ($now - filemtime($file) >= 30 * 24 * 3600) {
+                        unlink($file);
+                    }
+                }
+            }
+        }
     }
 
     protected function RegisterHook($WebHook)
