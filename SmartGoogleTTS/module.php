@@ -141,6 +141,9 @@ class SmartGoogleTTS extends IPSModule
             }
         }
 
+        $speakingRate = $this->ReadPropertyFloat("SpeakingRate");
+        $pitch = $this->ReadPropertyFloat("Pitch");
+
         if (empty($apiKey)) {
             echo "Fehler: Google Cloud API Key ist nicht konfiguriert.";
             return false;
