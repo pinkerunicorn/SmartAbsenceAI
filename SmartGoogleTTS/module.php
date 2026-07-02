@@ -122,7 +122,7 @@ class SmartGoogleTTS extends IPSModule
         }
     }
 
-    public function PlayMessage(string $Text, string $Volume = "")
+    public function PlayMessage(string $Text)
     {
         $this->SendDebug("GoogleTTS", "Starte Sprachausgabe mit Text: " . $Text, 0);
 
@@ -131,9 +131,7 @@ class SmartGoogleTTS extends IPSModule
         $targetSonosID = $this->ReadPropertyInteger("TargetSonosID");
         $baseURL = $this->ReadPropertyString("SymconBaseURL");
         
-        if ($Volume === "") {
-            $Volume = $this->ReadPropertyString("SonosVolume");
-        }
+        $Volume = $this->ReadPropertyString("SonosVolume");
         if ($Volume === "") {
             $Volume = "+0"; // Fallback to unchanged
         }
