@@ -34,6 +34,27 @@
             "name": "SymconBaseURL",
             "caption": "IP-Symcon Base URL (z.B. http://192.168.1.100:3777)",
             "validate": "^https?://.+"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "SonosVolume",
+            "caption": "Sonos Lautstärke (z.B. '+0' unverändert, '30' für festen Wert)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "SpeakingRate",
+            "caption": "Sprechgeschwindigkeit (0.25 bis 4.0, Standard: 1.0)",
+            "digits": 2,
+            "minimum": 0.25,
+            "maximum": 4.0
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "Pitch",
+            "caption": "Tonhöhe (Stimme hoch/tief, -20.0 bis 20.0, Standard: 0.0)",
+            "digits": 1,
+            "minimum": -20.0,
+            "maximum": 20.0
         }
     ],
     "actions": [

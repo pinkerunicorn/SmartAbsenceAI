@@ -14,6 +14,10 @@ class SmartGoogleTTS extends IPSModule
         $this->RegisterPropertyString("VoiceName", "de-DE-Wavenet-C");
         $this->RegisterPropertyInteger("TargetSonosID", 0);
         $this->RegisterPropertyString("SymconBaseURL", "http://192.168.1.100:3777");
+        
+        $this->RegisterPropertyString("SonosVolume", "+0");
+        $this->RegisterPropertyFloat("SpeakingRate", 1.0);
+        $this->RegisterPropertyFloat("Pitch", 0.0);
 
         // Register Timer in Create (interval 0 disables it initially)
         $this->RegisterTimer("CleanupTimer", 0, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
@@ -118,7 +122,7 @@ class SmartGoogleTTS extends IPSModule
         }
     }
 
-    public function PlayMessage(string $Text)
+    public function PlayMessage(string $Text, string $Volume = "")
     {
         $this->SendDebug("GoogleTTS", "Starte Sprachausgabe mit Text: " . $Text, 0);
 
@@ -126,6 +130,16 @@ class SmartGoogleTTS extends IPSModule
         $voiceName = $this->ReadPropertyString("VoiceName");
         $targetSonosID = $this->ReadPropertyInteger("TargetSonosID");
         $baseURL = $this->ReadPropertyString("SymconBaseURL");
+        
+        if ($Volume === "") {
+            $Volume = $this->ReadPropertyString("SonosVolume");
+        }
+        if ($Volume === "") {
+            $Volume = "+0"; // Fallback to unchanged
+        }
+
+        $speakingRate = $this->ReadPropertyFloat("SpeakingRate");
+        $pitch = $this->ReadPropertyFloat("Pitch");
 
         if (empty($apiKey)) {
             echo "Fehler: Google Cloud API Key ist nicht konfiguriert.";
@@ -140,6 +154,7 @@ class SmartGoogleTTS extends IPSModule
         // Determine language code from voice name (e.g. de-DE-Wavenet-C -> de-DE)
         $languageCode = substr($voiceName, 0, 5);
 
+        // Define target directory and file name
         $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
         $moduleDir = $userDir . "SmartGoogleTTS";
         
@@ -150,26 +165,32 @@ class SmartGoogleTTS extends IPSModule
             }
         }
 
-        $fileName = "tts_" . md5($Text . $voiceName) . ".mp3";
+        // Include volume, pitch and rate in the hash so different settings generate different files!
+        $hashString = $Text . $voiceName . $speakingRate . $pitch;
+        $fileName = "tts_" . md5($hashString) . ".mp3";
         $filePath = $moduleDir . DIRECTORY_SEPARATOR . $fileName;
 
         if (!file_exists($filePath)) {
             $this->SendDebug("GoogleTTS", "Datei nicht im Cache. Sende Request an Google API...", 0);
+
+            // Check if user is using SSML (Speech Synthesis Markup Language)
+            $isSSML = (strpos(trim($Text), '<speak>') === 0);
+            $inputPayload = $isSSML ? ["ssml" => $Text] : ["text" => $Text];
 
             // API Endpoint
             $url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" . $apiKey;
 
             // Request Payload
             $data = [
-                "input" => [
-                    "text" => $Text
-                ],
+                "input" => $inputPayload,
                 "voice" => [
                     "languageCode" => $languageCode,
                     "name" => $voiceName
                 ],
                 "audioConfig" => [
-                    "audioEncoding" => "MP3"
+                    "audioEncoding" => "MP3",
+                    "speakingRate" => $speakingRate,
+                    "pitch" => $pitch
                 ]
             ];
 
@@ -223,8 +244,8 @@ class SmartGoogleTTS extends IPSModule
         $filesArray = json_encode([$fileURL]);
         
         if (function_exists('SNS_PlayFiles')) {
-            $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $targetSonosID . " auf...", 0);
-            SNS_PlayFiles($targetSonosID, $filesArray, "+0");
+            $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $targetSonosID . " auf mit Lautstärke " . $Volume . "...", 0);
+            SNS_PlayFiles($targetSonosID, $filesArray, $Volume);
         } else {
             echo "Warnung: Funktion SNS_PlayFiles existiert nicht. Bitte sicherstellen, dass das Sonos Modul korrekt installiert ist.";
             return false;
