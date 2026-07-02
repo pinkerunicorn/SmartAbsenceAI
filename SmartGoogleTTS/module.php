@@ -105,7 +105,7 @@ class SmartGoogleTTS extends IPSModule
         $filesArray = json_encode([$fileURL]);
         
         if (function_exists('SNS_PlayFiles')) {
-            SNS_PlayFiles($targetSonosID, $filesArray);
+            SNS_PlayFiles($targetSonosID, $filesArray, "+0");
         } else {
             echo "Warnung: Funktion SNS_PlayFiles existiert nicht. Bitte sicherstellen, dass das Sonos Modul korrekt installiert ist.";
             return false;
