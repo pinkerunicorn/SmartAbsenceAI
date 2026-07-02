@@ -14,7 +14,6 @@ class SmartGoogleTTS extends IPSModule
         $this->RegisterPropertyString("VoiceName", "de-DE-Wavenet-C");
         $this->RegisterPropertyString("SymconBaseURL", "http://192.168.1.100:3777");
         
-        $this->RegisterPropertyString("SonosVolume", "+0");
         $this->RegisterPropertyFloat("SpeakingRate", 1.0);
         $this->RegisterPropertyFloat("Pitch", 0.0);
         $this->RegisterPropertyString("SonosInstances", "[]");
@@ -135,8 +134,12 @@ class SmartGoogleTTS extends IPSModule
         if (is_array($sonosList)) {
             foreach ($sonosList as $item) {
                 $id = (int)($item['InstanceID'] ?? 0);
-                if ($id > 0 && !in_array($id, $allSonosIDs)) {
-                    $allSonosIDs[] = $id;
+                $vol = $item['Volume'] ?? "+0";
+                if ($vol === "") {
+                    $vol = "+0";
+                }
+                if ($id > 0 && !isset($allSonosIDs[$id])) {
+                    $allSonosIDs[$id] = $vol;
                 }
             }
         }
@@ -245,16 +248,11 @@ class SmartGoogleTTS extends IPSModule
 
         // Play on Sonos
         $filesArray = json_encode([$fileURL]);
-        
-        $Volume = $this->ReadPropertyString("SonosVolume");
-        if ($Volume === "") {
-            $Volume = "+0"; // Fallback to unchanged
-        }
 
         if (function_exists('SNS_PlayFiles')) {
-            foreach ($allSonosIDs as $sonosID) {
+            foreach ($allSonosIDs as $sonosID => $Volume) {
                 if (IPS_InstanceExists($sonosID)) {
-                    $this->SendDebug("GoogleTTS", "Starte asynchrone Wiedergabe auf Instanz " . $sonosID . " auf mit Lautstärke " . $Volume . "...", 0);
+                    $this->SendDebug("GoogleTTS", "Starte asynchrone Wiedergabe auf Instanz " . $sonosID . " mit Lautstärke " . $Volume . "...", 0);
                     $scriptCode = "SNS_PlayFiles(" . $sonosID . ", '" . $filesArray . "', '" . $Volume . "');";
                     IPS_RunScriptText($scriptCode);
                 } else {

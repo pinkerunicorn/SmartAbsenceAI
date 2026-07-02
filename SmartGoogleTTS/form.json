@@ -39,6 +39,15 @@
                     "edit": {
                         "type": "SelectInstance"
                     }
+                },
+                {
+                    "caption": "Lautstärke",
+                    "name": "Volume",
+                    "width": "200px",
+                    "add": "+0",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
                 }
             ]
         },
@@ -47,11 +56,6 @@
             "name": "SymconBaseURL",
             "caption": "IP-Symcon Base URL (z.B. http://192.168.1.100:3777)",
             "validate": "^https?://.+"
-        },
-        {
-            "type": "ValidationTextBox",
-            "name": "SonosVolume",
-            "caption": "Sonos Lautstärke (z.B. '+0' unverändert, '30' für festen Wert)"
         },
         {
             "type": "NumberSpinner",
