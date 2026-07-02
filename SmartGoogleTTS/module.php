@@ -24,6 +24,8 @@ class SmartGoogleTTS extends IPSModule
 
     public function PlayMessage(string $Text)
     {
+        $this->SendDebug("GoogleTTS", "Starte Sprachausgabe mit Text: " . $Text, 0);
+
         $apiKey = $this->ReadPropertyString("ApiKey");
         $voiceName = $this->ReadPropertyString("VoiceName");
         $targetSonosID = $this->ReadPropertyInteger("TargetSonosID");
@@ -66,9 +68,12 @@ class SmartGoogleTTS extends IPSModule
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
+        $this->SendDebug("GoogleTTS", "Sende Request an Google API...", 0);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        $this->SendDebug("GoogleTTS", "Google API HTTP Code: " . $httpCode, 0);
 
         if ($httpCode !== 200) {
             echo "Fehler bei der Google TTS API Anfrage. HTTP Code: " . $httpCode . "\nResponse: " . $response;
@@ -94,6 +99,8 @@ class SmartGoogleTTS extends IPSModule
         $fileName = "tts_" . md5($Text . $voiceName) . ".mp3";
         $filePath = $moduleDir . DIRECTORY_SEPARATOR . $fileName;
 
+        $this->SendDebug("GoogleTTS", "Speichere MP3 in Pfad: " . $filePath, 0);
+
         // Write file
         file_put_contents($filePath, $audioContent);
 
@@ -101,10 +108,13 @@ class SmartGoogleTTS extends IPSModule
         $baseURL = rtrim($baseURL, "/");
         $fileURL = $baseURL . "/user/SmartGoogleTTS/" . $fileName;
 
+        $this->SendDebug("GoogleTTS", "Generierte Datei-URL für Sonos: " . $fileURL, 0);
+
         // Play on Sonos
         $filesArray = json_encode([$fileURL]);
         
         if (function_exists('SNS_PlayFiles')) {
+            $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $targetSonosID . " auf...", 0);
             SNS_PlayFiles($targetSonosID, $filesArray, "+0");
         } else {
             echo "Warnung: Funktion SNS_PlayFiles existiert nicht. Bitte sicherstellen, dass das Sonos Modul korrekt installiert ist.";
