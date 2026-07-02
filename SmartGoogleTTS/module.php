@@ -49,15 +49,16 @@ class SmartGoogleTTS extends IPSModule
 
     protected function ProcessHookData()
     {
-        $file = $_GET['file'] ?? '';
-        if ($file === '') {
+        $uri = $_SERVER['REQUEST_URI'];
+        $parts = explode('?', $uri); // Remove query string if any
+        $path = $parts[0];
+        $file = basename($path);
+
+        if ($file === '' || strpos($file, '.mp3') === false) {
             http_response_code(400);
-            echo "No file specified";
+            echo "No valid file specified";
             return;
         }
-
-        // Prevent directory traversal
-        $file = basename($file);
 
         $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
         $moduleDir = $userDir . "SmartGoogleTTS";
@@ -66,6 +67,7 @@ class SmartGoogleTTS extends IPSModule
         if (file_exists($filePath)) {
             header("Content-Type: audio/mpeg");
             header("Content-Length: " . filesize($filePath));
+            header("Accept-Ranges: bytes");
             readfile($filePath);
         } else {
             http_response_code(404);
@@ -169,7 +171,7 @@ class SmartGoogleTTS extends IPSModule
 
         // Construct URL via Webhook
         $baseURL = rtrim($baseURL, "/");
-        $fileURL = $baseURL . "/hook/SmartGoogleTTS_" . $this->InstanceID . "?file=" . $fileName;
+        $fileURL = $baseURL . "/hook/SmartGoogleTTS_" . $this->InstanceID . "/" . $fileName;
 
         $this->SendDebug("GoogleTTS", "Generierte Webhook-URL für Sonos: " . $fileURL, 0);
 
