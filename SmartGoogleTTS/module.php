@@ -97,51 +97,6 @@ class SmartGoogleTTS extends IPSModule
         // Determine language code from voice name (e.g. de-DE-Wavenet-C -> de-DE)
         $languageCode = substr($voiceName, 0, 5);
 
-        // API Endpoint
-        $url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" . $apiKey;
-
-        // Request Payload
-        $data = [
-            "input" => [
-                "text" => $Text
-            ],
-            "voice" => [
-                "languageCode" => $languageCode,
-                "name" => $voiceName
-            ],
-            "audioConfig" => [
-                "audioEncoding" => "MP3"
-            ]
-        ];
-
-        // cURL Request
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-
-        $this->SendDebug("GoogleTTS", "Sende Request an Google API...", 0);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        $this->SendDebug("GoogleTTS", "Google API HTTP Code: " . $httpCode, 0);
-
-        if ($httpCode !== 200) {
-            echo "Fehler bei der Google TTS API Anfrage. HTTP Code: " . $httpCode . "\nResponse: " . $response;
-            return false;
-        }
-
-        $result = json_decode($response, true);
-        if (!isset($result['audioContent'])) {
-            echo "Fehler: Keine Audio-Daten von Google empfangen.";
-            return false;
-        }
-
-        $audioContent = base64_decode($result['audioContent']);
-
-        // Define target directory and file name
         $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
         $moduleDir = $userDir . "SmartGoogleTTS";
         
@@ -155,16 +110,65 @@ class SmartGoogleTTS extends IPSModule
         $fileName = "tts_" . md5($Text . $voiceName) . ".mp3";
         $filePath = $moduleDir . DIRECTORY_SEPARATOR . $fileName;
 
-        $this->SendDebug("GoogleTTS", "Speichere MP3 in Pfad: " . $filePath, 0);
+        if (!file_exists($filePath)) {
+            $this->SendDebug("GoogleTTS", "Datei nicht im Cache. Sende Request an Google API...", 0);
 
-        // Write file
-        if (file_put_contents($filePath, $audioContent) === false) {
-            echo "Fehler: Konnte MP3-Datei nicht schreiben: " . $filePath;
-            return false;
+            // API Endpoint
+            $url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" . $apiKey;
+
+            // Request Payload
+            $data = [
+                "input" => [
+                    "text" => $Text
+                ],
+                "voice" => [
+                    "languageCode" => $languageCode,
+                    "name" => $voiceName
+                ],
+                "audioConfig" => [
+                    "audioEncoding" => "MP3"
+                ]
+            ];
+
+            // cURL Request
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            $this->SendDebug("GoogleTTS", "Google API HTTP Code: " . $httpCode, 0);
+
+            if ($httpCode !== 200) {
+                echo "Fehler bei der Google TTS API Anfrage. HTTP Code: " . $httpCode . "\nResponse: " . $response;
+                return false;
+            }
+
+            $result = json_decode($response, true);
+            if (!isset($result['audioContent'])) {
+                echo "Fehler: Keine Audio-Daten von Google empfangen.";
+                return false;
+            }
+
+            $audioContent = base64_decode($result['audioContent']);
+
+            $this->SendDebug("GoogleTTS", "Speichere MP3 in Pfad: " . $filePath, 0);
+
+            // Write file
+            if (file_put_contents($filePath, $audioContent) === false) {
+                echo "Fehler: Konnte MP3-Datei nicht schreiben: " . $filePath;
+                return false;
+            }
+
+            // Set permissions so the webserver can read it
+            chmod($filePath, 0777);
+        } else {
+            $this->SendDebug("GoogleTTS", "Audio existiert bereits im Cache. Überspringe Google API Anfrage.", 0);
         }
-
-        // Set permissions so the webserver can read it
-        chmod($filePath, 0777);
 
         // Output absolute path for debugging
         echo "Erfolgreich gespeichert unter: " . $filePath . "\n";
