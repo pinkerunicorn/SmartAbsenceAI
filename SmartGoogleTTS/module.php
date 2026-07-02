@@ -18,6 +18,7 @@ class SmartGoogleTTS extends IPSModule
         $this->RegisterPropertyString("SonosVolume", "+0");
         $this->RegisterPropertyFloat("SpeakingRate", 1.0);
         $this->RegisterPropertyFloat("Pitch", 0.0);
+        $this->RegisterPropertyString("PrependAudioURL", "");
 
         // Register Timer in Create (interval 0 disables it initially)
         $this->RegisterTimer("CleanupTimer", 0, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
@@ -239,7 +240,15 @@ class SmartGoogleTTS extends IPSModule
         $this->SendDebug("GoogleTTS", "Generierte Webhook-URL für Sonos: " . $fileURL, 0);
 
         // Play on Sonos
-        $filesArray = json_encode([$fileURL]);
+        $prependAudio = $this->ReadPropertyString("PrependAudioURL");
+        $urlsToPlay = [];
+        if (!empty($prependAudio)) {
+            $urlsToPlay[] = $prependAudio;
+            $this->SendDebug("GoogleTTS", "Füge Vorab-Audio (Gong) hinzu: " . $prependAudio, 0);
+        }
+        $urlsToPlay[] = $fileURL;
+
+        $filesArray = json_encode($urlsToPlay);
         
         if (function_exists('SNS_PlayFiles')) {
             $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $targetSonosID . " auf mit Lautstärke " . $Volume . "...", 0);
