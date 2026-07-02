@@ -93,7 +93,10 @@ class SmartGoogleTTS extends IPSModule
         $moduleDir = $userDir . "SmartGoogleTTS";
         
         if (!is_dir($moduleDir)) {
-            mkdir($moduleDir, 0777, true);
+            if (!mkdir($moduleDir, 0777, true)) {
+                echo "Fehler: Konnte Verzeichnis nicht erstellen: " . $moduleDir;
+                return false;
+            }
         }
 
         $fileName = "tts_" . md5($Text . $voiceName) . ".mp3";
@@ -102,7 +105,13 @@ class SmartGoogleTTS extends IPSModule
         $this->SendDebug("GoogleTTS", "Speichere MP3 in Pfad: " . $filePath, 0);
 
         // Write file
-        file_put_contents($filePath, $audioContent);
+        if (file_put_contents($filePath, $audioContent) === false) {
+            echo "Fehler: Konnte MP3-Datei nicht schreiben: " . $filePath;
+            return false;
+        }
+
+        // Output absolute path for debugging
+        echo "Erfolgreich gespeichert unter: " . $filePath . "\n";
 
         // Construct URL
         $baseURL = rtrim($baseURL, "/");
