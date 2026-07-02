@@ -110,6 +110,9 @@ class SmartGoogleTTS extends IPSModule
             return false;
         }
 
+        // Set permissions so the webserver can read it
+        chmod($filePath, 0777);
+
         // Output absolute path for debugging
         echo "Erfolgreich gespeichert unter: " . $filePath . "\n";
 
