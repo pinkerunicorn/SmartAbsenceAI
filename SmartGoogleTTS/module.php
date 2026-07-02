@@ -19,6 +19,7 @@ class SmartGoogleTTS extends IPSModule
         $this->RegisterPropertyFloat("SpeakingRate", 1.0);
         $this->RegisterPropertyFloat("Pitch", 0.0);
         $this->RegisterPropertyString("PrependAudioURL", "");
+        $this->RegisterPropertyString("AdditionalSonosIDs", "[]");
 
         // Register Timer in Create (interval 0 disables it initially)
         $this->RegisterTimer("CleanupTimer", 0, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
@@ -132,21 +133,27 @@ class SmartGoogleTTS extends IPSModule
         $targetSonosID = $this->ReadPropertyInteger("TargetSonosID");
         $baseURL = $this->ReadPropertyString("SymconBaseURL");
         
-        $Volume = $this->ReadPropertyString("SonosVolume");
-        if ($Volume === "") {
-            $Volume = "+0"; // Fallback to unchanged
+        $allSonosIDs = [];
+        if ($targetSonosID > 0) {
+            $allSonosIDs[] = $targetSonosID;
         }
-
-        $speakingRate = $this->ReadPropertyFloat("SpeakingRate");
-        $pitch = $this->ReadPropertyFloat("Pitch");
+        $additionalSonos = json_decode($this->ReadPropertyString("AdditionalSonosIDs"), true);
+        if (is_array($additionalSonos)) {
+            foreach ($additionalSonos as $item) {
+                $id = (int)($item['InstanceID'] ?? 0);
+                if ($id > 0 && !in_array($id, $allSonosIDs)) {
+                    $allSonosIDs[] = $id;
+                }
+            }
+        }
 
         if (empty($apiKey)) {
             echo "Fehler: Google Cloud API Key ist nicht konfiguriert.";
             return false;
         }
 
-        if ($targetSonosID == 0 || !IPS_InstanceExists($targetSonosID)) {
-            echo "Fehler: Keine gueltige Sonos Ziel-Instanz konfiguriert.";
+        if (count($allSonosIDs) === 0) {
+            echo "Fehler: Keine gueltigen Sonos Ziel-Instanzen konfiguriert.";
             return false;
         }
 
@@ -250,9 +257,20 @@ class SmartGoogleTTS extends IPSModule
 
         $filesArray = json_encode($urlsToPlay);
         
+        $Volume = $this->ReadPropertyString("SonosVolume");
+        if ($Volume === "") {
+            $Volume = "+0"; // Fallback to unchanged
+        }
+
         if (function_exists('SNS_PlayFiles')) {
-            $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $targetSonosID . " auf mit Lautstärke " . $Volume . "...", 0);
-            SNS_PlayFiles($targetSonosID, $filesArray, $Volume);
+            foreach ($allSonosIDs as $sonosID) {
+                if (IPS_InstanceExists($sonosID)) {
+                    $this->SendDebug("GoogleTTS", "Rufe SNS_PlayFiles auf Instanz " . $sonosID . " auf mit Lautstärke " . $Volume . "...", 0);
+                    SNS_PlayFiles($sonosID, $filesArray, $Volume);
+                } else {
+                    $this->SendDebug("GoogleTTS", "Warnung: Sonos Instanz " . $sonosID . " existiert nicht mehr.", 0);
+                }
+            }
         } else {
             echo "Warnung: Funktion SNS_PlayFiles existiert nicht. Bitte sicherstellen, dass das Sonos Modul korrekt installiert ist.";
             return false;

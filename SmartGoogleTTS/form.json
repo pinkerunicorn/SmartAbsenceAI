@@ -27,7 +27,25 @@
         {
             "type": "SelectInstance",
             "name": "TargetSonosID",
-            "caption": "Sonos Ziel-Instanz"
+            "caption": "Sonos Haupt-Instanz"
+        },
+        {
+            "type": "List",
+            "name": "AdditionalSonosIDs",
+            "caption": "Weitere Sonos Systeme (synchron abspielen)",
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Instanz",
+                    "name": "InstanceID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
+                }
+            ]
         },
         {
             "type": "ValidationTextBox",
