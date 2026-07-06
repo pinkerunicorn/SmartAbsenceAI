@@ -18,8 +18,8 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->RegisterAttributeString('PreviousStates', '{}');
 
         // GUI Variables
-        $this->RegisterVariableString('HeatingStatus', 'Status', '', 1);
-        $this->RegisterVariableFloat('AverageTemperature', 'Ø Haus-Temperatur', '', 2);
+        $this->RegisterVariableString('HeatingStatus', 'ℹ️ Status', '', 1);
+        $this->RegisterVariableFloat('AverageTemperature', '🌡️ Ø Haus-Temperatur', '', 2);
 
         // Timer for periodic temperature update
         $this->RegisterTimer('UpdateTempTimer', 0, 'SHH_UpdateAverageTemperature($_IPS[\'TARGET\']);');

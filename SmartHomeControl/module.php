@@ -60,7 +60,7 @@ class SmartHomeControl extends IPSModuleStrict
             IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
         }
 
-        $this->RegisterVariableInteger('HouseMode', 'Haus Modus', 'SmartHome.HouseMode', 1);
+        $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', 'SmartHome.HouseMode', 1);
         $this->EnableAction('HouseMode');
         
         // Timer für Kalender-Check
@@ -70,7 +70,7 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterAttributeString('LogData', '[]');
         
         // HTML Log Variable
-        $this->RegisterVariableString('ControllerLog', 'System Log', '', 2);
+        $this->RegisterVariableString('ControllerLog', '📝 System Log', '', 2);
     }
 
     public function ApplyChanges(): void

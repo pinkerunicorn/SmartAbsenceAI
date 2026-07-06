@@ -23,8 +23,8 @@ class SmartHomeSecurity extends IPSModuleStrict
         $this->RegisterTimer('TimerAutoUnlock', 0, 'SHS_TimerAutoUnlock($_IPS[\'TARGET\']);');
 
         // Variablen für den WebFront-Status
-        $this->RegisterVariableInteger('OpenWindowsCount', 'Offene Fenster / Türen (Zähler)', '', 1);
-        $this->RegisterVariableString('OpenWindowsList', 'Offene Fenster / Türen (Namen)', '', 2);
+        $this->RegisterVariableInteger('OpenWindowsCount', '🚪 Offene Fenster / Türen (Zähler)', '', 1);
+        $this->RegisterVariableString('OpenWindowsList', '📝 Offene Fenster / Türen (Namen)', '', 2);
     }
 
     public function ApplyChanges(): void

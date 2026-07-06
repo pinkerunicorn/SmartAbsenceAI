@@ -16,11 +16,11 @@ class SmartHomeLighting extends IPSModuleStrict
 
         $this->RegisterAttributeString('LightSchedule', '[]');
 
-        $this->RegisterVariableString('LightScheduleStatus', 'Aktueller KI-Schaltplan', '', 1);
-        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '', 2);
-
-        $this->RegisterVariableInteger('ActiveLightsCount', 'Aktive Lampen (Zähler)', '', 3);
-        $this->RegisterVariableString('ActiveLightsList', 'Aktive Lampen (Namen)', '', 4);
+        $this->RegisterVariableString('LightScheduleStatus', 'ℹ️ Aktueller KI-Schaltplan', '~HTMLBox', 1);
+        $this->RegisterVariableBoolean('GeminiError', '⚠️ Fehler aufgetreten', '~Alert', 2);
+        
+        $this->RegisterVariableInteger('ActiveLightsCount', '💡 Aktive Lampen (Zähler)', '', 3);
+        $this->RegisterVariableString('ActiveLightsList', '📝 Aktive Lampen (Namen)', '', 4);
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SHL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SHL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
