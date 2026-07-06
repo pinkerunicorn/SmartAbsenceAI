@@ -87,14 +87,14 @@
                 {
                     "caption": "Rollladen Variable",
                     "name": "VariableID",
-                    "width": "150px",
+                    "width": "auto",
                     "add": 0,
                     "edit": { "type": "SelectVariable" }
                 },
                 {
                     "caption": "Fensterkontakt",
                     "name": "ContactID",
-                    "width": "150px",
+                    "width": "auto",
                     "add": 0,
                     "edit": { "type": "SelectVariable" }
                 },
