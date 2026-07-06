@@ -25,6 +25,7 @@ class SmartHomeSecurity extends IPSModuleStrict
         // Variablen für den WebFront-Status
         $this->RegisterVariableInteger('OpenWindowsCount', '🚪 Offene Fenster / Türen (Zähler)', '', 1);
         $this->RegisterVariableString('OpenWindowsList', '📝 Offene Fenster / Türen (Namen)', '', 2);
+        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 3);
     }
 
     public function ApplyChanges(): void
@@ -41,6 +42,8 @@ class SmartHomeSecurity extends IPSModuleStrict
             'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'           => 'Information'
         ]);
+
+        $this->MaintainVariable('VestaboardStatus', 'Kurz-Status (Vestaboard)', 3, '', 3, true);
 
         $windowVars = json_decode($this->ReadPropertyString('WindowVariables'), true);
         if (is_array($windowVars)) {
@@ -102,8 +105,10 @@ class SmartHomeSecurity extends IPSModuleStrict
         
         if ($count == 0) {
             $this->SetValue('OpenWindowsList', 'Alle geschlossen');
+            $this->SetValue('VestaboardStatus', '');
         } else {
             $this->SetValue('OpenWindowsList', implode(", ", $openNames));
+            $this->SetValue('VestaboardStatus', $count . ' offen');
         }
     }
 

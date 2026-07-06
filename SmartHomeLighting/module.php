@@ -21,6 +21,7 @@ class SmartHomeLighting extends IPSModuleStrict
         
         $this->RegisterVariableInteger('ActiveLightsCount', '💡 Aktive Lampen (Zähler)', '', 3);
         $this->RegisterVariableString('ActiveLightsList', '📝 Aktive Lampen (Namen)', '', 4);
+        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 5);
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SHL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SHL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
@@ -34,6 +35,7 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '', 2, true);
         $this->MaintainVariable('ActiveLightsCount', 'Aktive Lampen (Zähler)', 1, '', 3, true);
         $this->MaintainVariable('ActiveLightsList', 'Aktive Lampen (Namen)', 3, '', 4, true);
+        $this->MaintainVariable('VestaboardStatus', 'Kurz-Status (Vestaboard)', 3, '', 5, true);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightScheduleStatus'), [
             'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
@@ -116,8 +118,10 @@ class SmartHomeLighting extends IPSModuleStrict
         
         if ($count == 0) {
             $this->SetValue('ActiveLightsList', 'Alle aus');
+            $this->SetValue('VestaboardStatus', '');
         } else {
             $this->SetValue('ActiveLightsList', implode(", ", $activeNames));
+            $this->SetValue('VestaboardStatus', $count . ' Lampe' . ($count > 1 ? 'n' : '') . ' an');
         }
     }
 
