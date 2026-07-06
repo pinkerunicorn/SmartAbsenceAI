@@ -138,7 +138,7 @@ class SmartHomeSecurity extends IPSModuleStrict
                     }
                 }
             }
-            $this->LogMessage("SmartHomeSecurity: Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
         } else {
             foreach ($doorVars as $door) {
                 // Fallback für alte Konfigurationen: false
@@ -150,7 +150,7 @@ class SmartHomeSecurity extends IPSModuleStrict
                     }
                 }
             }
-            $this->LogMessage("SmartHomeSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.", KL_NOTIFY);
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
         }
     }
 
@@ -195,7 +195,7 @@ class SmartHomeSecurity extends IPSModuleStrict
                 }
             }
         }
-        $this->LogMessage("SmartHomeSecurity: Automatisches Verriegeln der Türen durchgeführt.", KL_NOTIFY);
+        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Verriegeln der Türen durchgeführt.");
         
         $this->UpdateTimers();
     }
@@ -208,7 +208,7 @@ class SmartHomeSecurity extends IPSModuleStrict
         $isAbsent = $this->ReadAttributeBoolean('IsAbsent');
         
         if ($onlyWhenPresent && $isAbsent) {
-            $this->LogMessage("SmartHomeSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).", KL_NOTIFY);
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).");
             return;
         }
 
@@ -221,6 +221,6 @@ class SmartHomeSecurity extends IPSModuleStrict
                 }
             }
         }
-        $this->LogMessage("SmartHomeSecurity: Automatisches Aufsperren der Türen durchgeführt.", KL_NOTIFY);
+        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Aufsperren der Türen durchgeführt.");
     }
 }

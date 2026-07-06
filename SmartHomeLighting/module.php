@@ -143,7 +143,7 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->GenerateAiSchedule();
             IPS_SetEventActive($eid, true);
             $this->SetTimerInterval('LightExecutionTimer', 60000);
-            $this->LogMessage("SmartHomeLighting: Präsenzsimulation gestartet.", KL_NOTIFY);
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Präsenzsimulation gestartet.");
             $this->TurnOffAllSimulatedLights(); // Zuerst alles aus
         } else {
             // Wenn Präsenzsimulation lief, schalten wir sie ab
@@ -158,16 +158,16 @@ class SmartHomeLighting extends IPSModuleStrict
             
             if ($mode == 5) { // Schlafen
                 $this->TurnOffAllSimulatedLights();
-                $this->LogMessage("SmartHomeLighting: Schlafen aktiv - Alle Lichter aus.", KL_NOTIFY);
+                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Schlafen aktiv - Alle Lichter aus.");
             } elseif ($mode == 6) { // Putzen
                 $this->TurnOnAllSimulatedLights();
-                $this->LogMessage("SmartHomeLighting: Putzen aktiv - Alle Lichter an.", KL_NOTIFY);
+                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Putzen aktiv - Alle Lichter an.");
             } else {
                 // Bei Rückkehr (0, 3, 4) machen wir die simulierten Lichter aus, 
                 // aber nur wenn die Simulation davor lief.
                 if ($wasActive) {
                     $this->TurnOffAllSimulatedLights();
-                    $this->LogMessage("SmartHomeLighting: Präsenzsimulation gestoppt und Lichter aus.", KL_NOTIFY);
+                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Präsenzsimulation gestoppt und Lichter aus.");
                 }
             }
         }

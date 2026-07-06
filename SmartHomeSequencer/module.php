@@ -26,7 +26,7 @@ class SmartHomeSequencer extends IPSModuleStrict
 
     public function RunSequence(): void
     {
-        $this->LogMessage("Manuelle Auslösung der Sequenz vom Controller oder Test-Button.", KL_NOTIFY);
+        IPS_LogMessage('SmartVillaKunterbunt', "Manuelle Auslösung der Sequenz vom Controller oder Test-Button.");
         
         $sequencesJson = $this->ReadPropertyString('Sequences');
         $sequences = json_decode($sequencesJson, true);
@@ -44,7 +44,7 @@ class SmartHomeSequencer extends IPSModuleStrict
         $now = time();
         $itemsAdded = false;
 
-        $this->LogMessage("Sequenz gestartet. Verarbeite " . count($sequences) . " Aktionen.", KL_NOTIFY);
+        IPS_LogMessage('SmartVillaKunterbunt', "Sequenz gestartet. Verarbeite " . count($sequences) . " Aktionen.");
 
         foreach ($sequences as $seq) {
             $delay = isset($seq['Delay']) ? (int)$seq['Delay'] : 0;
@@ -61,7 +61,7 @@ class SmartHomeSequencer extends IPSModuleStrict
             } else {
                 $queue[] = $item;
                 $itemsAdded = true;
-                $this->LogMessage("Aktion für Ziel " . $item['TargetID'] . " zur Warteschlange hinzugefügt (Verzögerung: " . $delay . "s).", KL_NOTIFY);
+                IPS_LogMessage('SmartVillaKunterbunt', "Aktion für Ziel " . $item['TargetID'] . " zur Warteschlange hinzugefügt (Verzögerung: " . $delay . "s).");
             }
         }
 
@@ -114,7 +114,7 @@ class SmartHomeSequencer extends IPSModuleStrict
     {
         $targetID = (int)$item['TargetID'];
         if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
-            $this->LogMessage("Ausführung fehlgeschlagen: Ziel-ID " . $targetID . " existiert nicht.", KL_ERROR);
+            IPS_LogMessage('SmartVillaKunterbunt', "Ausführung fehlgeschlagen: Ziel-ID " . $targetID . " existiert nicht.");
             return;
         }
 
@@ -125,18 +125,18 @@ class SmartHomeSequencer extends IPSModuleStrict
             switch ($actionType) {
                 case 0: // Skript / Ablaufplan ausführen
                     if (!IPS_ScriptExists($targetID)) {
-                        $this->LogMessage("Fehler: Ziel " . $targetID . " ist kein ausführbares Skript!", KL_ERROR);
+                        IPS_LogMessage('SmartVillaKunterbunt', "Fehler: Ziel " . $targetID . " ist kein ausführbares Skript!");
                         return;
                     }
-                    $this->LogMessage("Führe Skript/Ablaufplan aus: " . $targetID, KL_NOTIFY);
+                    IPS_LogMessage('SmartVillaKunterbunt', "Führe Skript/Ablaufplan aus: " . $targetID);
                     @IPS_RunScript($targetID);
                     break;
                 case 1: // Gerät/Variable schalten (RequestAction)
                     if (!IPS_VariableExists($targetID)) {
-                        $this->LogMessage("Fehler: Ziel " . $targetID . " ist keine Status-Variable!", KL_ERROR);
+                        IPS_LogMessage('SmartVillaKunterbunt', "Fehler: Ziel " . $targetID . " ist keine Status-Variable!");
                         return;
                     }
-                    $this->LogMessage("Schalte Variable " . $targetID . " auf Wert: " . $valStr, KL_NOTIFY);
+                    IPS_LogMessage('SmartVillaKunterbunt', "Schalte Variable " . $targetID . " auf Wert: " . $valStr);
                     
                     // Datentyp bestimmen für korrekten Cast
                     $var = IPS_GetVariable($targetID);
@@ -152,23 +152,23 @@ class SmartHomeSequencer extends IPSModuleStrict
                     }
                     
                     if (!@RequestAction($targetID, $val)) {
-                        $this->LogMessage("RequestAction fehlgeschlagen! Hat die Variable " . $targetID . " überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?", KL_ERROR);
+                        IPS_LogMessage('SmartVillaKunterbunt', "RequestAction fehlgeschlagen! Hat die Variable " . $targetID . " überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?");
                     }
                     break;
                 case 2: // Wake On LAN
-                    $this->LogMessage("Sende WOL an Instanz: " . $targetID, KL_NOTIFY);
+                    IPS_LogMessage('SmartVillaKunterbunt', "Sende WOL an Instanz: " . $targetID);
                     if (function_exists('WOL_Send')) {
                         @WOL_Send($targetID);
                     } else {
-                        $this->LogMessage("WOL_Send Funktion ist nicht verfügbar.", KL_ERROR);
+                        IPS_LogMessage('SmartVillaKunterbunt', "WOL_Send Funktion ist nicht verfügbar.");
                     }
                     break;
                 default:
-                    $this->LogMessage("Unbekannter Aktionstyp: " . $actionType, KL_ERROR);
+                    IPS_LogMessage('SmartVillaKunterbunt', "Unbekannter Aktionstyp: " . $actionType);
                     break;
             }
         } catch (Exception $e) {
-            $this->LogMessage("Fehler bei der Ausführung (Ziel " . $targetID . "): " . $e->getMessage(), KL_ERROR);
+            IPS_LogMessage('SmartVillaKunterbunt', "Fehler bei der Ausführung (Ziel " . $targetID . "): " . $e->getMessage());
         }
     }
 }
