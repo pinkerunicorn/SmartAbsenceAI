@@ -37,28 +37,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         $this->RegisterPropertyString('CalendarURL', '');
 
-        // Neues Profil für Hausmodus
-        // Profil für Haus-Modus dynamisch anlegen
-        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
-            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
-        }
-        
-        $modesJson = $this->ReadPropertyString('HouseModes');
-        $modes = json_decode($modesJson, true);
-        if (!is_array($modes)) {
-            $modes = [];
-        }
-        
-        // Zuerst alte Assoziationen löschen
-        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
-        foreach ($profileInfo['Associations'] as $ass) {
-            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
-        }
-        
-        // Neue Assoziationen anlegen
-        foreach ($modes as $mode) {
-            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
-        }
+
 
         $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', 'SmartHome.HouseMode', 1);
         $this->EnableAction('HouseMode');
@@ -82,6 +61,28 @@ class SmartHomeControl extends IPSModuleStrict
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
                 'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             ]);
+        }
+
+        // Profil für Haus-Modus dynamisch anlegen/updaten
+        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
+            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
+        }
+        
+        $modesJson = $this->ReadPropertyString('HouseModes');
+        $modes = json_decode($modesJson, true);
+        if (!is_array($modes)) {
+            $modes = [];
+        }
+        
+        // Zuerst alte Assoziationen löschen
+        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
+        foreach ($profileInfo['Associations'] as $ass) {
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
+        }
+        
+        // Neue Assoziationen anlegen
+        foreach ($modes as $mode) {
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
         }
         
         // Legacy Variable verstecken/löschen, falls noch da
