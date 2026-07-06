@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 class SmartGoogleTTS extends IPSModule
 {
-    public function Create()
+    public function Create(): void
     {
         // Never delete this line!
         parent::Create();
@@ -22,7 +22,7 @@ class SmartGoogleTTS extends IPSModule
         $this->RegisterTimer("CleanupTimer", 0, 'SGTTS_CleanupCache($_IPS[\'TARGET\']);');
     }
 
-    public function ApplyChanges()
+    public function ApplyChanges(): void
     {
         // Never delete this line!
         parent::ApplyChanges();
@@ -33,7 +33,7 @@ class SmartGoogleTTS extends IPSModule
         $this->SetTimerInterval("CleanupTimer", 86400000);
     }
 
-    public function ClearCache()
+    public function ClearCache(): void
     {
         $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
         $moduleDir = $userDir . "SmartGoogleTTS";
@@ -52,7 +52,7 @@ class SmartGoogleTTS extends IPSModule
         }
     }
 
-    public function CleanupCache()
+    public function CleanupCache(): void
     {
         $userDir = IPS_GetKernelDir() . "webfront" . DIRECTORY_SEPARATOR . "user" . DIRECTORY_SEPARATOR;
         $moduleDir = $userDir . "SmartGoogleTTS";
@@ -70,7 +70,7 @@ class SmartGoogleTTS extends IPSModule
         }
     }
 
-    protected function RegisterHook($WebHook)
+    protected function RegisterHook(string $WebHook): void
     {
         $ids = IPS_GetInstanceListByModuleID("{015A6EB8-D6E5-4B93-B496-0D3F77AE9FE1}");
         if (sizeof($ids) > 0) {
@@ -93,7 +93,7 @@ class SmartGoogleTTS extends IPSModule
         }
     }
 
-    protected function ProcessHookData()
+    protected function ProcessHookData(): void
     {
         $uri = $_SERVER['REQUEST_URI'];
         $parts = explode('?', $uri); // Remove query string if any
