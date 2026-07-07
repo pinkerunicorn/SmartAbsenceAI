@@ -54,6 +54,17 @@ class SmartHomeSecurity extends IPSModuleStrict
                 }
             }
         }
+        $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
+        if (is_array($doorVars)) {
+            foreach ($doorVars as $door) {
+                if (isset($door['SensorVariableID'])) {
+                    $id = $door['SensorVariableID'];
+                    if ($id > 0 && IPS_VariableExists($id)) {
+                        $this->RegisterMessage($id, VM_UPDATE);
+                    }
+                }
+            }
+        }
         $this->CalculateOpenWindows();
         $this->UpdateTimers();
 
@@ -101,14 +112,53 @@ class SmartHomeSecurity extends IPSModuleStrict
                 }
             }
         }
+
+        $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
+        if (is_array($doorVars)) {
+            foreach ($doorVars as $door) {
+                if (isset($door['SensorVariableID'])) {
+                    $id = $door['SensorVariableID'];
+                    if ($id > 0 && IPS_VariableExists($id)) {
+                        $currentVal = GetValue($id);
+                        $checkVal = isset($door['ClosedValue']) ? $door['ClosedValue'] : 'false';
+                        
+                        $isClosed = false;
+                        if (is_bool($currentVal)) {
+                            $targetBool = ($checkVal === 'true' || $checkVal === '1' || strtolower($checkVal) === 'wahr');
+                            $isClosed = ($currentVal === $targetBool);
+                        } else if (is_int($currentVal)) {
+                            $isClosed = ($currentVal === (int)$checkVal);
+                        } else if (is_float($currentVal)) {
+                            $isClosed = ($currentVal === (float)$checkVal);
+                        } else if (is_string($currentVal)) {
+                            $isClosed = (strtolower(trim($currentVal)) === strtolower(trim($checkVal)));
+                        } else {
+                            $isClosed = ($currentVal == $checkVal);
+                        }
+                        
+                        if (!$isClosed) {
+                            $count++;
+                            $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
+                            $openNames[] = $name;
+                        }
+                    }
+                }
+            }
+        }
+
         $this->SetValue('OpenWindowsCount', $count);
         
         if ($count == 0) {
             $this->SetValue('OpenWindowsList', 'Alle geschlossen');
             $this->SetValue('VestaboardStatus', '');
         } else {
-            $this->SetValue('OpenWindowsList', implode(", ", $openNames));
-            $this->SetValue('VestaboardStatus', $count . ' offen');
+            $namesStr = implode(", ", $openNames);
+            $this->SetValue('OpenWindowsList', $namesStr);
+            if ($count == 1) {
+                $this->SetValue('VestaboardStatus', '1 offen: ' . $openNames[0]);
+            } else {
+                $this->SetValue('VestaboardStatus', $count . ' offen: ' . $namesStr);
+            }
         }
     }
 
@@ -139,7 +189,12 @@ class SmartHomeSecurity extends IPSModuleStrict
                 if ($lock) {
                     $id = $door['VariableID'];
                     if ($id > 0 && IPS_VariableExists($id)) {
-                        RequestAction($id, 0);
+                        if ($this->IsDoorClosed($door)) {
+                            RequestAction($id, 0);
+                        } else {
+                            $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
+                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Verriegelung für '$name' übersprungen, da die Tür noch offen steht!");
+                        }
                     }
                 }
             }
@@ -189,6 +244,28 @@ class SmartHomeSecurity extends IPSModuleStrict
         return ($targetTime - $now) * 1000;
     }
 
+    private function IsDoorClosed(array $door): bool
+    {
+        if (!isset($door['SensorVariableID']) || $door['SensorVariableID'] <= 0) return true;
+        $id = $door['SensorVariableID'];
+        if (!IPS_VariableExists($id)) return true;
+        
+        $currentVal = GetValue($id);
+        $checkVal = isset($door['ClosedValue']) ? $door['ClosedValue'] : 'false';
+        
+        if (is_bool($currentVal)) {
+            $targetBool = ($checkVal === 'true' || $checkVal === '1' || strtolower($checkVal) === 'wahr');
+            return ($currentVal === $targetBool);
+        } else if (is_int($currentVal)) {
+            return ($currentVal === (int)$checkVal);
+        } else if (is_float($currentVal)) {
+            return ($currentVal === (float)$checkVal);
+        } else if (is_string($currentVal)) {
+            return (strtolower(trim($currentVal)) === strtolower(trim($checkVal)));
+        }
+        return ($currentVal == $checkVal);
+    }
+
     public function TimerAutoLock(): void
     {
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
@@ -196,7 +273,12 @@ class SmartHomeSecurity extends IPSModuleStrict
             foreach ($doorVars as $door) {
                 $id = $door['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
-                    RequestAction($id, 0); // 0 = Verriegeln
+                    if ($this->IsDoorClosed($door)) {
+                        RequestAction($id, 0); // 0 = Verriegeln
+                    } else {
+                        $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
+                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Auto-Lock für '$name' übersprungen, da die Tür noch offen steht!");
+                    }
                 }
             }
         }

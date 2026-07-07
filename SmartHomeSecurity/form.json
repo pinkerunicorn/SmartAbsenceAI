@@ -3,15 +3,42 @@
         {
             "type": "List",
             "name": "DoorVariables",
-            "caption": "Türschloss-Variablen",
+            "caption": "Türen (Kontakte & Schlösser)",
             "rowCount": 10,
             "add": true,
             "delete": true,
             "columns": [
                 {
-                    "caption": "Variable",
+                    "caption": "Name",
+                    "name": "Name",
+                    "width": "200px",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Tür-Kontakt (Sensor)",
+                    "name": "SensorVariableID",
+                    "width": "300px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Wert f. Geschlossen",
+                    "name": "ClosedValue",
+                    "width": "150px",
+                    "add": "false",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Türschloss (Aktor)",
                     "name": "VariableID",
-                    "width": "800px",
+                    "width": "300px",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -69,7 +96,7 @@
         {
             "type": "List",
             "name": "WindowVariables",
-            "caption": "Fenster/Tür-Kontakte (Sicherheit)",
+            "caption": "Fenster-Kontakte (Sicherheit)",
             "rowCount": 15,
             "add": true,
             "delete": true,
