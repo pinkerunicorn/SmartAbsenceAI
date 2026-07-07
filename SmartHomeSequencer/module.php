@@ -163,11 +163,17 @@ class SmartHomeSequencer extends IPSModuleStrict
                     }
                     break;
                 case 2: // Wake On LAN
-                    IPS_LogMessage('SmartVillaKunterbunt', "Sende WOL an Instanz: " . $targetID);
-                    if (function_exists('WOL_Send')) {
+                    if ($targetID > 0 && function_exists('WOL_Send')) {
+                        IPS_LogMessage('SmartVillaKunterbunt', "Sende WOL an Instanz: " . $targetID);
                         @WOL_Send($targetID);
                     } else {
-                        IPS_LogMessage('SmartVillaKunterbunt', "WOL_Send Funktion ist nicht verfügbar.");
+                        $mac = trim($valStr);
+                        if (preg_match('/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/', $mac)) {
+                            IPS_LogMessage('SmartVillaKunterbunt', "Sende natives WOL an MAC-Adresse: " . $mac);
+                            $this->SendMagicPacket($mac);
+                        } else {
+                            IPS_LogMessage('SmartVillaKunterbunt', "WOL Fehler: Weder eine WOL-Instanz (Ziel) noch eine gültige MAC-Adresse (im Feld Wert) angegeben. Eingabe war: " . $valStr);
+                        }
                     }
                     break;
                 default:
@@ -176,6 +182,25 @@ class SmartHomeSequencer extends IPSModuleStrict
             }
         } catch (Exception $e) {
             IPS_LogMessage('SmartVillaKunterbunt', "Fehler bei der Ausführung (Ziel " . $targetID . "): " . $e->getMessage());
+        }
+    }
+
+    private function SendMagicPacket(string $mac, string $ip = "255.255.255.255", int $port = 9): void
+    {
+        $addr_byte = explode(':', str_replace('-', ':', $mac));
+        $hw_addr = '';
+        for ($a = 0; $a < 6; $a++) {
+            $hw_addr .= chr(hexdec($addr_byte[$a]));
+        }
+        $msg = str_repeat(chr(255), 6) . str_repeat($hw_addr, 16);
+        
+        $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+        if ($socket) {
+            @socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
+            @socket_sendto($socket, $msg, strlen($msg), 0, $ip, $port);
+            @socket_close($socket);
+        } else {
+            IPS_LogMessage('SmartVillaKunterbunt', "WOL Fehler: Konnte UDP Socket für Magic Packet nicht erstellen.");
         }
     }
 }
