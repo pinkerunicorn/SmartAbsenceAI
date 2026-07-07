@@ -39,11 +39,11 @@ class SmartHomeControl extends IPSModuleStrict
 
 
 
-        $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', 'SmartHome.HouseMode', 2);
+        $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', '', 2);
         $this->EnableAction('HouseMode');
         
         // Google Home / Alexa Interface Variable (Boolean)
-        $this->RegisterVariableBoolean('PresenceStatus', 'Anwesenheit (Google Home)', '~Switch', 1);
+        $this->RegisterVariableBoolean('PresenceStatus', 'Anwesenheit (Google Home)', '', 1);
         $this->EnableAction('PresenceStatus');
         
         // Timer für Kalender-Check
@@ -60,33 +60,32 @@ class SmartHomeControl extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        // Moderne IP-Symcon 8+ Darstellung anwenden
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
-                'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            ]);
-        }
-
-        // Profil für Haus-Modus dynamisch anlegen/updaten
-        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
-            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
-        }
-        
         $modesJson = $this->ReadPropertyString('HouseModes');
         $modes = json_decode($modesJson, true);
         if (!is_array($modes)) {
             $modes = [];
         }
         
-        // Zuerst alte Assoziationen löschen
-        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
-        foreach ($profileInfo['Associations'] as $ass) {
-            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
-        }
-        
-        // Neue Assoziationen anlegen
+        $associations = [];
         foreach ($modes as $mode) {
-            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
+            $associations[] = [
+                $mode['ModeID'],
+                $mode['ModeName'],
+                $mode['Icon'],
+                $mode['Color']
+            ];
+        }
+
+        // Moderne IP-Symcon 8+ Darstellung anwenden
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
+                'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ASSOCIATIONS'   => $associations
+            ]);
+            
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), [
+                'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH
+            ]);
         }
         
         $this->MaintainVariable('AbsenceStatus', '', 0, '', 0, false);
