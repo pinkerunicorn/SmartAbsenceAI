@@ -32,6 +32,7 @@
             "rowCount": 15,
             "add": true,
             "delete": true,
+            "sort": true,
             "columns": [
                 {
                     "caption": "Raum/Name (Kontext für KI)",

@@ -81,8 +81,10 @@
             "type": "List",
             "name": "BlindVariables",
             "caption": "Rollläden",
+            "rowCount": 15,
             "add": true,
             "delete": true,
+            "sort": true,
             "columns": [
                 {
                     "caption": "Rollladen Variable",
