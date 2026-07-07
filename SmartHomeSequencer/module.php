@@ -147,7 +147,9 @@ class SmartHomeSequencer extends IPSModuleStrict
                     $var = IPS_GetVariable($targetID);
                     $val = $valStr;
                     if ($var['VariableType'] == 0) { // Boolean
-                        $val = (strtolower($valStr) === 'true' || $valStr === '1');
+                        $lower = strtolower(trim($valStr));
+                        $val = in_array($lower, ['true', '1', 'on', 'an', 'yes', 'ja']);
+                        IPS_LogMessage('SmartVillaKunterbunt', "Wandle String '$valStr' in Boolean um -> " . ($val ? "TRUE" : "FALSE"));
                     } elseif ($var['VariableType'] == 1) { // Integer
                         $val = (int)$valStr;
                     } elseif ($var['VariableType'] == 2) { // Float
