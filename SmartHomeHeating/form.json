@@ -12,14 +12,14 @@
             "type": "List",
             "name": "HeatingInstances",
             "caption": "Thermostat-Gruppen (HCU Instanzen)",
-            "rowCount": 5,
+            "rowCount": 15,
             "add": true,
             "delete": true,
             "columns": [
                 {
                     "caption": "Thermostat-Instanz",
                     "name": "InstanceID",
-                    "width": "400px",
+                    "width": "800px",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
@@ -28,7 +28,7 @@
                 {
                     "caption": "Indiv. Absenktemp. (°C)",
                     "name": "TargetTemperature",
-                    "width": "200px",
+                    "width": "300px",
                     "add": 17.0,
                     "edit": {
                         "type": "NumberSpinner",
