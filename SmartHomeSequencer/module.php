@@ -47,6 +47,11 @@ class SmartHomeSequencer extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', "Sequenz gestartet. Verarbeite " . count($sequences) . " Aktionen.");
 
         foreach ($sequences as $seq) {
+            $active = isset($seq['Active']) ? $seq['Active'] : true;
+            if (!$active) {
+                continue;
+            }
+            
             $delay = isset($seq['Delay']) ? (int)$seq['Delay'] : 0;
             
             $item = [
