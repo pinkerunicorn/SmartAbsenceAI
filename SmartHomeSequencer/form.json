@@ -26,7 +26,7 @@
                     "caption": "Aktion",
                     "name": "ActionType",
                     "width": "auto",
-                    "add": 0,
+                    "add": 1,
                     "edit": {
                         "type": "Select",
                         "options": [
@@ -89,7 +89,7 @@
                     "caption": "Aktion",
                     "name": "ActionType",
                     "width": "auto",
-                    "add": 0,
+                    "add": 1,
                     "edit": {
                         "type": "Select",
                         "options": [
