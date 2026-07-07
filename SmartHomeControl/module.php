@@ -36,6 +36,14 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableSonos', true);
         
         $this->RegisterPropertyString('CalendarURL', '');
+        
+        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
+            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
+        }
+        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
+        foreach ($profileInfo['Associations'] as $ass) {
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
+        }
 
 
 
@@ -64,14 +72,6 @@ class SmartHomeControl extends IPSModuleStrict
         $modes = json_decode($modesJson, true);
         if (!is_array($modes)) {
             $modes = [];
-        }
-        
-        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
-            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
-        }
-        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
-        foreach ($profileInfo['Associations'] as $ass) {
-            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
         }
         foreach ($modes as $mode) {
             IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
