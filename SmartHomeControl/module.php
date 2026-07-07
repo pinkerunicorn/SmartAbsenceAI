@@ -26,9 +26,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableShading', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'DeactivationSequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'DeactivationSequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'DeactivationSequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -147,21 +147,49 @@ class SmartHomeControl extends IPSModuleStrict
                 }
             }
 
-            $this->SetValue($Ident, $Value);
-            $this->SetValue('PresenceStatus', ($Value != 1 && $Value != 2)); // Alles außer Abwesend/Urlaub gilt für Google als Anwesend
             $this->SetHouseMode($Value);
         }
         
         // Google Home Toggle
         if ($Ident == 'PresenceStatus') {
-            $this->SetValue('PresenceStatus', $Value);
-            $mode = $Value ? 0 : 1; // true = Anwesend, false = Abwesend
-            $this->SetValue('HouseMode', $mode);
+            $mode = $Value ? 0 : 1; // true = Anwesenheit, false = Abwesenheit
             $this->SetHouseMode($mode);
         }
     }
 
-    public function SetHouseMode(int $mode, int $vacationEndTime = 0): void
+    public function SetHouseMode(int $newMode, int $vacationEndTime = 0): void
+    {
+        $oldMode = $this->GetValue('HouseMode');
+        
+        if ($oldMode != $newMode) {
+            $this->TriggerDeactivationSequence($oldMode);
+        }
+        
+        $this->SetValue('HouseMode', $newMode);
+        $this->SetValue('PresenceStatus', ($newMode != 1 && $newMode != 2));
+        
+        $this->ApplyHouseModeState($newMode, $vacationEndTime);
+    }
+    
+    private function TriggerDeactivationSequence(int $mode): void
+    {
+        $modesJson = $this->ReadPropertyString('HouseModes');
+        $modes = json_decode($modesJson, true);
+        if (is_array($modes)) {
+            foreach ($modes as $m) {
+                if ($m['ModeID'] == $mode) {
+                    $deacInst = $m['DeactivationSequencerInstance'] ?? 0;
+                    if ($deacInst > 0 && IPS_InstanceExists($deacInst) && function_exists('SHSQ_RunSequence')) {
+                        SHSQ_RunSequence($deacInst);
+                        $this->AddLogEvent("Deaktivierungs-Sequenz für Modus '" . $m['ModeName'] . "' ausgeführt.", '⏪');
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private function ApplyHouseModeState(int $mode, int $vacationEndTime = 0): void
     {
         $heatingInst = $this->ReadPropertyInteger('HeatingInstance');
         $secInst = $this->ReadPropertyInteger('SecurityInstance');
@@ -192,7 +220,7 @@ class SmartHomeControl extends IPSModuleStrict
         $notifySonos = $currentModeConfig ? ($currentModeConfig['NotifySonos'] ?? true) : true;
         $sequencerInst = $currentModeConfig ? ($currentModeConfig['SequencerInstance'] ?? 0) : 0;
 
-        $this->AddLogEvent("Modus geändert zu: " . $modeName, '🏠');
+        $this->AddLogEvent("Modus gewechselt auf: " . $modeName, '🏠');
 
         if ($notifyHeating && $this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SHH_SetHouseMode')) {
             SHH_SetHouseMode($heatingInst, $mode, $vacationEndTime);
@@ -212,7 +240,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {
             SHSQ_RunSequence($sequencerInst);
-            $this->AddLogEvent("Sequencer ausgelöst.", '⚡');
+            $this->AddLogEvent("Aktivierungs-Sequenz ausgeführt.", '▶️');
         }
 
         // Sonos ansteuern
@@ -308,12 +336,10 @@ class SmartHomeControl extends IPSModuleStrict
         if ($vacationFound && $currentMode !== 2) {
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: " . date('d.m.Y H:i', $vacationEndTime) . ").");
             $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '🧳');
-            $this->SetValue('HouseMode', 2);
             $this->SetHouseMode(2, $vacationEndTime);
         } elseif (!$vacationFound && $currentMode === 2) {
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.");
             $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin beendet! Wechsle zurück auf Anwesenheit.", '🟢');
-            $this->SetValue('HouseMode', 0);
             $this->SetHouseMode(0);
         } elseif (!$vacationFound) {
             $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Aktuell ist kein Urlaub eingetragen.", '📅');

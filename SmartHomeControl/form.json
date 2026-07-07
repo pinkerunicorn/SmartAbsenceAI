@@ -49,9 +49,18 @@
                     }
                 },
                 {
-                    "caption": "Sequencer (Optional)",
+                    "caption": "Sequencer (Aktivierung)",
                     "name": "SequencerInstance",
-                    "width": "auto",
+                    "width": "150px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
+                },
+                {
+                    "caption": "Sequencer (Deaktivierung)",
+                    "name": "DeactivationSequencerInstance",
+                    "width": "150px",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
