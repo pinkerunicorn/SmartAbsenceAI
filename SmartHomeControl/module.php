@@ -39,7 +39,7 @@ class SmartHomeControl extends IPSModuleStrict
 
 
 
-        $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', '', 2);
+        $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', 'SmartHome.HouseMode', 2);
         $this->EnableAction('HouseMode');
         
         // Google Home / Alexa Interface Variable (Boolean)
@@ -66,21 +66,21 @@ class SmartHomeControl extends IPSModuleStrict
             $modes = [];
         }
         
-        $associations = [];
+        if (!IPS_VariableProfileExists('SmartHome.HouseMode')) {
+            IPS_CreateVariableProfile('SmartHome.HouseMode', 1);
+        }
+        $profileInfo = IPS_GetVariableProfile('SmartHome.HouseMode');
+        foreach ($profileInfo['Associations'] as $ass) {
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $ass['Value'], "", "", -1);
+        }
         foreach ($modes as $mode) {
-            $associations[] = [
-                $mode['ModeID'],
-                $mode['ModeName'],
-                $mode['Icon'],
-                $mode['Color']
-            ];
+            IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
         }
 
         // Moderne IP-Symcon 8+ Darstellung anwenden
         if (function_exists('IPS_SetVariableCustomPresentation')) {
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
-                'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ASSOCIATIONS'   => $associations
+                'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION
             ]);
             
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), [
