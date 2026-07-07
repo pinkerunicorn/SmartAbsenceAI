@@ -29,14 +29,14 @@
             "type": "List",
             "name": "LightVariables",
             "caption": "Lampen (Präsenzsimulation)",
-            "rowCount": 5,
+            "rowCount": 15,
             "add": true,
             "delete": true,
             "columns": [
                 {
                     "caption": "Raum/Name (Kontext für KI)",
                     "name": "Name",
-                    "width": "200px",
+                    "width": "400px",
                     "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -45,7 +45,7 @@
                 {
                     "caption": "Variable (Schalten/Dimmen)",
                     "name": "VariableID",
-                    "width": "300px",
+                    "width": "800px",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
