@@ -10,6 +10,7 @@
             "caption": "Haus-Modi (Matrix & Zuweisungen)",
             "add": true,
             "delete": true,
+            "changeOrder": true,
             "columns": [
                 {
                     "caption": "ID",
@@ -178,6 +179,7 @@
             "caption": "Sonos Instanzen",
             "add": true,
             "delete": true,
+            "changeOrder": true,
             "columns": [
                 {
                     "caption": "Instanz",

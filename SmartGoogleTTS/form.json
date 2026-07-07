@@ -30,6 +30,7 @@
             "caption": "Sonos Systeme",
             "add": true,
             "delete": true,
+            "changeOrder": true,
             "columns": [
                 {
                     "caption": "Instanz",
