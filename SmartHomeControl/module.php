@@ -43,8 +43,8 @@ class SmartHomeControl extends IPSModuleStrict
         $this->EnableAction('HouseMode');
         
         // Google Home / Alexa Interface Variable (Boolean)
-        $this->RegisterVariableBoolean('AbsenceStatus', 'Abwesenheit (Google Home)', '~Switch', 1);
-        $this->EnableAction('AbsenceStatus');
+        $this->RegisterVariableBoolean('PresenceStatus', 'Anwesenheit (Google Home)', '~Switch', 1);
+        $this->EnableAction('PresenceStatus');
         
         // Timer für Kalender-Check
         $this->RegisterTimer('CalendarCheck', 0, 'SHC_CheckCalendar($_IPS[\'TARGET\']);');
@@ -89,10 +89,7 @@ class SmartHomeControl extends IPSModuleStrict
             IPS_SetVariableProfileAssociation('SmartHome.HouseMode', $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
         }
         
-        $legacyID = @$this->GetIDForIdent('AbsenceStatus');
-        if ($legacyID > 0) {
-            IPS_SetHidden($legacyID, false);
-        }
+        $this->MaintainVariable('AbsenceStatus', '', 0, '', 0, false);
 
         // Timer starten (alle 30 Minuten)
         $this->SetTimerInterval('CalendarCheck', 30 * 60 * 1000);
@@ -152,14 +149,14 @@ class SmartHomeControl extends IPSModuleStrict
             }
 
             $this->SetValue($Ident, $Value);
-            $this->SetValue('AbsenceStatus', ($Value == 1 || $Value == 2));
+            $this->SetValue('PresenceStatus', ($Value == 0));
             $this->SetHouseMode($Value);
         }
         
-        // Legacy fallback
-        if ($Ident == 'AbsenceStatus') {
-            $this->SetValue('AbsenceStatus', $Value);
-            $mode = $Value ? 1 : 0;
+        // Google Home Toggle
+        if ($Ident == 'PresenceStatus') {
+            $this->SetValue('PresenceStatus', $Value);
+            $mode = $Value ? 0 : 1; // true = Anwesend, false = Abwesend
             $this->SetValue('HouseMode', $mode);
             $this->SetHouseMode($mode);
         }
