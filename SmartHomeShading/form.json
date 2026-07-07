@@ -88,43 +88,42 @@
             "columns": [
                 {
                     "caption": "Rollladen Variable",
-                    "name": "VariableID",
-                    "width": "auto",
+                    "name": "VariableID",`r`n                    "width": "auto",
                     "add": 0,
                     "edit": { "type": "SelectVariable" }
                 },
                 {
                     "caption": "Fensterkontakt",
                     "name": "ContactID",
-                    "width": "auto",
+                    "width": "150px",
                     "add": 0,
                     "edit": { "type": "SelectVariable" }
                 },
                 {
                     "caption": "Sonne Azimut Von (°)",
                     "name": "AzimuthFrom",
-                    "width": "auto",
+                    "width": "150px",
                     "add": 90,
                     "edit": { "type": "NumberSpinner", "minimum": 0, "maximum": 360 }
                 },
                 {
                     "caption": "Sonne Azimut Bis (°)",
                     "name": "AzimuthTo",
-                    "width": "auto",
+                    "width": "150px",
                     "add": 270,
                     "edit": { "type": "NumberSpinner", "minimum": 0, "maximum": 360 }
                 },
                 {
                     "caption": "Schatten-Pos",
                     "name": "ValueShade",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "0.1",
                     "edit": { "type": "ValidationTextBox" }
                 },
                 {
                     "caption": "Lüftungs-Pos",
                     "name": "ValueVentilate",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "0.3",
                     "edit": { "type": "ValidationTextBox" }
                 }

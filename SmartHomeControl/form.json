@@ -24,7 +24,7 @@
                 {
                     "caption": "Modus Name",
                     "name": "ModeName",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "Neuer Modus",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -33,7 +33,7 @@
                 {
                     "caption": "Icon",
                     "name": "Icon",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "",
                     "edit": {
                         "type": "SelectIcon"
@@ -184,7 +184,7 @@
                 {
                     "caption": "Instanz",
                     "name": "InstanceID",
-                    "width": "auto",
+                    "width": "150px",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"

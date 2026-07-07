@@ -37,7 +37,7 @@
                 {
                     "caption": "Raum/Name (Kontext für KI)",
                     "name": "Name",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -45,8 +45,7 @@
                 },
                 {
                     "caption": "Variable (Schalten/Dimmen)",
-                    "name": "VariableID",
-                    "width": "auto",
+                    "name": "VariableID",`r`n                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"

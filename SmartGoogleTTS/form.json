@@ -35,7 +35,7 @@
                 {
                     "caption": "Instanz",
                     "name": "InstanceID",
-                    "width": "auto",
+                    "width": "150px",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
@@ -44,7 +44,7 @@
                 {
                     "caption": "Lautstärke",
                     "name": "Volume",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "+0",
                     "edit": {
                         "type": "ValidationTextBox"

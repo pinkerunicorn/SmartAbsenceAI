@@ -12,7 +12,7 @@
                 {
                     "caption": "Name",
                     "name": "Name",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -21,7 +21,7 @@
                 {
                     "caption": "Tür-Kontakt (Sensor)",
                     "name": "SensorVariableID",
-                    "width": "auto",
+                    "width": "150px",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -30,7 +30,7 @@
                 {
                     "caption": "Wert f. Geschlossen",
                     "name": "ClosedValue",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "false",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -38,8 +38,7 @@
                 },
                 {
                     "caption": "Türschloss (Aktor)",
-                    "name": "VariableID",
-                    "width": "auto",
+                    "name": "VariableID",`r`n                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -48,7 +47,7 @@
                 {
                     "caption": "Verriegeln (Abwesenheit)",
                     "name": "LockOnAbsence",
-                    "width": "auto",
+                    "width": "150px",
                     "add": true,
                     "edit": {
                         "type": "CheckBox"
@@ -57,7 +56,7 @@
                 {
                     "caption": "Aufsperren (Rückkehr)",
                     "name": "UnlockOnPresence",
-                    "width": "auto",
+                    "width": "150px",
                     "add": false,
                     "edit": {
                         "type": "CheckBox"
@@ -77,7 +76,7 @@
                 {
                     "caption": "Name (für Meldungen)",
                     "name": "Name",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -85,8 +84,7 @@
                 },
                 {
                     "caption": "Variable",
-                    "name": "VariableID",
-                    "width": "auto",
+                    "name": "VariableID",`r`n                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -95,7 +93,7 @@
                 {
                     "caption": "Wert für Geschlossen",
                     "name": "ClosedValue",
-                    "width": "auto",
+                    "width": "150px",
                     "add": "false",
                     "edit": {
                         "type": "ValidationTextBox"
