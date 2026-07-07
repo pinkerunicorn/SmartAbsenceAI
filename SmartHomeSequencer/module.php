@@ -118,17 +118,16 @@ class SmartHomeSequencer extends IPSModuleStrict
     private function ExecuteAction(array $item): void
     {
         $targetID = (int)$item['TargetID'];
-        if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
-            IPS_LogMessage('SmartVillaKunterbunt', "Ausführung fehlgeschlagen: Ziel-ID " . $targetID . " existiert nicht.");
-            return;
-        }
-
         $actionType = (int)$item['ActionType'];
         $valStr = (string)$item['Value'];
 
         try {
             switch ($actionType) {
                 case 0: // Skript / Ablaufplan ausführen
+                    if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
+                        IPS_LogMessage('SmartVillaKunterbunt', "Ausführung fehlgeschlagen: Ziel-ID " . $targetID . " existiert nicht.");
+                        return;
+                    }
                     if (!IPS_ScriptExists($targetID)) {
                         IPS_LogMessage('SmartVillaKunterbunt', "Fehler: Ziel " . $targetID . " ist kein ausführbares Skript!");
                         return;
@@ -137,6 +136,10 @@ class SmartHomeSequencer extends IPSModuleStrict
                     @IPS_RunScript($targetID);
                     break;
                 case 1: // Gerät/Variable schalten (RequestAction)
+                    if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
+                        IPS_LogMessage('SmartVillaKunterbunt', "Ausführung fehlgeschlagen: Ziel-ID " . $targetID . " existiert nicht.");
+                        return;
+                    }
                     if (!IPS_VariableExists($targetID)) {
                         IPS_LogMessage('SmartVillaKunterbunt', "Fehler: Ziel " . $targetID . " ist keine Status-Variable!");
                         return;
