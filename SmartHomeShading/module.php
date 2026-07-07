@@ -113,7 +113,7 @@ class SmartHomeShading extends IPSModuleStrict
         if (!isset($locks[$varID]) || !$locks[$varID]) {
             $locks[$varID] = true;
             $this->WriteAttributeString('ManualLocks', json_encode($locks));
-            IPS_LogMessage('SmartVillaKunterbunt', "Manuelle Bedienung an Rollladen $varID erkannt. Automatik für heute gesperrt.");
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Manuelle Bedienung an Rollladen $varID erkannt. Automatik für heute gesperrt.");
         }
     }
     
@@ -121,7 +121,7 @@ class SmartHomeShading extends IPSModuleStrict
     {
         $this->WriteAttributeString('ManualLocks', '{}');
         $this->WriteAttributeString('CurrentState', '{}');
-        IPS_LogMessage('SmartVillaKunterbunt', "Tägliche Sperren zurückgesetzt.");
+        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Tägliche Sperren zurückgesetzt.");
         
         // Timer für nächsten Tag
         $now = time();
@@ -225,7 +225,7 @@ class SmartHomeShading extends IPSModuleStrict
                 // Wert in Typ konvertieren und fahren
                 $this->ExecuteAction($id, $targetValueStr);
                 $states[$id] = $targetState;
-                IPS_LogMessage('SmartVillaKunterbunt', "Rollladen $id fährt auf Zustand: $targetState");
+                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Rollladen $id fährt auf Zustand: $targetState");
             }
         }
         

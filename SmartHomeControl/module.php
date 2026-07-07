@@ -112,7 +112,7 @@ class SmartHomeControl extends IPSModuleStrict
                     }
                     if (count($openItems) > 0) {
                         $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem aktiviert.";
-                        IPS_LogMessage('SmartVillaKunterbunt', $msg);
+                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: " . $msg);
                         $this->AddLogEvent($msg, '⚠️');
                         
                         $wfc = $this->ReadPropertyInteger('WebFrontInstance');
@@ -246,14 +246,14 @@ class SmartHomeControl extends IPSModuleStrict
     {
         $url = $this->ReadPropertyString('CalendarURL');
         if (empty($url)) {
-            $this->AddLogEvent("CheckCalendar: Keine iCal-URL hinterlegt.", 'ℹ️');
+            $this->AddLogEvent("SmartHomeControl: CheckCalendar - Keine iCal-URL hinterlegt.", 'ℹ️');
             return;
         }
         
         $icalData = @file_get_contents($url);
         if (!$icalData) {
-            IPS_LogMessage('SmartVillaKunterbunt', "CheckCalendar: Konnte iCal-Daten nicht abrufen.");
-            $this->AddLogEvent("Fehler: Konnte Kalenderdaten nicht abrufen.", '❌');
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Konnte iCal-Daten nicht abrufen.");
+            $this->AddLogEvent("SmartHomeControl: Fehler: Konnte Kalenderdaten nicht abrufen.", '❌');
             return;
         }
         
@@ -307,19 +307,19 @@ class SmartHomeControl extends IPSModuleStrict
         $currentMode = GetValue($this->GetIDForIdent('HouseMode'));
         
         if ($vacationFound && $currentMode !== 2) {
-            IPS_LogMessage('SmartVillaKunterbunt', "CheckCalendar: Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: " . date('d.m.Y H:i', $vacationEndTime) . ").");
-            $this->AddLogEvent("Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '🧳');
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: " . date('d.m.Y H:i', $vacationEndTime) . ").");
+            $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '🧳');
             $this->SetValue('HouseMode', 2);
             $this->SetHouseMode(2, $vacationEndTime);
         } elseif (!$vacationFound && $currentMode === 2) {
-            IPS_LogMessage('SmartVillaKunterbunt', "CheckCalendar: Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.");
-            $this->AddLogEvent("Kalender: Urlaubstermin beendet! Wechsle zurück auf Anwesenheit.", '🟢');
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.");
+            $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin beendet! Wechsle zurück auf Anwesenheit.", '🟢');
             $this->SetValue('HouseMode', 0);
             $this->SetHouseMode(0);
         } elseif (!$vacationFound) {
-            $this->AddLogEvent("Kalender geprüft: Aktuell ist kein Urlaub eingetragen.", '📅');
+            $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Aktuell ist kein Urlaub eingetragen.", '📅');
         } else {
-            $this->AddLogEvent("Kalender geprüft: Urlaub ist aktiv (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '📅');
+            $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Urlaub ist aktiv (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '📅');
         }
     }
 
