@@ -172,7 +172,14 @@ class SmartHomeShading extends IPSModuleStrict
             $contactID = $blind['ContactID'] ?? 0;
             $isOpen = false;
             if ($contactID > 0 && IPS_VariableExists($contactID)) {
-                $isOpen = GetValue($contactID);
+                $contactVal = GetValue($contactID);
+                if (is_string($contactVal)) {
+                    $isOpen = (strtoupper($contactVal) === 'OPEN' || strtoupper($contactVal) === 'TILTED');
+                } elseif (is_bool($contactVal)) {
+                    $isOpen = $contactVal;
+                } else {
+                    $isOpen = ($contactVal > 0);
+                }
             }
             
             // Sonnen-Sektor
@@ -190,18 +197,25 @@ class SmartHomeShading extends IPSModuleStrict
             $targetState = 'OPEN';
             $targetValueStr = "1"; // Default offen
             
-            if ($isOpen) {
-                $targetState = 'VENTILATE';
-                $targetValueStr = $blind['ValueVentilate'] ?? "0.3";
-            } elseif ($isNight) {
+            if ($isNight) {
                 $targetState = 'NIGHT';
                 $targetValueStr = "0"; // Zu
             } elseif ($sunInSector && $isHotAndBright) {
                 $targetState = 'SHADING';
                 $targetValueStr = $blind['ValueShade'] ?? "0.1";
-            } else {
-                $targetState = 'OPEN';
-                $targetValueStr = "1";
+            }
+            
+            // Lüftungs-Position (Schutz vor Aussperren)
+            if ($isOpen && $targetState !== 'OPEN') {
+                $ventPosStr = $blind['ValueVentilate'] ?? "0.3";
+                $ventPos = (float)$ventPosStr;
+                $currentTargetPos = (float)$targetValueStr;
+                
+                // Nur auf Lüftungsposition fahren, wenn der Rollladen ansonsten weiter unten wäre
+                if ($currentTargetPos < $ventPos) {
+                    $targetState = 'VENTILATE';
+                    $targetValueStr = $ventPosStr;
+                }
             }
             
             // Nur fahren, wenn sich der Soll-Zustand geändert hat
