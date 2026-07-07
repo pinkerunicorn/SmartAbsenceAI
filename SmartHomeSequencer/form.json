@@ -30,8 +30,8 @@
                     "edit": {
                         "type": "Select",
                         "options": [
-                            {"caption": "Skript / Ablaufplan ausführen", "value": 0},
                             {"caption": "Gerät/Variable schalten", "value": 1},
+                            {"caption": "Skript / Ablaufplan ausführen", "value": 0},
                             {"caption": "Wake on LAN (WOL)", "value": 2}
                         ]
                     }
