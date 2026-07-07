@@ -7,7 +7,7 @@
             "rowCount": 10,
             "add": true,
             "delete": true,
-            "sort": true,
+            "changeOrder": true,
             "columns": [
                 {
                     "caption": "Name",
@@ -72,7 +72,7 @@
             "rowCount": 15,
             "add": true,
             "delete": true,
-            "sort": true,
+            "changeOrder": true,
             "columns": [
                 {
                     "caption": "Name (für Meldungen)",

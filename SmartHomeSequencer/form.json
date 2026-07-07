@@ -8,8 +8,10 @@
             "type": "List",
             "name": "Sequences",
             "caption": "Ablauf (wird von oben nach unten abgearbeitet)",
+            "rowCount": 15,
             "add": true,
             "delete": true,
+            "changeOrder": true,
             "columns": [
                 {
                     "caption": "Aktion",
