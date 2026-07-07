@@ -25,7 +25,7 @@
                 {
                     "caption": "Aktion",
                     "name": "ActionType",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "Select",
@@ -39,7 +39,7 @@
                 {
                     "caption": "Ziel Instanz / Skript",
                     "name": "TargetID",
-                    "width": "250px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectObject"
@@ -48,7 +48,7 @@
                 {
                     "caption": "Wert (Nur für Schalten)",
                     "name": "Value",
-                    "width": "150px",
+                    "width": "auto",
                     "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -57,7 +57,7 @@
                 {
                     "caption": "Verzögerung (Sek)",
                     "name": "Delay",
-                    "width": "100px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "NumberSpinner",
@@ -76,3 +76,4 @@
         }
     ]
 }
+

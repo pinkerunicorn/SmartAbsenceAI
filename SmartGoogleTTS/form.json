@@ -44,7 +44,7 @@
                 {
                     "caption": "Lautstärke",
                     "name": "Volume",
-                    "width": "200px",
+                    "width": "auto",
                     "add": "+0",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -94,3 +94,4 @@
         }
     ]
 }
+

@@ -24,7 +24,7 @@
                 {
                     "caption": "Modus Name",
                     "name": "ModeName",
-                    "width": "150px",
+                    "width": "auto",
                     "add": "Neuer Modus",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -33,7 +33,7 @@
                 {
                     "caption": "Icon",
                     "name": "Icon",
-                    "width": "100px",
+                    "width": "auto",
                     "add": "",
                     "edit": {
                         "type": "SelectIcon"
@@ -51,7 +51,7 @@
                 {
                     "caption": "Sequencer (Optional)",
                     "name": "SequencerInstance",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
@@ -184,7 +184,7 @@
                 {
                     "caption": "Instanz",
                     "name": "InstanceID",
-                    "width": "600px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
@@ -229,3 +229,4 @@
         }
     ]
 }
+

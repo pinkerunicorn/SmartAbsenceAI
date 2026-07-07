@@ -120,8 +120,13 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->SetValue('ActiveLightsList', 'Alle aus');
             $this->SetValue('VestaboardStatus', '');
         } else {
-            $this->SetValue('ActiveLightsList', implode(", ", $activeNames));
-            $this->SetValue('VestaboardStatus', $count . ' Lampe' . ($count > 1 ? 'n' : '') . ' an');
+            $namesStr = implode(", ", $activeNames);
+            $this->SetValue('ActiveLightsList', $namesStr);
+            if ($count == 1) {
+                $this->SetValue('VestaboardStatus', '1 Lampe an: ' . $activeNames[0]);
+            } else {
+                $this->SetValue('VestaboardStatus', $count . ' Lampen an: ' . $namesStr);
+            }
         }
     }
 

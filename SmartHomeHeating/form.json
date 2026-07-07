@@ -20,7 +20,7 @@
                 {
                     "caption": "Thermostat-Instanz",
                     "name": "InstanceID",
-                    "width": "800px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
@@ -29,7 +29,7 @@
                 {
                     "caption": "Indiv. Absenktemp. (°C)",
                     "name": "TargetTemperature",
-                    "width": "300px",
+                    "width": "auto",
                     "add": 17.0,
                     "edit": {
                         "type": "NumberSpinner",
@@ -42,3 +42,4 @@
         }
     ]
 }
+
