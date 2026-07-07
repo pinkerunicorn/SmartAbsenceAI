@@ -26,9 +26,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableShading', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'DeactivationSequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'DeactivationSequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'DeactivationSequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -178,10 +178,10 @@ class SmartHomeControl extends IPSModuleStrict
         if (is_array($modes)) {
             foreach ($modes as $m) {
                 if ($m['ModeID'] == $mode) {
-                    $deacInst = $m['DeactivationSequencerInstance'] ?? 0;
-                    if ($deacInst > 0 && IPS_InstanceExists($deacInst) && function_exists('SHSQ_RunSequence')) {
-                        SHSQ_RunSequence($deacInst);
-                        $this->AddLogEvent("Deaktivierungs-Sequenz für Modus '" . $m['ModeName'] . "' ausgeführt.", '⏪');
+                    $seqInst = $m['SequencerInstance'] ?? 0;
+                    if ($seqInst > 0 && IPS_InstanceExists($seqInst) && function_exists('SHSQ_RunDeactivationSequence')) {
+                        SHSQ_RunDeactivationSequence($seqInst);
+                        $this->AddLogEvent("Austritts-Sequenz für Modus '" . $m['ModeName'] . "' ausgeführt.", '⏪');
                     }
                     break;
                 }
@@ -240,7 +240,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {
             SHSQ_RunSequence($sequencerInst);
-            $this->AddLogEvent("Aktivierungs-Sequenz ausgeführt.", '▶️');
+            $this->AddLogEvent("Eintritts-Sequenz ausgeführt.", '▶️');
         }
 
         // Sonos ansteuern

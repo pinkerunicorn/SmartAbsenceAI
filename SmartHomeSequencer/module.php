@@ -10,6 +10,7 @@ class SmartHomeSequencer extends IPSModuleStrict
 
         // Konfiguration
         $this->RegisterPropertyString('Sequences', '[]');
+        $this->RegisterPropertyString('DeactivationSequences', '[]');
 
         // Warteschlange für verzögerte Aktionen
         $this->RegisterAttributeString('Queue', '[]');
@@ -26,9 +27,19 @@ class SmartHomeSequencer extends IPSModuleStrict
 
     public function RunSequence(): void
     {
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Manuelle Auslösung der Sequenz vom Controller oder Test-Button.");
+        $this->ProcessSequenceList('Sequences', 'Eintritt');
+    }
+
+    public function RunDeactivationSequence(): void
+    {
+        $this->ProcessSequenceList('DeactivationSequences', 'Austritt');
+    }
+
+    private function ProcessSequenceList(string $property, string $logName): void
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Manuelle Auslösung der $logName-Sequenz.");
         
-        $sequencesJson = $this->ReadPropertyString('Sequences');
+        $sequencesJson = $this->ReadPropertyString($property);
         $sequences = json_decode($sequencesJson, true);
 
         if (!is_array($sequences) || count($sequences) === 0) {
