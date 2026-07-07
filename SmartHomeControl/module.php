@@ -149,7 +149,7 @@ class SmartHomeControl extends IPSModuleStrict
             }
 
             $this->SetValue($Ident, $Value);
-            $this->SetValue('PresenceStatus', ($Value == 0));
+            $this->SetValue('PresenceStatus', ($Value != 1 && $Value != 2)); // Alles außer Abwesend/Urlaub gilt für Google als Anwesend
             $this->SetHouseMode($Value);
         }
         
