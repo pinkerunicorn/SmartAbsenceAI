@@ -87,20 +87,23 @@ class SmartHomeWatchdog extends IPSModuleStrict
             if (isset($rule['Active']) && $rule['Active'] && $rule['VariableID'] == $varID) {
                 $isMet = $this->IsConditionMet($currentValue, $rule['Condition'], $rule['TargetValue']);
                 $delay = (int)($rule['DelayMinutes'] ?? 0);
+                $retrigger = isset($rule['RetriggerOnUpdate']) && $rule['RetriggerOnUpdate'];
                 
                 if ($isMet) {
                     // Condition is met!
                     if ($delay > 0) {
-                        if (!isset($activeDelays[$varID])) {
-                            // Start delay
+                        if (!isset($activeDelays[$varID]) || $retrigger) {
+                            // Start delay (or restart if retrigger is enabled)
                             $activeDelays[$varID] = time();
                             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeWatchdog: Bedingung für '{$rule['Name']}' erfüllt. Starte Verzögerung von {$delay} Minuten.");
                         }
                     } else {
                         // Instant trigger
-                        if (!isset($firedAlarms[$varID]) || !$firedAlarms[$varID]) {
+                        if (!isset($firedAlarms[$varID]) || !$firedAlarms[$varID] || $retrigger) {
                             $this->FireAlarm($rule);
-                            $firedAlarms[$varID] = true;
+                            if (!$retrigger) {
+                                $firedAlarms[$varID] = true;
+                            }
                         }
                     }
                 } else {

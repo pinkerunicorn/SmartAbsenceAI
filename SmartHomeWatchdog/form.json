@@ -69,6 +69,15 @@
                     }
                 },
                 {
+                    "caption": "Bei jedem Update",
+                    "name": "RetriggerOnUpdate",
+                    "width": "100px",
+                    "add": false,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
                     "caption": "Verzögerung (Min)",
                     "name": "DelayMinutes",
                     "width": "100px",
