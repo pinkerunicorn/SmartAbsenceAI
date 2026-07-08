@@ -1,0 +1,102 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "label": "Tor Konfiguration"
+        },
+        {
+            "type": "SelectVariable",
+            "name": "MotorVariableID",
+            "caption": "Motor Relais (Impuls)"
+        },
+        {
+            "type": "Label",
+            "label": "Sensoren (Endschalter)"
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "SensorClosedID",
+                    "caption": "Sensor: Zu-Position"
+                },
+                {
+                    "type": "ValidationTextBox",
+                    "name": "SensorClosedValue",
+                    "caption": "Auslöse-Wert (z.B. true, CLOSED)"
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "SensorOpenID",
+                    "caption": "Sensor: Auf-Position"
+                },
+                {
+                    "type": "ValidationTextBox",
+                    "name": "SensorOpenValue",
+                    "caption": "Auslöse-Wert (z.B. true, CLOSED)"
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "label": "Taster (Auslöser)"
+        },
+        {
+            "type": "List",
+            "name": "ButtonVariables",
+            "caption": "Wand- & Funktaster",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Variable (Sensor)",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Auslöse-Wert",
+                    "name": "TriggerValue",
+                    "width": "150px",
+                    "add": "CLOSED",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "label": "Homematic LEDs"
+        },
+        {
+            "type": "List",
+            "name": "LEDInstances",
+            "caption": "Status LEDs",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Homematic Instanz ID",
+                    "name": "InstanceID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
+                }
+            ]
+        }
+    ]
+}
