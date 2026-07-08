@@ -55,6 +55,10 @@ class SmartHomeGarage extends IPSModuleStrict
             $this->RegisterMessage($sensorOpen, VM_UPDATE);
         }
 
+        // Create links for the sensors so they are visible under the instance
+        $this->MaintainLink('LinkSensorClosed', 'Sensor Zu', $sensorClosed, 3);
+        $this->MaintainLink('LinkSensorOpen', 'Sensor Auf', $sensorOpen, 4);
+
         // Register messages for buttons
         $buttons = json_decode($this->ReadPropertyString('ButtonVariables'), true);
         if (is_array($buttons)) {
@@ -247,5 +251,24 @@ class SmartHomeGarage extends IPSModuleStrict
             return (strtolower(trim($actual)) === strtolower(trim((string)$expected)));
         }
         return ($actual == $expected);
+    }
+
+    private function MaintainLink(string $ident, string $name, int $targetID, int $position): void
+    {
+        $linkID = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
+        if ($targetID === 0) {
+            if ($linkID !== false) {
+                IPS_DeleteLink($linkID);
+            }
+            return;
+        }
+        if ($linkID === false) {
+            $linkID = IPS_CreateLink();
+            IPS_SetParent($linkID, $this->InstanceID);
+            IPS_SetIdent($linkID, $ident);
+            IPS_SetName($linkID, $name);
+            IPS_SetPosition($linkID, $position);
+        }
+        IPS_SetLinkTargetID($linkID, $targetID);
     }
 }
