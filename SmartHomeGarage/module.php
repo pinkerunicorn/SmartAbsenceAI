@@ -94,7 +94,7 @@ class SmartHomeGarage extends IPSModuleStrict
                     if ($SenderID == $btn['VariableID']) {
                         $currentVal = GetValue($SenderID);
                         if ($this->ValuesMatch($currentVal, $btn['TriggerValue'])) {
-                            IPS_LogMessage('SmartHomeGarage', "Taster $SenderID hat Tor-Aktion ausgelöst!");
+                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeGarage: Taster $SenderID hat Tor-Aktion ausgelöst!");
                             $this->TriggerDoor();
                         }
                     }
@@ -109,7 +109,7 @@ class SmartHomeGarage extends IPSModuleStrict
         if ($motorId > 0 && IPS_VariableExists($motorId)) {
             @RequestAction($motorId, true);
         } else {
-            IPS_LogMessage('SmartHomeGarage', 'Fehler: Kein Motor-Aktor konfiguriert.');
+            IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: Fehler - Kein Motor-Aktor konfiguriert.');
         }
 
         // Calculate expected state
