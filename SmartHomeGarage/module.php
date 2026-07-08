@@ -220,6 +220,9 @@ class SmartHomeGarage extends IPSModuleStrict
 
     private function ValuesMatch($actual, $expected): bool
     {
+        if ((string)$expected === '') {
+            return true; // Empty string means trigger on ANY update
+        }
         if (is_bool($actual)) {
             $targetBool = ($expected === 'true' || $expected === '1' || strtolower((string)$expected) === 'wahr');
             return ($actual === $targetBool);
