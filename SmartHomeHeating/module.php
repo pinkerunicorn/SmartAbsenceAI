@@ -163,6 +163,13 @@ class SmartHomeHeating extends IPSModuleStrict
             }
         } else {
             // Modus 0 (Anwesenheit), 3 (Party), 4 (Heimkino), 6 (Putzen) -> Heizung normal!
+            $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
+            if (!$isHeatingSeason) {
+                $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Inaktiv');
+                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, keine Änderungen beim Statuswechsel.");
+                return;
+            }
+
             $previousStatesStr = $this->ReadAttributeString('PreviousStates');
             $previousStates = json_decode($previousStatesStr, true);
             if (is_array($previousStates)) {
