@@ -21,6 +21,9 @@ class SmartHomeGarage extends IPSModuleStrict
         // Attribute for tracking the last direction to guess the next move
         $this->RegisterAttributeInteger('LastDirection', 2); // 2=Fährt Auf, 3=Fährt Zu
 
+        // Timer for Relay impulse
+        $this->RegisterTimer('RelayOffTimer', 0, 'SHG_TurnOffRelay($_IPS[\'TARGET\']);');
+
         // Profiles
         if (!IPS_VariableProfileExists('SHG.DoorState')) {
             IPS_CreateVariableProfile('SHG.DoorState', 1); // Integer
@@ -108,6 +111,7 @@ class SmartHomeGarage extends IPSModuleStrict
         $motorId = $this->ReadPropertyInteger('MotorVariableID');
         if ($motorId > 0 && IPS_VariableExists($motorId)) {
             @RequestAction($motorId, true);
+            $this->SetTimerInterval('RelayOffTimer', 1000); // Trigger release after 1s
         } else {
             IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: Fehler - Kein Motor-Aktor konfiguriert.');
         }
@@ -133,6 +137,15 @@ class SmartHomeGarage extends IPSModuleStrict
         }
 
         $this->SetDoorState($nextState);
+    }
+
+    public function TurnOffRelay(): void
+    {
+        $this->SetTimerInterval('RelayOffTimer', 0); // Disable timer
+        $motorId = $this->ReadPropertyInteger('MotorVariableID');
+        if ($motorId > 0 && IPS_VariableExists($motorId)) {
+            @RequestAction($motorId, false);
+        }
     }
 
     private function CheckSensors(): void
