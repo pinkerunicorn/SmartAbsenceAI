@@ -9,11 +9,6 @@
             "maximum": 25.0
         },
         {
-            "type": "SelectVariable",
-            "name": "HeatingSeasonVariableID",
-            "caption": "Heizperiode / Sommerbetrieb (Bool) - Optional"
-        },
-        {
             "type": "List",
             "name": "HeatingInstances",
             "caption": "Thermostat-Gruppen (HCU Instanzen)",

@@ -10,7 +10,6 @@ class SmartHomeHeating extends IPSModuleStrict
 
         // Target temperature during absence (Fallback)
         $this->RegisterPropertyFloat('TargetTemperature', 17.0);
-        $this->RegisterPropertyInteger('HeatingSeasonVariableID', 0);
 
         // JSON array of thermostat instances: [{"InstanceID": 12345, "TargetTemperature": 17.0}]
         $this->RegisterPropertyString('HeatingInstances', '[]');
@@ -21,6 +20,9 @@ class SmartHomeHeating extends IPSModuleStrict
         // GUI Variables
         $this->RegisterVariableString('HeatingStatus', 'ℹ️ Status', '', 1);
         $this->RegisterVariableFloat('AverageTemperature', '🌡️ Ø Haus-Temperatur', '', 2);
+        
+        $this->RegisterVariableBoolean('HeatingSeason', '❄️ Heizperiode aktiv', '~Switch', 10);
+        $this->EnableAction('HeatingSeason');
 
         // Timer for periodic temperature update
         $this->RegisterTimer('UpdateTempTimer', 0, 'SHH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
@@ -67,6 +69,13 @@ class SmartHomeHeating extends IPSModuleStrict
 
         $this->SetStatus(102);
     }
+    
+    public function RequestAction(string $Ident, $Value): void
+    {
+        if ($Ident === 'HeatingSeason') {
+            $this->SetValue($Ident, $Value);
+        }
+    }
 
     public function SetHouseMode(int $mode, int $vacationEndTime = 0): void
     {
@@ -80,13 +89,11 @@ class SmartHomeHeating extends IPSModuleStrict
         $isVacation = ($mode == 2);
         
         if ($isAbsence || $isVacation) {
-            $seasonVarId = $this->ReadPropertyInteger('HeatingSeasonVariableID');
-            if ($seasonVarId > 0 && IPS_VariableExists($seasonVarId)) {
-                if (!GetValue($seasonVarId)) {
-                    $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Keine Absenkung');
-                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.");
-                    return;
-                }
+            $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
+            if (!$isHeatingSeason) {
+                $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Keine Absenkung');
+                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.");
+                return;
             }
             
             $globalTargetTemp = $this->ReadPropertyFloat('TargetTemperature');
