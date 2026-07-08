@@ -28,7 +28,8 @@
                 },
                 {
                     "caption": "Indiv. Absenktemp. (°C)",
-                    "name": "TargetTemperature",`r`n                    "width": "auto",
+                    "name": "TargetTemperature",
+                    "width": "auto",
                     "add": 17.0,
                     "edit": {
                         "type": "NumberSpinner",

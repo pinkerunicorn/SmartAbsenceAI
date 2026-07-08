@@ -45,7 +45,8 @@
                 },
                 {
                     "caption": "Variable (Schalten/Dimmen)",
-                    "name": "VariableID",`r`n                    "width": "auto",
+                    "name": "VariableID",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"

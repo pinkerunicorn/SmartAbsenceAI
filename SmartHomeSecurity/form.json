@@ -38,7 +38,8 @@
                 },
                 {
                     "caption": "Türschloss (Aktor)",
-                    "name": "VariableID",`r`n                    "width": "auto",
+                    "name": "VariableID",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -84,7 +85,8 @@
                 },
                 {
                     "caption": "Variable",
-                    "name": "VariableID",`r`n                    "width": "auto",
+                    "name": "VariableID",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"

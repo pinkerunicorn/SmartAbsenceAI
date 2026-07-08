@@ -38,7 +38,8 @@
                 },
                 {
                     "caption": "Ziel Instanz / Skript",
-                    "name": "TargetID",`r`n                    "width": "auto",
+                    "name": "TargetID",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectObject"
@@ -100,7 +101,8 @@
                 },
                 {
                     "caption": "Ziel Instanz / Skript",
-                    "name": "TargetID",`r`n                    "width": "auto",
+                    "name": "TargetID",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectObject"
