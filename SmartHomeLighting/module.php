@@ -184,9 +184,6 @@ class SmartHomeLighting extends IPSModuleStrict
             if ($mode == 5) { // Schlafen
                 $this->TurnOffAllSimulatedLights();
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Schlafen aktiv - Alle Lichter aus.");
-            } elseif ($mode == 6) { // Putzen
-                $this->TurnOnAllSimulatedLights();
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Putzen aktiv - Alle Lichter an.");
             } else {
                 // Bei Rückkehr (0, 3, 4) machen wir die simulierten Lichter aus, 
                 // aber nur wenn die Simulation davor lief.
@@ -482,33 +479,7 @@ class SmartHomeLighting extends IPSModuleStrict
         }
     }
 
-    private function TurnOnAllSimulatedLights(): void
-    {
-        $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
-        if (is_array($lightVars)) {
-            foreach ($lightVars as $light) {
-                $id = $light['VariableID'];
-                if ($id > 0 && IPS_VariableExists($id)) {
-                    $varObj = IPS_GetVariable($id);
-                    if ($varObj['VariableType'] == 0) {
-                        RequestAction($id, true);
-                    } else {
-                        RequestAction($id, 100);
-                    }
-                }
-            }
-        }
-        
-        $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
-        if (is_array($dimmerVars)) {
-            foreach ($dimmerVars as $light) {
-                $id = $light['VariableID'];
-                if ($id > 0 && IPS_VariableExists($id)) {
-                    RequestAction($id, 100);
-                }
-            }
-        }
-    }
+
 
     private function MaintainDailyEvent(): int
     {

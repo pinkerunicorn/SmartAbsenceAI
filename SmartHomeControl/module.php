@@ -26,14 +26,11 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableShading', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifySonos' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
-        
-        $this->RegisterPropertyString('SonosInstances', '[]');
-        $this->RegisterPropertyBoolean('EnableSonos', true);
         
         $this->RegisterPropertyString('CalendarURL', '');
         
@@ -217,7 +214,6 @@ class SmartHomeControl extends IPSModuleStrict
         $notifySecurity = $currentModeConfig ? ($currentModeConfig['NotifySecurity'] ?? true) : true;
         $notifyLighting = $currentModeConfig ? ($currentModeConfig['NotifyLighting'] ?? true) : true;
         $notifyShading = $currentModeConfig ? ($currentModeConfig['NotifyShading'] ?? true) : true;
-        $notifySonos = $currentModeConfig ? ($currentModeConfig['NotifySonos'] ?? true) : true;
         $sequencerInst = $currentModeConfig ? ($currentModeConfig['SequencerInstance'] ?? 0) : 0;
 
         $this->AddLogEvent("Modus gewechselt auf: " . $modeName, '🏠');
@@ -243,30 +239,6 @@ class SmartHomeControl extends IPSModuleStrict
             $this->AddLogEvent("Eintritts-Sequenz ausgeführt.", '▶️');
         }
 
-        // Sonos ansteuern
-        if ($notifySonos) {
-            $this->ControlSonos($mode);
-        }
-    }
-    
-    private function ControlSonos(int $mode): void
-    {
-        if (!$this->ReadPropertyBoolean('EnableSonos')) return;
-        
-        $sonosJson = $this->ReadPropertyString('SonosInstances');
-        $sonosList = json_decode($sonosJson, true);
-        if (!is_array($sonosList)) return;
-        
-        foreach ($sonosList as $sonos) {
-            $instId = $sonos['InstanceID'] ?? 0;
-            if ($instId <= 0 || !IPS_InstanceExists($instId)) continue;
-            
-            if ($mode == 6) { // Putzen = Play
-                @SNS_Play($instId);
-            } elseif ($mode == 1 || $mode == 2 || $mode == 5) { // Abwesenheit, Urlaub, Schlafen = Pause
-                @SNS_Pause($instId);
-            }
-        }
     }
     
     public function CheckCalendar(): void

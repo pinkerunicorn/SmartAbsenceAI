@@ -85,15 +85,6 @@
                     }
                 },
                 {
-                    "caption": "Sonos",
-                    "name": "NotifySonos",
-                    "width": "70px",
-                    "add": true,
-                    "edit": {
-                        "type": "CheckBox"
-                    }
-                },
-                {
                     "caption": "Beschattung",
                     "name": "NotifyShading",
                     "width": "80px",
@@ -166,34 +157,6 @@
         },
         {
             "type": "Label",
-            "caption": "Sonos Integration (Putzmodus etc.)"
-        },
-        {
-            "type": "CheckBox",
-            "name": "EnableSonos",
-            "caption": "Sonos Steuerung aktivieren"
-        },
-        {
-            "type": "List",
-            "name": "SonosInstances",
-            "caption": "Sonos Instanzen",
-            "add": true,
-            "delete": true,
-            "changeOrder": true,
-            "columns": [
-                {
-                    "caption": "Instanz",
-                    "name": "InstanceID",
-                    "width": "150px",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectInstance"
-                    }
-                }
-            ]
-        },
-        {
-            "type": "Label",
             "caption": "Urlaubs-Automatik"
         },
         {
@@ -229,4 +192,3 @@
         }
     ]
 }
-
