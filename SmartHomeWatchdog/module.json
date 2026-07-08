@@ -1,0 +1,13 @@
+{
+    "id": "{D86C2712-6585-48B4-9281-F42526294CFB}",
+    "name": "SmartHomeWatchdog",
+    "type": 3,
+    "vendor": "SmartAbsenceAI",
+    "aliases": ["SmartHome Watchdog"],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SHW",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
+}
