@@ -190,7 +190,7 @@ class SmartHomeSecurity extends IPSModuleStrict
                     $id = $door['VariableID'];
                     if ($id > 0 && IPS_VariableExists($id)) {
                         if ($this->IsDoorClosed($door)) {
-                            RequestAction($id, 0);
+                            RequestAction($id, $this->GetActionValue($door, 'LockValue', 1));
                         } else {
                             $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
                             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Verriegelung für '$name' übersprungen, da die Tür noch offen steht!");
@@ -206,7 +206,7 @@ class SmartHomeSecurity extends IPSModuleStrict
                 if ($unlock) {
                     $id = $door['VariableID'];
                     if ($id > 0 && IPS_VariableExists($id)) {
-                        RequestAction($id, 1);
+                        RequestAction($id, $this->GetActionValue($door, 'UnlockValue', 0));
                     }
                 }
             }
@@ -266,6 +266,18 @@ class SmartHomeSecurity extends IPSModuleStrict
         return ($currentVal == $checkVal);
     }
 
+    private function GetActionValue(array $door, string $key, $default)
+    {
+        $val = isset($door[$key]) ? $door[$key] : $default;
+        if ($val === 'true' || $val === 'True') return true;
+        if ($val === 'false' || $val === 'False') return false;
+        if (is_numeric($val)) {
+            if (strpos((string)$val, '.') !== false) return (float)$val;
+            return (int)$val;
+        }
+        return $val;
+    }
+
     public function TimerAutoLock(): void
     {
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
@@ -274,7 +286,7 @@ class SmartHomeSecurity extends IPSModuleStrict
                 $id = $door['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
                     if ($this->IsDoorClosed($door)) {
-                        RequestAction($id, 0); // 0 = Verriegeln
+                        RequestAction($id, $this->GetActionValue($door, 'LockValue', 1)); // Verriegeln
                     } else {
                         $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
                         IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Auto-Lock für '$name' übersprungen, da die Tür noch offen steht!");
@@ -304,7 +316,7 @@ class SmartHomeSecurity extends IPSModuleStrict
             foreach ($doorVars as $door) {
                 $id = $door['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
-                    RequestAction($id, 1); // 1 = Aufsperren
+                    RequestAction($id, $this->GetActionValue($door, 'UnlockValue', 0)); // Aufsperren
                 }
             }
         }

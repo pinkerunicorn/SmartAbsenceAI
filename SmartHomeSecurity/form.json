@@ -46,6 +46,24 @@
                     }
                 },
                 {
+                    "caption": "Wert f. Verriegeln",
+                    "name": "LockValue",
+                    "width": "100px",
+                    "add": "1",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Wert f. Entriegeln",
+                    "name": "UnlockValue",
+                    "width": "100px",
+                    "add": "0",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
                     "caption": "Verriegeln (Abwesenheit)",
                     "name": "LockOnAbsence",
                     "width": "150px",
