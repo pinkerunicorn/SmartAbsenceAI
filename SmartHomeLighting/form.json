@@ -51,6 +51,15 @@
                     "edit": {
                         "type": "SelectVariable"
                     }
+                },
+                {
+                    "caption": "Bei Rückkehr anlassen",
+                    "name": "KeepOnReturn",
+                    "width": "150px",
+                    "add": false,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
                 }
             ]
         },
@@ -79,6 +88,15 @@
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Bei Rückkehr anlassen",
+                    "name": "KeepOnReturn",
+                    "width": "150px",
+                    "add": false,
+                    "edit": {
+                        "type": "CheckBox"
                     }
                 }
             ]

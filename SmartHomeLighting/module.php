@@ -191,7 +191,7 @@ class SmartHomeLighting extends IPSModuleStrict
                 // Bei Rückkehr (0, 3, 4) machen wir die simulierten Lichter aus, 
                 // aber nur wenn die Simulation davor lief.
                 if ($wasActive) {
-                    $this->TurnOffAllSimulatedLights();
+                    $this->TurnOffAllSimulatedLights(true);
                     IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Präsenzsimulation gestoppt und Lichter aus.");
                 }
             }
@@ -448,11 +448,14 @@ class SmartHomeLighting extends IPSModuleStrict
         }
     }
 
-    private function TurnOffAllSimulatedLights(): void
+    private function TurnOffAllSimulatedLights(bool $respectKeepOnReturn = false): void
     {
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
         if (is_array($lightVars)) {
             foreach ($lightVars as $light) {
+                if ($respectKeepOnReturn && isset($light['KeepOnReturn']) && $light['KeepOnReturn']) {
+                    continue;
+                }
                 $id = $light['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
                     $varObj = IPS_GetVariable($id);
@@ -468,6 +471,9 @@ class SmartHomeLighting extends IPSModuleStrict
         $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
         if (is_array($dimmerVars)) {
             foreach ($dimmerVars as $light) {
+                if ($respectKeepOnReturn && isset($light['KeepOnReturn']) && $light['KeepOnReturn']) {
+                    continue;
+                }
                 $id = $light['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
                     RequestAction($id, 0);

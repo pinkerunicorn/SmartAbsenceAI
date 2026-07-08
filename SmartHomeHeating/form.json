@@ -20,7 +20,7 @@
                 {
                     "caption": "Thermostat-Instanz",
                     "name": "InstanceID",
-                    "width": "150px",
+                    "width": "300px",
                     "add": 0,
                     "edit": {
                         "type": "SelectInstance"
