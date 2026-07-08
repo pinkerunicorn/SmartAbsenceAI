@@ -15,6 +15,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $this->RegisterVariableBoolean('AlarmActive', 'Batterie Alarm', '~Alert', 1);
         $this->RegisterVariableInteger('LowBatteryCount', 'Leere Batterien', '', 2);
+        $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', '~TextBox', 3);
     }
 
     public function ApplyChanges(): void
@@ -51,6 +52,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $allVariables = IPS_GetVariableList();
         $lowBatteries = [];
+        $allBatteriesLog = [];
         
         foreach ($allVariables as $varID) {
             $var = IPS_GetVariable($varID);
@@ -58,9 +60,11 @@ class SmartBatteryMonitor extends IPSModuleStrict
             $ident = IPS_GetObject($varID)['ObjectIdent'];
             
             $isLow = false;
+            $isBattery = false;
             
             // Boolean Profiles or explicit LOW_BAT Ident
             if ($profile === '~Battery' || $profile === '~Battery.Reversed' || strpos(strtolower($ident), 'low_bat') !== false || strpos(strtolower($ident), 'lowbat') !== false) {
+                $isBattery = true;
                 // If it doesn't have a specific profile but has the LOW_BAT ident, treat it as normal Battery where true = empty
                 $val = GetValue($varID);
                 if (is_bool($val)) {
@@ -77,16 +81,30 @@ class SmartBatteryMonitor extends IPSModuleStrict
             } 
             // Percentage Profile
             elseif ($profile === '~Battery.100') {
+                $isBattery = true;
                 $val = GetValue($varID);
                 if (is_int($val) || is_float($val)) {
                     if ($val <= $threshold) $isLow = true;
                 }
             }
             
+            if ($isBattery) {
+                $varObj = IPS_GetObject($varID);
+                $parentID = $varObj['ParentID'];
+                $parentName = 'Unbekannt';
+                if ($parentID > 0 && IPS_ObjectExists($parentID)) {
+                    $parentName = IPS_GetObject($parentID)['ObjectName'];
+                }
+                $statusText = $isLow ? 'LEER' : 'OK';
+                $allBatteriesLog[] = "[$statusText] $parentName -> " . $varObj['ObjectName'];
+            }
+            
             if ($isLow) {
                 $lowBatteries[] = $varID;
             }
         }
+        
+        $this->SetValue('MonitoredBatteries', "Gesamtanzahl: " . count($allBatteriesLog) . "\n\n" . implode("\n", $allBatteriesLog));
         
         // Update the counts and alarm
         $count = count($lowBatteries);
