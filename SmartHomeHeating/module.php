@@ -10,6 +10,7 @@ class SmartHomeHeating extends IPSModuleStrict
 
         // Target temperature during absence (Fallback)
         $this->RegisterPropertyFloat('TargetTemperature', 17.0);
+        $this->RegisterPropertyInteger('HeatingSeasonVariableID', 0);
 
         // JSON array of thermostat instances: [{"InstanceID": 12345, "TargetTemperature": 17.0}]
         $this->RegisterPropertyString('HeatingInstances', '[]');
@@ -79,6 +80,15 @@ class SmartHomeHeating extends IPSModuleStrict
         $isVacation = ($mode == 2);
         
         if ($isAbsence || $isVacation) {
+            $seasonVarId = $this->ReadPropertyInteger('HeatingSeasonVariableID');
+            if ($seasonVarId > 0 && IPS_VariableExists($seasonVarId)) {
+                if (!GetValue($seasonVarId)) {
+                    $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Keine Absenkung');
+                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.");
+                    return;
+                }
+            }
+            
             $globalTargetTemp = $this->ReadPropertyFloat('TargetTemperature');
             // Bei Urlaub noch weiter absenken (2 Grad kühler als normale Abwesenheit)
             if ($isVacation) {
