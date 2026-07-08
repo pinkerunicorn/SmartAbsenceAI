@@ -95,8 +95,15 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 if ($parentID > 0 && IPS_ObjectExists($parentID)) {
                     $parentName = IPS_GetObject($parentID)['ObjectName'];
                 }
+                
+                // Viele Variablen heißen "Batterie schwach" oder "Low Bat" - das verwirrt in der Liste.
+                $varName = $varObj['ObjectName'];
+                if (stripos($varName, 'batterie schwach') !== false || stripos($varName, 'low bat') !== false || stripos($varName, 'lowbat') !== false) {
+                    $varName = 'Batterie-Status';
+                }
+                
                 $statusText = $isLow ? 'LEER' : 'OK';
-                $allBatteriesLog[] = "[$statusText] $parentName -> " . $varObj['ObjectName'];
+                $allBatteriesLog[] = "[$statusText] $parentName ($varName)";
             }
             
             if ($isLow) {
