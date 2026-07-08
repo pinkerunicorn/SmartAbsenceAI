@@ -457,10 +457,11 @@ class SmartHomeLighting extends IPSModuleStrict
                 if ($id > 0 && IPS_VariableExists($id)) {
                     $varObj = IPS_GetVariable($id);
                     if ($varObj['VariableType'] == 0) {
-                        RequestAction($id, false);
+                        @RequestAction($id, false);
                     } else {
-                        RequestAction($id, 0);
+                        @RequestAction($id, 0);
                     }
+                    IPS_Sleep(100);
                 }
             }
         }
@@ -473,7 +474,8 @@ class SmartHomeLighting extends IPSModuleStrict
                 }
                 $id = $light['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
-                    RequestAction($id, 0);
+                    @RequestAction($id, 0);
+                    IPS_Sleep(100);
                 }
             }
         }
