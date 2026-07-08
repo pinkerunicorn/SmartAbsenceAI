@@ -13,6 +13,7 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('ArchiveControlID', 0);
         $this->RegisterPropertyString('LightVariables', '[]');
+        $this->RegisterPropertyString('DimmerVariables', '[]');
 
         $this->RegisterAttributeString('LightSchedule', '[]');
 
@@ -75,6 +76,15 @@ class SmartHomeLighting extends IPSModuleStrict
                 }
             }
         }
+        $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+        if (is_array($dimmerVars)) {
+            foreach ($dimmerVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $this->RegisterMessage($id, VM_UPDATE);
+                }
+            }
+        }
         $this->CalculateActiveLights();
         $this->SetStatus(102);
     }
@@ -89,10 +99,16 @@ class SmartHomeLighting extends IPSModuleStrict
     private function CalculateActiveLights(): void
     {
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+        if (!is_array($lightVars)) $lightVars = [];
+        $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+        if (!is_array($dimmerVars)) $dimmerVars = [];
+        
+        $allVars = array_merge($lightVars, $dimmerVars);
+        
         $count = 0;
         $activeNames = [];
-        if (is_array($lightVars)) {
-            foreach ($lightVars as $light) {
+        if (is_array($allVars)) {
+            foreach ($allVars as $light) {
                 $id = $light['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
                     $currentVal = GetValue($id);
@@ -212,15 +228,20 @@ class SmartHomeLighting extends IPSModuleStrict
         }
 
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
-        if (!is_array($lightVars) || count($lightVars) == 0) return;
+        if (!is_array($lightVars)) $lightVars = [];
+        $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+        if (!is_array($dimmerVars)) $dimmerVars = [];
+        
+        if (count($lightVars) == 0 && count($dimmerVars) == 0) return;
 
         $startTime = time() - (14 * 24 * 60 * 60);
         $endTime = time();
-        $historyData = [];
+        $historyDataSwitches = [];
+        $historyDataDimmers = [];
 
         foreach ($lightVars as $light) {
             $id = $light['VariableID'];
-            $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Lampe ".$id;
+            $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Schalter ".$id;
             if ($id > 0) {
                 if (!AC_GetLoggingStatus($archiveId, $id)) continue;
                 $values = AC_GetLoggedValues($archiveId, $id, $startTime, $endTime, 50);
@@ -228,7 +249,24 @@ class SmartHomeLighting extends IPSModuleStrict
                 foreach ($values as $v) {
                     $compactLog[] = ["time" => date('Y-m-d H:i', $v['TimeStamp']), "val" => $v['Value']];
                 }
-                $historyData[$id] = [
+                $historyDataSwitches[$id] = [
+                    "name" => $name,
+                    "log" => $compactLog
+                ];
+            }
+        }
+        
+        foreach ($dimmerVars as $light) {
+            $id = $light['VariableID'];
+            $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Dimmer ".$id;
+            if ($id > 0) {
+                if (!AC_GetLoggingStatus($archiveId, $id)) continue;
+                $values = AC_GetLoggedValues($archiveId, $id, $startTime, $endTime, 50);
+                $compactLog = [];
+                foreach ($values as $v) {
+                    $compactLog[] = ["time" => date('Y-m-d H:i', $v['TimeStamp']), "val" => $v['Value']];
+                }
+                $historyDataDimmers[$id] = [
                     "name" => $name,
                     "log" => $compactLog
                 ];
@@ -236,7 +274,13 @@ class SmartHomeLighting extends IPSModuleStrict
         }
 
         $prompt = "Du bist eine Smart Home KI. Heute ist der " . date('Y-m-d') . ". Der Sonnenuntergang ist um " . $sunsetTimeStr . " Uhr.\n";
-        $prompt .= "Hier sind die Schaltdaten der Lichter der letzten 14 Tage inkl. Name/Raum als JSON:\n" . json_encode($historyData) . "\n";
+        $prompt .= "Hier sind die Schaltdaten der Lichter der letzten 14 Tage inkl. Name/Raum als JSON:\n";
+        if (count($historyDataSwitches) > 0) {
+            $prompt .= "Geräte vom Typ SCHALTER (Werte: true/false):\n" . json_encode($historyDataSwitches) . "\n";
+        }
+        if (count($historyDataDimmers) > 0) {
+            $prompt .= "Geräte vom Typ DIMMER (Werte: 0-100):\n" . json_encode($historyDataDimmers) . "\n";
+        }
         $prompt .= "Generiere einen realistischen Schaltplan für den heutigen Abend, der echte Anwesenheit simuliert und sich an den historischen Daten orientiert. Nutze die Raumnamen, um einen logischen Ablauf (z.B. Wohnzimmer vor Schlafzimmer) zu erstellen. ";
         $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen), verwende für 'device' zwingend die übermittelte numerische ID:\n";
         $prompt .= "[ {\"time\":\"HH:MM\", \"device\": 12345, \"state\": true/false/dimvalue} ]";
@@ -297,9 +341,14 @@ class SmartHomeLighting extends IPSModuleStrict
                 $this->SetValue('GeminiError', false);
 
                 $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+                if (!is_array($lightVars)) $lightVars = [];
+                $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+                if (!is_array($dimmerVars)) $dimmerVars = [];
+                
+                $allVars = array_merge($lightVars, $dimmerVars);
                 $lightNames = [];
-                if (is_array($lightVars)) {
-                    foreach ($lightVars as $l) {
+                if (is_array($allVars)) {
+                    foreach ($allVars as $l) {
                         if (isset($l['Name']) && $l['Name'] != "") {
                             $lightNames[$l['VariableID']] = $l['Name'];
                         }
@@ -368,9 +417,14 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->WriteAttributeString('LightSchedule', json_encode($remainingSchedule));
             
             $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+            if (!is_array($lightVars)) $lightVars = [];
+            $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+            if (!is_array($dimmerVars)) $dimmerVars = [];
+            
+            $allVars = array_merge($lightVars, $dimmerVars);
             $lightNames = [];
-            if (is_array($lightVars)) {
-                foreach ($lightVars as $l) {
+            if (is_array($allVars)) {
+                foreach ($allVars as $l) {
                     if (isset($l['Name']) && $l['Name'] != "") {
                         $lightNames[$l['VariableID']] = $l['Name'];
                     }
@@ -397,15 +451,25 @@ class SmartHomeLighting extends IPSModuleStrict
     private function TurnOffAllSimulatedLights(): void
     {
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
-        if (!is_array($lightVars)) return;
-
-        foreach ($lightVars as $light) {
-            $id = $light['VariableID'];
-            if ($id > 0 && IPS_VariableExists($id)) {
-                $varObj = IPS_GetVariable($id);
-                if ($varObj['VariableType'] == 0) {
-                    RequestAction($id, false);
-                } else {
+        if (is_array($lightVars)) {
+            foreach ($lightVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $varObj = IPS_GetVariable($id);
+                    if ($varObj['VariableType'] == 0) {
+                        RequestAction($id, false);
+                    } else {
+                        RequestAction($id, 0);
+                    }
+                }
+            }
+        }
+        
+        $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+        if (is_array($dimmerVars)) {
+            foreach ($dimmerVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
                     RequestAction($id, 0);
                 }
             }
@@ -415,16 +479,25 @@ class SmartHomeLighting extends IPSModuleStrict
     private function TurnOnAllSimulatedLights(): void
     {
         $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
-        if (!is_array($lightVars)) return;
-
-        foreach ($lightVars as $light) {
-            $id = $light['VariableID'];
-            if ($id > 0 && IPS_VariableExists($id)) {
-                $varObj = IPS_GetVariable($id);
-                if ($varObj['VariableType'] == 0) {
-                    RequestAction($id, true);
-                } else {
-                    // Für Dimmer: Auf 100% (je nach Profil evtl. 100 oder 255) - Wir nehmen 100 an
+        if (is_array($lightVars)) {
+            foreach ($lightVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
+                    $varObj = IPS_GetVariable($id);
+                    if ($varObj['VariableType'] == 0) {
+                        RequestAction($id, true);
+                    } else {
+                        RequestAction($id, 100);
+                    }
+                }
+            }
+        }
+        
+        $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+        if (is_array($dimmerVars)) {
+            foreach ($dimmerVars as $light) {
+                $id = $light['VariableID'];
+                if ($id > 0 && IPS_VariableExists($id)) {
                     RequestAction($id, 100);
                 }
             }

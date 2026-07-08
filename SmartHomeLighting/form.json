@@ -28,8 +28,8 @@
         {
             "type": "List",
             "name": "LightVariables",
-            "caption": "Lampen (Präsenzsimulation)",
-            "rowCount": 15,
+            "caption": "Lampen (Schalter / Ein-Aus)",
+            "rowCount": 10,
             "add": true,
             "delete": true,
             "changeOrder": true,
@@ -44,7 +44,36 @@
                     }
                 },
                 {
-                    "caption": "Variable (Schalten/Dimmen)",
+                    "caption": "Variable (Schalten)",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "List",
+            "name": "DimmerVariables",
+            "caption": "Lampen (Dimmer / 0-100%)",
+            "rowCount": 10,
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Raum/Name (Kontext für KI)",
+                    "name": "Name",
+                    "width": "150px",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Variable (Dimmen)",
                     "name": "VariableID",
                     "width": "auto",
                     "add": 0,
