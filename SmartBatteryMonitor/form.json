@@ -1,0 +1,31 @@
+{
+    "elements": [
+        {
+            "type": "Label",
+            "label": "Batterie-Überwachung (SmartBatteryMonitor)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "ThresholdPercent",
+            "caption": "Schwellwert für Prozent-Batterien (%)",
+            "minimum": 1,
+            "maximum": 50
+        },
+        {
+            "type": "SelectTime",
+            "name": "CheckTime",
+            "caption": "Tägliche Ausführungszeit"
+        },
+        {
+            "type": "Label",
+            "label": "Gefundene Profile: ~Battery, ~Battery.100, ~Battery.Reversed, sowie Variablen mit Ident 'LOW_BAT' oder 'LOWBAT'."
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Jetzt prüfen",
+            "onClick": "SBM_CheckBatteries($id);"
+        }
+    ]
+}
