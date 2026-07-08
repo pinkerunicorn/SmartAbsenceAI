@@ -154,11 +154,7 @@ class SmartHomeSecurity extends IPSModuleStrict
         } else {
             $namesStr = implode(", ", $openNames);
             $this->SetValue('OpenWindowsList', $namesStr);
-            if ($count == 1) {
-                $this->SetValue('VestaboardStatus', '1 offen: ' . $openNames[0]);
-            } else {
-                $this->SetValue('VestaboardStatus', $count . ' offen: ' . $namesStr);
-            }
+            $this->SetValue('VestaboardStatus', $count . ' offen');
         }
     }
 
