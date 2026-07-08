@@ -17,6 +17,11 @@
             "caption": "Tägliche Ausführungszeit"
         },
         {
+            "type": "ValidationTextBox",
+            "name": "IgnoreKeywords",
+            "caption": "Ignorierte Namen (Komma-getrennt, z.B. gruppe, heizung)"
+        },
+        {
             "type": "Label",
             "label": "Gefundene Profile: ~Battery, ~Battery.100, ~Battery.Reversed, sowie Variablen mit Ident 'LOW_BAT' oder 'LOWBAT'."
         }

@@ -10,6 +10,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $this->RegisterPropertyInteger('ThresholdPercent', 15);
         $this->RegisterPropertyString('CheckTime', '{"hour":18,"minute":0,"second":0}');
+        $this->RegisterPropertyString('IgnoreKeywords', 'gruppe, group, heizung, security');
         
         $this->RegisterTimer('DailyCheckTimer', 0, 'SBM_CheckBatteries($_IPS[\'TARGET\']);');
         
@@ -49,6 +50,8 @@ class SmartBatteryMonitor extends IPSModuleStrict
         $this->SetDailyTimer();
 
         $threshold = $this->ReadPropertyInteger('ThresholdPercent');
+        $ignoreStr = $this->ReadPropertyString('IgnoreKeywords');
+        $ignoreKeywords = array_filter(array_map('trim', explode(',', strtolower($ignoreStr))));
         
         $allVariables = IPS_GetVariableList();
         $lowBatteries = [];
@@ -96,6 +99,19 @@ class SmartBatteryMonitor extends IPSModuleStrict
                     $parentName = IPS_GetObject($parentID)['ObjectName'];
                 }
                 
+                // Filter out ignored groups
+                $skip = false;
+                $lowerParent = strtolower($parentName);
+                foreach ($ignoreKeywords as $kw) {
+                    if ($kw !== '' && strpos($lowerParent, $kw) !== false) {
+                        $skip = true;
+                        break;
+                    }
+                }
+                if ($skip) {
+                    continue; // Skip this device entirely
+                }
+                
                 // Viele Variablen heißen "Batterie schwach" oder "Low Bat" - das verwirrt in der Liste.
                 $varName = $varObj['ObjectName'];
                 if (stripos($varName, 'batterie schwach') !== false || stripos($varName, 'low bat') !== false || stripos($varName, 'lowbat') !== false) {
@@ -103,11 +119,13 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 }
                 
                 $statusText = $isLow ? 'LEER' : 'OK';
-                $allBatteriesLog[] = "[$statusText] $parentName ($varName)";
-            }
-            
-            if ($isLow) {
-                $lowBatteries[] = $varID;
+                $realValue = GetValueFormatted($varID);
+                
+                $allBatteriesLog[] = "[$statusText] $parentName ($varName: $realValue)";
+                
+                if ($isLow) {
+                    $lowBatteries[] = $varID;
+                }
             }
         }
         
