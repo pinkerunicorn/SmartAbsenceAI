@@ -23,6 +23,8 @@ class SmartHomeHeating extends IPSModuleStrict
         
         $this->RegisterVariableBoolean('HeatingSeason', '❄️ Heizperiode aktiv', '~Switch', 10);
         $this->EnableAction('HeatingSeason');
+        
+        $this->RegisterVariableBoolean('IsAbsenkbetrieb', '📉 Absenkbetrieb', '', 15);
 
         // Timer for periodic temperature update
         $this->RegisterTimer('UpdateTempTimer', 0, 'SHH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
@@ -42,6 +44,10 @@ class SmartHomeHeating extends IPSModuleStrict
                 'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
                 'ICON'         => 'Temperature',
                 'SUFFIX'       => ' °C'
+            ]);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsAbsenkbetrieb'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'TrendDown'
             ]);
         }
 
@@ -91,10 +97,13 @@ class SmartHomeHeating extends IPSModuleStrict
         if ($isAbsence || $isVacation) {
             $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
             if (!$isHeatingSeason) {
+                $this->SetValue('IsAbsenkbetrieb', false);
                 $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Keine Absenkung');
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.");
                 return;
             }
+            
+            $this->SetValue('IsAbsenkbetrieb', true);
             
             $globalTargetTemp = $this->ReadPropertyFloat('TargetTemperature');
             // Bei Urlaub noch weiter absenken (2 Grad kühler als normale Abwesenheit)
@@ -163,6 +172,7 @@ class SmartHomeHeating extends IPSModuleStrict
             }
         } else {
             // Modus 0 (Anwesenheit), 3 (Party), 4 (Heimkino), 6 (Putzen) -> Heizung normal!
+            $this->SetValue('IsAbsenkbetrieb', false);
             $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
             if (!$isHeatingSeason) {
                 $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Inaktiv');
