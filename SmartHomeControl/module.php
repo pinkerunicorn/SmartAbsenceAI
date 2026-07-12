@@ -25,9 +25,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableLawn', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -166,6 +166,7 @@ class SmartHomeControl extends IPSModuleStrict
         $notifySecurity = $currentModeConfig ? ($currentModeConfig['NotifySecurity'] ?? true) : true;
         $notifyLighting = $currentModeConfig ? ($currentModeConfig['NotifyLighting'] ?? true) : true;
         $notifyShading = $currentModeConfig ? ($currentModeConfig['NotifyShading'] ?? true) : true;
+        $notifyLawn = $currentModeConfig ? ($currentModeConfig['NotifyLawn'] ?? true) : true;
         $sequencerInst = $currentModeConfig ? ($currentModeConfig['SequencerInstance'] ?? 0) : 0;
 
         $this->AddLogEvent("Modus gewechselt auf: " . $modeName, '🏠');
@@ -186,7 +187,7 @@ class SmartHomeControl extends IPSModuleStrict
             SHSH_SetHouseMode($shadeInst, $mode);
         }
         
-        if ($this->ReadPropertyBoolean('EnableLawn') && $lawnInst > 0 && IPS_InstanceExists($lawnInst) && function_exists('SLAI_SetHouseMode')) {
+        if ($notifyLawn && $this->ReadPropertyBoolean('EnableLawn') && $lawnInst > 0 && IPS_InstanceExists($lawnInst) && function_exists('SLAI_SetHouseMode')) {
             SLAI_SetHouseMode($lawnInst, $mode);
         }
         

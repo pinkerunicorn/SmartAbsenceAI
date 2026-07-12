@@ -92,6 +92,15 @@
                     "edit": {
                         "type": "CheckBox"
                     }
+                },
+                {
+                    "caption": "Rasen/Bewäs.",
+                    "name": "NotifyLawn",
+                    "width": "80px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
                 }
             ]
         },
