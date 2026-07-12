@@ -8,10 +8,6 @@ class SmartHomeControl extends IPSModuleStrict
     {
         parent::Create();
 
-        $this->RegisterPropertyInteger('WebFrontInstance', 0);
-        $this->RegisterPropertyBoolean('PushNotifyWindows', true);
-        $this->RegisterPropertyBoolean('PushNotifyLights', true);
-
         // Instance links
         $this->RegisterPropertyInteger('HeatingInstance', 0);
         $this->RegisterPropertyBoolean('EnableHeating', true);
@@ -99,54 +95,6 @@ class SmartHomeControl extends IPSModuleStrict
     public function RequestAction(string $Ident, $Value): void
     {
         if ($Ident == 'HouseMode') {
-            // Prüfungen bei Abwesenheit oder Urlaub
-            if ($Value == 1 || $Value == 2) {
-                // Prüfen auf offene Fenster
-                $secInst = $this->ReadPropertyInteger('SecurityInstance');
-                if ($secInst > 0 && IPS_InstanceExists($secInst)) {
-                    // Hole offene Fenster vom Security-Modul
-                    $openItems = [];
-                    if (function_exists('SAS_GetOpenWindows')) {
-                        $openItems = SAS_GetOpenWindows($secInst);
-                    }
-                    if (count($openItems) > 0) {
-                        $msg = "Warnung: Folgende Fenster/Türen sind offen: " . implode(", ", $openItems) . ". Abwesenheit wird trotzdem aktiviert.";
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: " . $msg);
-                        $this->AddLogEvent($msg, '⚠️');
-                        
-                        $wfc = $this->ReadPropertyInteger('WebFrontInstance');
-                        if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyWindows')) {
-                            if (function_exists('VISU_PostNotification')) {
-                                @VISU_PostNotification($wfc, "Achtung beim Verlassen", "Offen: " . implode(", ", $openItems), "Warning", 0);
-                            }
-                            if (function_exists('WFC_PushNotification')) {
-                                @WFC_PushNotification($wfc, "Achtung beim Verlassen", "Offen: " . implode(", ", $openItems), "", 0);
-                            }
-                        }
-                    }
-                }
-                
-                // Prüfen auf aktive Lampen
-                $lightInst = $this->ReadPropertyInteger('LightingInstance');
-                if ($lightInst > 0 && IPS_InstanceExists($lightInst)) {
-                    $activeLights = [];
-                    if (function_exists('SAL_GetActiveLights')) {
-                        $activeLights = SAL_GetActiveLights($lightInst);
-                    }
-                    if (count($activeLights) > 0) {
-                        $wfc = $this->ReadPropertyInteger('WebFrontInstance');
-                        if ($wfc > 0 && IPS_InstanceExists($wfc) && $this->ReadPropertyBoolean('PushNotifyLights')) {
-                            if (function_exists('VISU_PostNotification')) {
-                                @VISU_PostNotification($wfc, "Achtung beim Verlassen", "Noch an: " . implode(", ", $activeLights), "Light", 0);
-                            }
-                            if (function_exists('WFC_PushNotification')) {
-                                @WFC_PushNotification($wfc, "Achtung beim Verlassen", "Noch an: " . implode(", ", $activeLights), "", 0);
-                            }
-                        }
-                    }
-                }
-            }
-
             $this->SetHouseMode($Value);
         }
         

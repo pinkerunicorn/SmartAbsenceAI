@@ -178,25 +178,6 @@
             "type": "ValidationTextBox",
             "name": "CalendarURL",
             "caption": "Google Kalender (iCal) URL (privater Link)"
-        },
-        {
-            "type": "Label",
-            "caption": "Benachrichtigungen"
-        },
-        {
-            "type": "SelectInstance",
-            "name": "WebFrontInstance",
-            "caption": "WebFront / Visu Instanz (für Push)"
-        },
-        {
-            "type": "CheckBox",
-            "name": "PushNotifyWindows",
-            "caption": "Warnung bei offenen Fenstern (Push)"
-        },
-        {
-            "type": "CheckBox",
-            "name": "PushNotifyLights",
-            "caption": "Warnung bei aktiven Lichtern (Push)"
         }
     ],
     "actions": [
