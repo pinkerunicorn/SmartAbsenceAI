@@ -18,6 +18,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyInteger('LightingInstance', 0);
         $this->RegisterPropertyBoolean('EnableLighting', true);
         
+        $this->RegisterPropertyInteger('ActiveLightingInstance', 0);
+        $this->RegisterPropertyBoolean('EnableActiveLighting', true);
+        
         $this->RegisterPropertyInteger('ShadingInstance', 0);
         $this->RegisterPropertyBoolean('EnableShading', true);
         
@@ -28,9 +31,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableGarage', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -145,6 +148,7 @@ class SmartHomeControl extends IPSModuleStrict
         $heatingInst = $this->ReadPropertyInteger('HeatingInstance');
         $secInst = $this->ReadPropertyInteger('SecurityInstance');
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
+        $activeLightInst = $this->ReadPropertyInteger('ActiveLightingInstance');
         $shadeInst = $this->ReadPropertyInteger('ShadingInstance');
         $lawnInst = $this->ReadPropertyInteger('LawnInstance');
         $garageInstsJson = $this->ReadPropertyString('GarageInstances');
@@ -169,6 +173,7 @@ class SmartHomeControl extends IPSModuleStrict
         $notifyHeating = $currentModeConfig ? ($currentModeConfig['NotifyHeating'] ?? true) : true;
         $notifySecurity = $currentModeConfig ? ($currentModeConfig['NotifySecurity'] ?? true) : true;
         $notifyLighting = $currentModeConfig ? ($currentModeConfig['NotifyLighting'] ?? true) : true;
+        $notifyActiveLighting = $currentModeConfig ? ($currentModeConfig['NotifyActiveLighting'] ?? true) : true;
         $notifyShading = $currentModeConfig ? ($currentModeConfig['NotifyShading'] ?? true) : true;
         $notifyLawn = $currentModeConfig ? ($currentModeConfig['NotifyLawn'] ?? true) : true;
         $notifyGarage = $currentModeConfig ? ($currentModeConfig['NotifyGarage'] ?? true) : true;
@@ -186,6 +191,10 @@ class SmartHomeControl extends IPSModuleStrict
 
         if ($notifyLighting && $this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SHL_SetHouseMode')) {
             SHL_SetHouseMode($lightInst, $mode);
+        }
+        
+        if ($notifyActiveLighting && $this->ReadPropertyBoolean('EnableActiveLighting') && $activeLightInst > 0 && IPS_InstanceExists($activeLightInst) && function_exists('SAL_SetHouseMode')) {
+            SAL_SetHouseMode($activeLightInst, $mode);
         }
         
         if ($notifyShading && $this->ReadPropertyBoolean('EnableShading') && $shadeInst > 0 && IPS_InstanceExists($shadeInst) && function_exists('SHSH_SetHouseMode')) {
