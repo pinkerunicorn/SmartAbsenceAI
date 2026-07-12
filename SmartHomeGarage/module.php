@@ -17,12 +17,14 @@ class SmartHomeGarage extends IPSModuleStrict
         
         $this->RegisterPropertyString('ButtonVariables', '[]');
         $this->RegisterPropertyString('LEDInstances', '[]');
+        $this->RegisterPropertyInteger('AlarmDelayMinutes', 60);
 
         // Attribute for tracking the last direction to guess the next move
         $this->RegisterAttributeInteger('LastDirection', 2); // 2=Fährt Auf, 3=Fährt Zu
 
-        // Timer for Relay impulse
+        // Timer for Relay impulse and Alarm
         $this->RegisterTimer('RelayOffTimer', 0, 'SHG_TurnOffRelay($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('OpenAlarmTimer', 0, 'SHG_TriggerOpenAlarm($_IPS[\'TARGET\']);');
 
         // Profiles
         if (!IPS_VariableProfileExists('SHG.DoorState')) {
@@ -37,8 +39,10 @@ class SmartHomeGarage extends IPSModuleStrict
         // Variables
         $this->RegisterVariableInteger('DoorState', 'Tor Status', 'SHG.DoorState', 1);
         $this->RegisterVariableBoolean('DoorControl', 'Tor Steuerung', '~Switch', 2);
+        $this->RegisterVariableBoolean('AlarmOpenTooLong', 'Alarm: Tor zu lange offen', '~Alert', 3);
         
         $this->EnableAction('DoorControl');
+        $this->EnableAction('AlarmOpenTooLong'); // Allow acknowledging
     }
 
     public function ApplyChanges(): void
@@ -80,6 +84,8 @@ class SmartHomeGarage extends IPSModuleStrict
             $this->TriggerDoor();
             // Reset control button instantly so it acts like a push button
             $this->SetValue('DoorControl', false);
+        } elseif ($Ident === 'AlarmOpenTooLong') {
+            $this->SetValue('AlarmOpenTooLong', false);
         }
     }
 
@@ -198,7 +204,28 @@ class SmartHomeGarage extends IPSModuleStrict
         if ($this->GetValue('DoorState') !== $state) {
             $this->SetValue('DoorState', $state);
             $this->UpdateLEDs($state);
+            
+            // Alarm Logic
+            if ($state === 1 || $state === 4) { // 1 = Auf, 4 = Teiloffen
+                $delayMinutes = $this->ReadPropertyInteger('AlarmDelayMinutes');
+                if ($delayMinutes > 0 && $this->GetTimerInterval('OpenAlarmTimer') == 0 && !$this->GetValue('AlarmOpenTooLong')) {
+                    $this->SetTimerInterval('OpenAlarmTimer', $delayMinutes * 60000);
+                }
+            } else {
+                // If closing or closed, cancel timer
+                $this->SetTimerInterval('OpenAlarmTimer', 0);
+                if ($state === 0 && $this->GetValue('AlarmOpenTooLong')) {
+                    $this->SetValue('AlarmOpenTooLong', false);
+                }
+            }
         }
+    }
+    
+    public function TriggerOpenAlarm(): void
+    {
+        $this->SetTimerInterval('OpenAlarmTimer', 0);
+        $this->SetValue('AlarmOpenTooLong', true);
+        IPS_LogMessage('SmartHomeGarage', 'Garagentor steht zu lange offen -> Alarm ausgelöst.');
     }
 
     private function UpdateLEDs(int $state): void

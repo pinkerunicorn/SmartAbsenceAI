@@ -48,6 +48,16 @@
             "label": "Taster (Auslöser)"
         },
         {
+            "type": "NumberSpinner",
+            "name": "AlarmDelayMinutes",
+            "caption": "Alarm: Tor zu lange offen (Minuten, 0 = aus)",
+            "suffix": " min"
+        },
+        {
+            "type": "Label",
+            "label": "Taster (Auslöser)"
+        },
+        {
             "type": "List",
             "name": "ButtonVariables",
             "caption": "Wand- & Funktaster",
