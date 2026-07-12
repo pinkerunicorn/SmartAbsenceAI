@@ -22,7 +22,10 @@ class SmartHomeLighting extends IPSModuleStrict
         
         $this->RegisterVariableInteger('ActiveLightsCount', '💡 Aktive Lampen (Zähler)', '', 3);
         $this->RegisterVariableString('ActiveLightsList', '📝 Aktive Lampen (Namen)', '', 4);
-        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 5);
+        $this->RegisterVariableBoolean('AlarmLightsOnDuringAbsence', 'Alarm: Licht brennt bei Abwesenheit', '~Alert', 5);
+        $this->EnableAction('AlarmLightsOnDuringAbsence');
+        
+        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 6);
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SHL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SHL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
@@ -166,6 +169,13 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->SetTimerInterval('LightExecutionTimer', 60000);
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Präsenzsimulation gestartet.");
             $this->TurnOffAllSimulatedLights(); // Zuerst alles aus
+            
+            // Check if any lights are STILL on (meaning they were manually turned on and forgotten)
+            $this->CalculateActiveLights();
+            if ($this->GetValue('ActiveLightsCount') > 0) {
+                $this->SetValue('AlarmLightsOnDuringAbsence', true);
+                IPS_LogMessage('SmartHomeLighting', "Alarm: Bei Abwesenheit ist noch Licht an!");
+            }
         } else {
             // Wenn Präsenzsimulation lief, schalten wir sie ab
             $wasActive = IPS_GetEvent($eid)['EventActive'];
@@ -493,5 +503,12 @@ class SmartHomeLighting extends IPSModuleStrict
             IPS_SetEventActive($eid, false);
         }
         return $eid;
+    }
+    
+    public function RequestAction(string $Ident, $Value): void
+    {
+        if ($Ident === 'AlarmLightsOnDuringAbsence') {
+            $this->SetValue($Ident, false);
+        }
     }
 }

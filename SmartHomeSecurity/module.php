@@ -26,7 +26,10 @@ class SmartHomeSecurity extends IPSModuleStrict
         // Variablen für den WebFront-Status
         $this->RegisterVariableInteger('OpenWindowsCount', '🚪 Offene Fenster / Türen (Zähler)', '', 1);
         $this->RegisterVariableString('OpenWindowsList', '📝 Offene Fenster / Türen (Namen)', '', 2);
-        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 3);
+        $this->RegisterVariableBoolean('AlarmWindowsOpenDuringAbsence', 'Alarm: Fenster/Tür offen bei Abwesenheit', '~Alert', 3);
+        $this->EnableAction('AlarmWindowsOpenDuringAbsence');
+        
+        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 4);
     }
 
     public function ApplyChanges(): void
@@ -251,26 +254,29 @@ class SmartHomeSecurity extends IPSModuleStrict
                 if ($closeOnAbsence) {
                     $instId = $garage['InstanceID'];
                     if ($instId > 0 && IPS_InstanceExists($instId)) {
+                        $ctrlId = @IPS_GetObjectIDByIdent('DoorControl', $instId);
                         $stateId = @IPS_GetObjectIDByIdent('DoorState', $instId);
-                        $controlId = @IPS_GetObjectIDByIdent('DoorControl', $instId);
-                        if ($stateId > 0 && $controlId > 0) {
-                            $state = GetValue($stateId);
-                            if ($state == 1 || $state == 4) { // Auf oder Teiloffen
-                                RequestAction($controlId, true);
-                            } else if ($state == 2) { // Fährt auf
-                                // Stop it first
-                                RequestAction($controlId, true);
-                                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Garagentor ".IPS_GetName($instId)." gestoppt (war beim Öffnen).");
-                                // We cannot easily trigger close again without a delay, but this is a rare edge case.
-                            } else if ($state == 0 || $state == 3) {
-                                $name = IPS_GetName($instId);
-                                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Garagentor '$name' ist bereits zu oder fährt zu.");
+                        
+                        if ($ctrlId > 0 && $stateId > 0) {
+                            $stateVal = GetValue($stateId);
+                            if ($stateVal > 0) { // If not closed (0)
+                                RequestAction($ctrlId, true);
                             }
                         }
                     }
                 }
             }
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Garagentore geprüft und ggf. geschlossen (Hausmodus $mode).");
+        }
+        
+        // Alarm Check
+        $isAbsent = ($mode == 1 || $mode == 2);
+        if ($isAbsent) {
+            $this->CalculateOpenWindows();
+            if ($this->GetValue('OpenWindowsCount') > 0) {
+                $this->SetValue('AlarmWindowsOpenDuringAbsence', true);
+                IPS_LogMessage('SmartHomeSecurity', "Alarm: Bei Abwesenheit sind noch Fenster/Türen offen!");
+            }
         }
     }
 
