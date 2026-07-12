@@ -63,6 +63,24 @@
             "items": [
                 {
                     "type": "SelectVariable",
+                    "name": "WindVariableID",
+                    "caption": "Wind-Sensor (km/h)"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "WindThreshold",
+                    "caption": "Sturm-Schutz ab (km/h)",
+                    "minimum": 0,
+                    "maximum": 150,
+                    "digits": 1
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
                     "name": "SunriseVariableID",
                     "caption": "Sonnenaufgang Variable (Astro)"
                 },

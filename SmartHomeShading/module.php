@@ -16,6 +16,9 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterPropertyInteger('OutdoorTempVariableID', 0);
         $this->RegisterPropertyFloat('TempThreshold', 24.0);
         
+        $this->RegisterPropertyInteger('WindVariableID', 0);
+        $this->RegisterPropertyFloat('WindThreshold', 50.0);
+        
         $this->RegisterPropertyInteger('SunriseVariableID', 0);
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
 
@@ -26,6 +29,12 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterAttributeString('ManualLocks', '{}');
         $this->RegisterAttributeString('LastModuleActions', '{}'); // Um eigene Fahrten von manuellen zu unterscheiden
         $this->RegisterAttributeString('CurrentState', '{}'); // Aktueller Beschattungs-Zustand pro Rollladen
+        
+        // Status Variablen
+        $this->RegisterVariableBoolean('AlarmWindWarning', 'Alarm: Sturmschutz aktiv', '~Alert', 1);
+        $this->EnableAction('AlarmWindWarning');
+        
+        $this->RegisterVariableInteger('ActiveShadingCount', 'Schatten aktiv (Anzahl)', '', 2);
         
         // Timer für Evaluierung (alle 3 Minuten)
         $this->RegisterTimer('ShadingEvaluator', 0, 'SHSH_EvaluateConditions($_IPS[\'TARGET\']);');
@@ -47,6 +56,14 @@ class SmartHomeShading extends IPSModuleStrict
 
         // Nachrichten für Rollläden und Fensterkontakte registrieren
         $this->UpdateMessageRegistrations();
+        
+        // Variable Profile für Status
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveShadingCount'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'WindowBlind'
+            ]);
+        }
     }
     
     private function UpdateMessageRegistrations(): void
@@ -73,6 +90,11 @@ class SmartHomeShading extends IPSModuleStrict
                 $this->RegisterMessage($contactID, VM_UPDATE);
             }
         }
+        
+        $windVar = $this->ReadPropertyInteger('WindVariableID');
+        if ($windVar > 0 && IPS_VariableExists($windVar)) {
+            $this->RegisterMessage($windVar, VM_UPDATE);
+        }
     }
     
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
@@ -94,6 +116,59 @@ class SmartHomeShading extends IPSModuleStrict
                     // Fensterkontakt hat sich geändert -> Sofort evaluieren
                     $this->EvaluateConditions();
                 }
+            }
+            
+            $windVar = $this->ReadPropertyInteger('WindVariableID');
+            if ($windVar > 0 && $SenderID == $windVar) {
+                $this->CheckWind();
+            }
+        }
+    }
+    
+    public function RequestAction(string $Ident, $Value): void
+    {
+        if ($Ident === 'AlarmWindWarning') {
+            $this->SetValue($Ident, false);
+        }
+    }
+    
+    private function CheckWind(): void
+    {
+        $windVar = $this->ReadPropertyInteger('WindVariableID');
+        if ($windVar <= 0 || !IPS_VariableExists($windVar)) return;
+        
+        $windSpeed = (float)GetValue($windVar);
+        $windThreshold = $this->ReadPropertyFloat('WindThreshold');
+        
+        if ($windSpeed >= $windThreshold) {
+            if (!$this->GetValue('AlarmWindWarning')) {
+                $this->SetValue('AlarmWindWarning', true);
+                IPS_LogMessage('SmartHomeShading', "Sturmwarnung! Windgeschwindigkeit: $windSpeed km/h. Alle Rollläden werden zum Schutz hochgefahren.");
+                
+                // Alle Rollläden hochfahren
+                $blindsJson = $this->ReadPropertyString('BlindVariables');
+                $blinds = json_decode($blindsJson, true);
+                if (is_array($blinds)) {
+                    $states = json_decode($this->ReadAttributeString('CurrentState'), true);
+                    $actions = json_decode($this->ReadAttributeString('LastModuleActions'), true);
+                    foreach ($blinds as $blind) {
+                        $varID = $blind['VariableID'] ?? 0;
+                        if ($varID > 0 && IPS_VariableExists($varID)) {
+                            RequestAction($varID, 1.0); // 1.0 = Komplett auf (Sicherheits-Position)
+                            $actions[$varID] = time();
+                            $states[$varID] = false; // Beschattung inaktiv
+                        }
+                    }
+                    $this->WriteAttributeString('CurrentState', json_encode($states));
+                    $this->WriteAttributeString('LastModuleActions', json_encode($actions));
+                    $this->SetValue('ActiveShadingCount', 0);
+                }
+            }
+        } else {
+            if ($this->GetValue('AlarmWindWarning')) {
+                $this->SetValue('AlarmWindWarning', false);
+                IPS_LogMessage('SmartHomeShading', "Sturmwarnung aufgehoben.");
+                $this->EvaluateConditions();
             }
         }
     }
@@ -135,6 +210,11 @@ class SmartHomeShading extends IPSModuleStrict
         $blindsJson = $this->ReadPropertyString('BlindVariables');
         $blinds = json_decode($blindsJson, true);
         if (!is_array($blinds) || count($blinds) === 0) return;
+        
+        if ($this->GetValue('AlarmWindWarning')) {
+            // Sturmschutz hat Priorität, keine Beschattung!
+            return;
+        }
         
         // Werte lesen
         $azimuth = $this->GetFloatVal('AzimuthVariableID');
