@@ -156,6 +156,21 @@
             ]
         },
         {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectInstance",
+                    "name": "LawnInstance",
+                    "caption": "Rasen / Bewässerung Instanz"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "EnableLawn",
+                    "caption": "Aktiv"
+                }
+            ]
+        },
+        {
             "type": "Label",
             "caption": "Urlaubs-Automatik"
         },
