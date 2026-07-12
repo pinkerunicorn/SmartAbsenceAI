@@ -10,7 +10,7 @@ class SmartHomeSecurity extends IPSModuleStrict
 
         $this->RegisterPropertyString('DoorVariables', '[]');
         $this->RegisterPropertyString('WindowVariables', '[]');
-        $this->RegisterPropertyString('GarageVariables', '[]');
+        $this->RegisterPropertyString('SmartGarageInstances', '[]');
 
         $this->RegisterPropertyBoolean('AutoLockActive', false);
         $this->RegisterPropertyString('AutoLockTime', '{"hour":22,"minute":0,"second":0}');
@@ -66,13 +66,16 @@ class SmartHomeSecurity extends IPSModuleStrict
                 }
             }
         }
-        $garageVars = json_decode($this->ReadPropertyString('GarageVariables'), true);
-        if (is_array($garageVars)) {
-            foreach ($garageVars as $garage) {
-                if (isset($garage['SensorVariableID'])) {
-                    $id = $garage['SensorVariableID'];
-                    if ($id > 0 && IPS_VariableExists($id)) {
-                        $this->RegisterMessage($id, VM_UPDATE);
+        $garageInsts = json_decode($this->ReadPropertyString('SmartGarageInstances'), true);
+        if (is_array($garageInsts)) {
+            foreach ($garageInsts as $garage) {
+                if (isset($garage['InstanceID'])) {
+                    $instId = $garage['InstanceID'];
+                    if ($instId > 0 && IPS_InstanceExists($instId)) {
+                        $stateId = @IPS_GetObjectIDByIdent('DoorState', $instId);
+                        if ($stateId > 0) {
+                            $this->RegisterMessage($stateId, VM_UPDATE);
+                        }
                     }
                 }
             }
@@ -158,33 +161,19 @@ class SmartHomeSecurity extends IPSModuleStrict
             }
         }
 
-        $garageVars = json_decode($this->ReadPropertyString('GarageVariables'), true);
-        if (is_array($garageVars)) {
-            foreach ($garageVars as $garage) {
-                if (isset($garage['SensorVariableID'])) {
-                    $id = $garage['SensorVariableID'];
-                    if ($id > 0 && IPS_VariableExists($id)) {
-                        $currentVal = GetValue($id);
-                        $checkVal = isset($garage['ClosedValue']) ? $garage['ClosedValue'] : 'false';
-                        
-                        $isClosed = false;
-                        if (is_bool($currentVal)) {
-                            $targetBool = ($checkVal === 'true' || $checkVal === '1' || strtolower($checkVal) === 'wahr');
-                            $isClosed = ($currentVal === $targetBool);
-                        } else if (is_int($currentVal)) {
-                            $isClosed = ($currentVal === (int)$checkVal);
-                        } else if (is_float($currentVal)) {
-                            $isClosed = ($currentVal === (float)$checkVal);
-                        } else if (is_string($currentVal)) {
-                            $isClosed = (strtolower(trim($currentVal)) === strtolower(trim($checkVal)));
-                        } else {
-                            $isClosed = ($currentVal == $checkVal);
-                        }
-                        
-                        if (!$isClosed) {
-                            $count++;
-                            $name = isset($garage['Name']) && $garage['Name'] != '' ? $garage['Name'] : IPS_GetName($id);
-                            $openNames[] = $name;
+        $garageInsts = json_decode($this->ReadPropertyString('SmartGarageInstances'), true);
+        if (is_array($garageInsts)) {
+            foreach ($garageInsts as $garage) {
+                if (isset($garage['InstanceID'])) {
+                    $instId = $garage['InstanceID'];
+                    if ($instId > 0 && IPS_InstanceExists($instId)) {
+                        $stateId = @IPS_GetObjectIDByIdent('DoorState', $instId);
+                        if ($stateId > 0) {
+                            $stateVal = GetValue($stateId);
+                            if ($stateVal > 0) { // >0 means not fully closed
+                                $count++;
+                                $openNames[] = IPS_GetName($instId);
+                            }
                         }
                     }
                 }
@@ -254,19 +243,29 @@ class SmartHomeSecurity extends IPSModuleStrict
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
         }
 
-        // Process Garage Doors
-        $garageVars = json_decode($this->ReadPropertyString('GarageVariables'), true);
-        if (is_array($garageVars) && $shouldLock) {
-            foreach ($garageVars as $garage) {
+        // Process SmartHomeGarage Instances
+        $garageInsts = json_decode($this->ReadPropertyString('SmartGarageInstances'), true);
+        if (is_array($garageInsts) && $shouldLock) {
+            foreach ($garageInsts as $garage) {
                 $closeOnAbsence = isset($garage['CloseOnAbsence']) ? $garage['CloseOnAbsence'] : true;
                 if ($closeOnAbsence) {
-                    $id = $garage['VariableID'];
-                    if ($id > 0 && IPS_VariableExists($id)) {
-                        if (!$this->IsDoorClosed($garage)) {
-                            RequestAction($id, $this->GetActionValue($garage, 'CloseValue', false));
-                        } else {
-                            $name = isset($garage['Name']) && $garage['Name'] != '' ? $garage['Name'] : IPS_GetName($id);
-                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Garagentor '$name' ist bereits geschlossen.");
+                    $instId = $garage['InstanceID'];
+                    if ($instId > 0 && IPS_InstanceExists($instId)) {
+                        $stateId = @IPS_GetObjectIDByIdent('DoorState', $instId);
+                        $controlId = @IPS_GetObjectIDByIdent('DoorControl', $instId);
+                        if ($stateId > 0 && $controlId > 0) {
+                            $state = GetValue($stateId);
+                            if ($state == 1 || $state == 4) { // Auf oder Teiloffen
+                                RequestAction($controlId, true);
+                            } else if ($state == 2) { // Fährt auf
+                                // Stop it first
+                                RequestAction($controlId, true);
+                                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Garagentor ".IPS_GetName($instId)." gestoppt (war beim Öffnen).");
+                                // We cannot easily trigger close again without a delay, but this is a rare edge case.
+                            } else if ($state == 0 || $state == 3) {
+                                $name = IPS_GetName($instId);
+                                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Garagentor '$name' ist bereits zu oder fährt zu.");
+                            }
                         }
                     }
                 }
