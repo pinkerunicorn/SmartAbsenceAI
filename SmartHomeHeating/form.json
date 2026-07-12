@@ -9,6 +9,14 @@
             "maximum": 25.0
         },
         {
+            "type": "NumberSpinner",
+            "name": "FrostWarningThreshold",
+            "caption": "Frostwarnung unter (°C)",
+            "digits": 1,
+            "minimum": 1.0,
+            "maximum": 15.0
+        },
+        {
             "type": "List",
             "name": "HeatingInstances",
             "caption": "Thermostat-Gruppen (HCU Instanzen)",

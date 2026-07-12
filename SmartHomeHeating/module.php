@@ -10,6 +10,7 @@ class SmartHomeHeating extends IPSModuleStrict
 
         // Target temperature during absence (Fallback)
         $this->RegisterPropertyFloat('TargetTemperature', 17.0);
+        $this->RegisterPropertyFloat('FrostWarningThreshold', 5.0);
 
         // JSON array of thermostat instances: [{"InstanceID": 12345, "TargetTemperature": 17.0}]
         $this->RegisterPropertyString('HeatingInstances', '[]');
@@ -25,6 +26,8 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->EnableAction('HeatingSeason');
         
         $this->RegisterVariableBoolean('IsAbsenkbetrieb', '📉 Absenkbetrieb', '', 15);
+        $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '~Alert', 20);
+        $this->EnableAction('AlarmFrostWarning');
 
         // Timer for periodic temperature update
         $this->RegisterTimer('UpdateTempTimer', 0, 'SHH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
@@ -80,6 +83,8 @@ class SmartHomeHeating extends IPSModuleStrict
     {
         if ($Ident === 'HeatingSeason') {
             $this->SetValue($Ident, $Value);
+        } elseif ($Ident === 'AlarmFrostWarning') {
+            $this->SetValue($Ident, false);
         }
     }
 
@@ -244,7 +249,26 @@ class SmartHomeHeating extends IPSModuleStrict
 
         if ($count > 0) {
             $avg = round($sumTemp / $count, 1);
-            $this->SetValue('AverageTemperature', $avg);
+            $this->SetValueIfChangedFloat('AverageTemperature', $avg);
+            
+            $frostThreshold = $this->ReadPropertyFloat('FrostWarningThreshold');
+            if ($avg < $frostThreshold) {
+                if (!$this->GetValue('AlarmFrostWarning')) {
+                    $this->SetValue('AlarmFrostWarning', true);
+                    IPS_LogMessage('SmartHomeHeating', "Frostgefahr erkannt! Ø-Temperatur ist $avg °C");
+                }
+            } else {
+                if ($this->GetValue('AlarmFrostWarning')) {
+                    $this->SetValue('AlarmFrostWarning', false);
+                }
+            }
+        }
+    }
+    
+    private function SetValueIfChangedFloat(string $Ident, float $Value): void
+    {
+        if (abs($this->GetValue($Ident) - $Value) > 0.01) {
+            $this->SetValue($Ident, $Value);
         }
     }
 }
