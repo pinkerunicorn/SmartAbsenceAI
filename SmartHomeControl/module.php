@@ -25,6 +25,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyInteger('ShadingInstance', 0);
         $this->RegisterPropertyBoolean('EnableShading', true);
         
+        $this->RegisterPropertyInteger('LawnInstance', 0);
+        $this->RegisterPropertyBoolean('EnableLawn', true);
+        
         $defaultModes = [
             ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true],
             ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true],
@@ -192,6 +195,7 @@ class SmartHomeControl extends IPSModuleStrict
         $secInst = $this->ReadPropertyInteger('SecurityInstance');
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
         $shadeInst = $this->ReadPropertyInteger('ShadingInstance');
+        $lawnInst = $this->ReadPropertyInteger('LawnInstance');
 
         $modesJson = $this->ReadPropertyString('HouseModes');
         $modes = json_decode($modesJson, true);
@@ -232,6 +236,10 @@ class SmartHomeControl extends IPSModuleStrict
         
         if ($notifyShading && $this->ReadPropertyBoolean('EnableShading') && $shadeInst > 0 && IPS_InstanceExists($shadeInst) && function_exists('SHSH_SetHouseMode')) {
             SHSH_SetHouseMode($shadeInst, $mode);
+        }
+        
+        if ($this->ReadPropertyBoolean('EnableLawn') && $lawnInst > 0 && IPS_InstanceExists($lawnInst) && function_exists('SLAI_SetHouseMode')) {
+            SLAI_SetHouseMode($lawnInst, $mode);
         }
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {
