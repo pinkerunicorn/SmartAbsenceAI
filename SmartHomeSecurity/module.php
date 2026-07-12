@@ -17,8 +17,6 @@ class SmartHomeSecurity extends IPSModuleStrict
         $this->RegisterPropertyString('AutoUnlockTime', '{"hour":7,"minute":0,"second":0}');
         $this->RegisterPropertyBoolean('AutoUnlockOnlyWhenPresent', true);
 
-        $this->RegisterAttributeBoolean('IsAbsent', false);
-
         $this->RegisterTimer('TimerAutoLock', 0, 'SHS_TimerAutoLock($_IPS[\'TARGET\']);');
         $this->RegisterTimer('TimerAutoUnlock', 0, 'SHS_TimerAutoUnlock($_IPS[\'TARGET\']);');
 
@@ -149,15 +147,15 @@ class SmartHomeSecurity extends IPSModuleStrict
             }
         }
 
-        $this->SetValue('OpenWindowsCount', $count);
+        $this->SetValueIfChanged('OpenWindowsCount', $count);
         
         if ($count == 0) {
-            $this->SetValue('OpenWindowsList', 'Alle geschlossen');
-            $this->SetValue('VestaboardStatus', '');
+            $this->SetValueIfChanged('OpenWindowsList', 'Alle geschlossen');
+            $this->SetValueIfChanged('VestaboardStatus', '');
         } else {
             $namesStr = implode(", ", $openNames);
-            $this->SetValue('OpenWindowsList', $namesStr);
-            $this->SetValue('VestaboardStatus', $count . ' offen');
+            $this->SetValueIfChanged('OpenWindowsList', $namesStr);
+            $this->SetValueIfChanged('VestaboardStatus', $count . ' offen');
         }
     }
 
@@ -172,11 +170,9 @@ class SmartHomeSecurity extends IPSModuleStrict
         return [];
     }
 
-    public function SetHouseMode(int $mode): void
+    public function SetHouseMode(int $mode, bool $isAbsence = false, bool $isSleep = false): void
     {
-        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
-        $shouldLock = ($mode == 1 || $mode == 2 || $mode == 4 || $mode == 5);
-        $this->WriteAttributeBoolean('IsAbsent', ($mode == 1 || $mode == 2)); // Nur für interne Logik belassen, falls verwendet
+        $shouldLock = ($isAbsence || $isSleep || $mode == 4); // 4=Heimkino (still fallback to mode ID if needed, but primarily relying on absence/sleep)
 
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
         if (!is_array($doorVars)) return;
@@ -212,11 +208,10 @@ class SmartHomeSecurity extends IPSModuleStrict
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
         }
         // Alarm Check
-        $isAbsent = ($mode == 1 || $mode == 2);
-        if ($isAbsent) {
+        if ($isAbsence) {
             $this->CalculateOpenWindows();
             if ($this->GetValue('OpenWindowsCount') > 0) {
-                $this->SetValue('AlarmWindowsOpenDuringAbsence', true);
+                $this->SetValueIfChanged('AlarmWindowsOpenDuringAbsence', true);
                 IPS_LogMessage('SmartHomeSecurity', "Alarm: Bei Abwesenheit sind noch Fenster/Türen offen!");
             }
         }
@@ -272,6 +267,14 @@ class SmartHomeSecurity extends IPSModuleStrict
             return (strtolower(trim($currentVal)) === strtolower(trim($checkVal)));
         }
         return ($currentVal == $checkVal);
+    }
+
+    private function SetValueIfChanged(string $Ident, $Value): void
+    {
+        $id = $this->GetIDForIdent($Ident);
+        if (GetValue($id) !== $Value) {
+            SetValue($id, $Value);
+        }
     }
 
     private function GetActionValue(array $door, string $key, $default)

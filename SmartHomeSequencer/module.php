@@ -87,12 +87,6 @@ class SmartHomeSequencer extends IPSModuleStrict
         }
     }
 
-    // Für Abwärtskompatibilität, falls der Button noch den alten Namen nutzt
-    public function TestSequence(): void
-    {
-        $this->RunSequence();
-    }
-
     public function ProcessQueue(): void
     {
         $queueJson = $this->ReadAttributeString('Queue');

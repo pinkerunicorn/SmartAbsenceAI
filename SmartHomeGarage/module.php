@@ -225,7 +225,7 @@ class SmartHomeGarage extends IPSModuleStrict
     public function TriggerOpenAlarm(): void
     {
         $this->SetTimerInterval('OpenAlarmTimer', 0);
-        $this->SetValue('AlarmOpenTooLong', true);
+        $this->SetValueIfChanged('AlarmOpenTooLong', true);
         IPS_LogMessage('SmartHomeGarage', 'Garagentor steht zu lange offen -> Alarm ausgelöst.');
     }
 
@@ -300,10 +300,11 @@ class SmartHomeGarage extends IPSModuleStrict
         IPS_SetLinkTargetID($linkID, $targetID);
     }
     
-    public function SetHouseMode(int $mode): void
+    public function SetHouseMode(int $mode, bool $isAbsence = false, bool $isSleep = false): void
     {
-        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
-        if ($mode == 1 || $mode == 2) {
+        $isAbsence = ($isAbsence || $mode == 1 || $mode == 2);
+        
+        if ($isAbsence) {
             if ($this->ReadPropertyBoolean('CloseOnAbsence')) {
                 // Nur schließen, wenn Tor aktuell nicht schon zu ist
                 $state = GetValue($this->GetIDForIdent('DoorState'));
@@ -314,6 +315,14 @@ class SmartHomeGarage extends IPSModuleStrict
                     IPS_LogMessage('SmartHomeGarage', 'Haus-Modus ist Abwesenheit. Garagentor ist bereits geschlossen.');
                 }
             }
+        }
+    }
+
+    private function SetValueIfChanged(string $Ident, $Value): void
+    {
+        $id = $this->GetIDForIdent($Ident);
+        if (GetValue($id) !== $Value) {
+            SetValue($id, $Value);
         }
     }
 }

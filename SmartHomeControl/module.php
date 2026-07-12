@@ -31,9 +31,10 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableGarage', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 5, 'ModeName' => 'Schlafen', 'Icon' => 'Moon', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => true, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => false, 'NotifyGarage' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -178,31 +179,34 @@ class SmartHomeControl extends IPSModuleStrict
         $notifyLawn = $currentModeConfig ? ($currentModeConfig['NotifyLawn'] ?? true) : true;
         $notifyGarage = $currentModeConfig ? ($currentModeConfig['NotifyGarage'] ?? true) : true;
         $sequencerInst = $currentModeConfig ? ($currentModeConfig['SequencerInstance'] ?? 0) : 0;
+        
+        $isAbsence = $currentModeConfig ? ($currentModeConfig['IsAbsence'] ?? ($mode == 1 || $mode == 2)) : ($mode == 1 || $mode == 2);
+        $isSleep = $currentModeConfig ? ($currentModeConfig['IsSleep'] ?? ($mode == 5)) : ($mode == 5);
 
         $this->AddLogEvent("Modus gewechselt auf: " . $modeName, '🏠');
 
         if ($notifyHeating && $this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SHH_SetHouseMode')) {
-            SHH_SetHouseMode($heatingInst, $mode, $vacationEndTime);
+            SHH_SetHouseMode($heatingInst, $mode, $isAbsence, $isSleep, $vacationEndTime);
         }
 
         if ($notifySecurity && $this->ReadPropertyBoolean('EnableSecurity') && $secInst > 0 && IPS_InstanceExists($secInst) && function_exists('SHS_SetHouseMode')) {
-            SHS_SetHouseMode($secInst, $mode);
+            SHS_SetHouseMode($secInst, $mode, $isAbsence, $isSleep);
         }
 
         if ($notifyLighting && $this->ReadPropertyBoolean('EnableLighting') && $lightInst > 0 && IPS_InstanceExists($lightInst) && function_exists('SHL_SetHouseMode')) {
-            SHL_SetHouseMode($lightInst, $mode);
+            SHL_SetHouseMode($lightInst, $mode, $isAbsence, $isSleep);
         }
         
         if ($notifyActiveLighting && $this->ReadPropertyBoolean('EnableActiveLighting') && $activeLightInst > 0 && IPS_InstanceExists($activeLightInst) && function_exists('SAL_SetHouseMode')) {
-            SAL_SetHouseMode($activeLightInst, $mode);
+            SAL_SetHouseMode($activeLightInst, $mode, $isAbsence, $isSleep);
         }
         
         if ($notifyShading && $this->ReadPropertyBoolean('EnableShading') && $shadeInst > 0 && IPS_InstanceExists($shadeInst) && function_exists('SHSH_SetHouseMode')) {
-            SHSH_SetHouseMode($shadeInst, $mode);
+            SHSH_SetHouseMode($shadeInst, $mode, $isAbsence, $isSleep);
         }
         
         if ($notifyLawn && $this->ReadPropertyBoolean('EnableLawn') && $lawnInst > 0 && IPS_InstanceExists($lawnInst) && function_exists('SLAI_SetHouseMode')) {
-            SLAI_SetHouseMode($lawnInst, $mode);
+            SLAI_SetHouseMode($lawnInst, $mode, $isAbsence, $isSleep);
         }
         
         if ($notifyGarage && $this->ReadPropertyBoolean('EnableGarage')) {
@@ -212,7 +216,7 @@ class SmartHomeControl extends IPSModuleStrict
                     if (isset($garage['InstanceID'])) {
                         $gId = $garage['InstanceID'];
                         if ($gId > 0 && IPS_InstanceExists($gId) && function_exists('SHG_SetHouseMode')) {
-                            SHG_SetHouseMode($gId, $mode);
+                            SHG_SetHouseMode($gId, $mode, $isAbsence, $isSleep);
                         }
                     }
                 }

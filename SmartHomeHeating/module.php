@@ -88,7 +88,7 @@ class SmartHomeHeating extends IPSModuleStrict
         }
     }
 
-    public function SetHouseMode(int $mode, int $vacationEndTime = 0): void
+    public function SetHouseMode(int $mode, bool $isAbsence = false, bool $isSleep = false, int $vacationEndTime = 0): void
     {
         $heatingInsts = json_decode($this->ReadPropertyString('HeatingInstances'), true);
         if (!is_array($heatingInsts)) return;
@@ -96,8 +96,8 @@ class SmartHomeHeating extends IPSModuleStrict
         $roomCount = count($heatingInsts);
 
         // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
-        $isAbsence = ($mode == 1 || $mode == 5);
         $isVacation = ($mode == 2);
+        $isAbsence = ($isAbsence || $isSleep || $isVacation || $mode == 1 || $mode == 5);
         
         if ($isAbsence || $isVacation) {
             $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
@@ -249,7 +249,7 @@ class SmartHomeHeating extends IPSModuleStrict
 
         if ($count > 0) {
             $avg = round($sumTemp / $count, 1);
-            $this->SetValueIfChangedFloat('AverageTemperature', $avg);
+            $this->SetValueIfChanged('AverageTemperature', $avg);
             
             $frostThreshold = $this->ReadPropertyFloat('FrostWarningThreshold');
             if ($avg < $frostThreshold) {
@@ -265,10 +265,11 @@ class SmartHomeHeating extends IPSModuleStrict
         }
     }
     
-    private function SetValueIfChangedFloat(string $Ident, float $Value): void
+    private function SetValueIfChanged(string $Ident, $Value): void
     {
-        if (abs($this->GetValue($Ident) - $Value) > 0.01) {
-            $this->SetValue($Ident, $Value);
+        $id = $this->GetIDForIdent($Ident);
+        if (GetValue($id) !== $Value) {
+            SetValue($id, $Value);
         }
     }
 }

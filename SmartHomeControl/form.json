@@ -49,7 +49,25 @@
                     }
                 },
                 {
-                    "caption": "Sequencer",
+                    "caption": "Ist Abwesenheit?",
+                    "name": "IsAbsence",
+                    "width": "110px",
+                    "add": false,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Ist Schlafen?",
+                    "name": "IsSleep",
+                    "width": "100px",
+                    "add": false,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Sequencer Skript",
                     "name": "SequencerInstance",
                     "width": "150px",
                     "add": 0,

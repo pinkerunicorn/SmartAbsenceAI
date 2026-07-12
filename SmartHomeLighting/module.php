@@ -133,15 +133,16 @@ class SmartHomeLighting extends IPSModuleStrict
                 }
             }
         }
-        $this->SetValue('ActiveLightsCount', $count);
+
+        $this->SetValueIfChanged('ActiveLightsCount', $count);
         
         if ($count == 0) {
-            $this->SetValue('ActiveLightsList', 'Alle aus');
-            $this->SetValue('VestaboardStatus', '');
+            $this->SetValueIfChanged('ActiveLightsList', 'Alle aus');
+            $this->SetValueIfChanged('VestaboardStatus', '');
         } else {
             $namesStr = implode(", ", $activeNames);
-            $this->SetValue('ActiveLightsList', $namesStr);
-            $this->SetValue('VestaboardStatus', $count . ' an');
+            $this->SetValueIfChanged('ActiveLightsList', $namesStr);
+            $this->SetValueIfChanged('VestaboardStatus', $count . ' an');
         }
     }
 
@@ -156,10 +157,10 @@ class SmartHomeLighting extends IPSModuleStrict
         return [];
     }
 
-    public function SetHouseMode(int $mode): void
+    public function SetHouseMode(int $mode, bool $isAbsence = false, bool $isSleep = false): void
     {
-        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
-        $isAbsence = ($mode == 1 || $mode == 2);
+        $isAbsence = ($isAbsence || $mode == 1 || $mode == 2);
+        $isSleep = ($isSleep || $mode == 5);
         
         $eid = $this->MaintainDailyEvent();
         
@@ -173,7 +174,7 @@ class SmartHomeLighting extends IPSModuleStrict
             // Check if any lights are STILL on (meaning they were manually turned on and forgotten)
             $this->CalculateActiveLights();
             if ($this->GetValue('ActiveLightsCount') > 0) {
-                $this->SetValue('AlarmLightsOnDuringAbsence', true);
+                $this->SetValueIfChanged('AlarmLightsOnDuringAbsence', true);
                 IPS_LogMessage('SmartHomeLighting', "Alarm: Bei Abwesenheit ist noch Licht an!");
             }
         } else {
@@ -184,10 +185,10 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->SetTimerInterval('LightExecutionTimer', 0);
             $this->SetTimerInterval('GeminiRetryTimer', 0);
             $this->WriteAttributeString('LightSchedule', '[]');
-            $this->SetValue('LightScheduleStatus', 'Abwesenheit inaktiv - Kein Plan generiert');
-            $this->SetValue('GeminiError', false);
+            $this->SetValueIfChanged('LightScheduleStatus', 'Abwesenheit inaktiv - Kein Plan generiert');
+            $this->SetValueIfChanged('GeminiError', false);
             
-            if ($mode == 5) { // Schlafen
+            if ($isSleep) { // Schlafen
                 $this->TurnOffAllSimulatedLights();
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Schlafen aktiv - Alle Lichter aus.");
             } else {
@@ -509,6 +510,14 @@ class SmartHomeLighting extends IPSModuleStrict
     {
         if ($Ident === 'AlarmLightsOnDuringAbsence') {
             $this->SetValue($Ident, false);
+        }
+    }
+
+    private function SetValueIfChanged(string $Ident, $Value): void
+    {
+        $id = $this->GetIDForIdent($Ident);
+        if (GetValue($id) !== $Value) {
+            SetValue($id, $Value);
         }
     }
 }
