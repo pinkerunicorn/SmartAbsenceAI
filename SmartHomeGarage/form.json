@@ -2,6 +2,15 @@
     "elements": [
         {
             "type": "Label",
+            "label": "Hardware / Sensorik"
+        },
+        {
+            "type": "CheckBox",
+            "name": "CloseOnAbsence",
+            "caption": "Bei Abwesenheit automatisch schließen"
+        },
+        {
+            "type": "Label",
             "label": "Tor Konfiguration"
         },
         {

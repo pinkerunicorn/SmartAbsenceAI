@@ -122,30 +122,6 @@
             ]
         },
         {
-            "type": "List",
-            "name": "SmartGarageInstances",
-            "caption": "SmartHome Garagen (Instanzen)",
-            "rowCount": 3,
-            "add": true,
-            "delete": true,
-            "columns": [
-                {
-                    "caption": "Garage Instanz",
-                    "name": "InstanceID",
-                    "width": "auto",
-                    "add": 0,
-                    "edit": { "type": "SelectInstance" }
-                },
-                {
-                    "caption": "Schließen bei Abwesenheit",
-                    "name": "CloseOnAbsence",
-                    "width": "150px",
-                    "add": true,
-                    "edit": { "type": "CheckBox" }
-                }
-            ]
-        },
-        {
             "type": "Label",
             "label": "Automatische Türschloss-Steuerung"
         },

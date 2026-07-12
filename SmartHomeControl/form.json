@@ -101,6 +101,15 @@
                     "edit": {
                         "type": "CheckBox"
                     }
+                },
+                {
+                    "caption": "Garage",
+                    "name": "NotifyGarage",
+                    "width": "70px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
                 }
             ]
         },
@@ -175,6 +184,21 @@
                 {
                     "type": "CheckBox",
                     "name": "EnableLawn",
+                    "caption": "Aktiv"
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectInstance",
+                    "name": "GarageInstance",
+                    "caption": "SmartHomeGarage Instanz"
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "EnableGarage",
                     "caption": "Aktiv"
                 }
             ]

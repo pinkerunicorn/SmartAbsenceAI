@@ -24,10 +24,13 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyInteger('LawnInstance', 0);
         $this->RegisterPropertyBoolean('EnableLawn', true);
         
+        $this->RegisterPropertyInteger('GarageInstance', 0);
+        $this->RegisterPropertyBoolean('EnableGarage', true);
+        
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -144,6 +147,7 @@ class SmartHomeControl extends IPSModuleStrict
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
         $shadeInst = $this->ReadPropertyInteger('ShadingInstance');
         $lawnInst = $this->ReadPropertyInteger('LawnInstance');
+        $garageInst = $this->ReadPropertyInteger('GarageInstance');
 
         $modesJson = $this->ReadPropertyString('HouseModes');
         $modes = json_decode($modesJson, true);
@@ -167,6 +171,7 @@ class SmartHomeControl extends IPSModuleStrict
         $notifyLighting = $currentModeConfig ? ($currentModeConfig['NotifyLighting'] ?? true) : true;
         $notifyShading = $currentModeConfig ? ($currentModeConfig['NotifyShading'] ?? true) : true;
         $notifyLawn = $currentModeConfig ? ($currentModeConfig['NotifyLawn'] ?? true) : true;
+        $notifyGarage = $currentModeConfig ? ($currentModeConfig['NotifyGarage'] ?? true) : true;
         $sequencerInst = $currentModeConfig ? ($currentModeConfig['SequencerInstance'] ?? 0) : 0;
 
         $this->AddLogEvent("Modus gewechselt auf: " . $modeName, '🏠');
@@ -189,6 +194,10 @@ class SmartHomeControl extends IPSModuleStrict
         
         if ($notifyLawn && $this->ReadPropertyBoolean('EnableLawn') && $lawnInst > 0 && IPS_InstanceExists($lawnInst) && function_exists('SLAI_SetHouseMode')) {
             SLAI_SetHouseMode($lawnInst, $mode);
+        }
+        
+        if ($notifyGarage && $this->ReadPropertyBoolean('EnableGarage') && $garageInst > 0 && IPS_InstanceExists($garageInst) && function_exists('SHG_SetHouseMode')) {
+            SHG_SetHouseMode($garageInst, $mode);
         }
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {

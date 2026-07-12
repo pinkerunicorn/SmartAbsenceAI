@@ -18,6 +18,7 @@ class SmartHomeGarage extends IPSModuleStrict
         $this->RegisterPropertyString('ButtonVariables', '[]');
         $this->RegisterPropertyString('LEDInstances', '[]');
         $this->RegisterPropertyInteger('AlarmDelayMinutes', 60);
+        $this->RegisterPropertyBoolean('CloseOnAbsence', true);
 
         // Attribute for tracking the last direction to guess the next move
         $this->RegisterAttributeInteger('LastDirection', 2); // 2=Fährt Auf, 3=Fährt Zu
@@ -297,5 +298,22 @@ class SmartHomeGarage extends IPSModuleStrict
             IPS_SetPosition($linkID, $position);
         }
         IPS_SetLinkTargetID($linkID, $targetID);
+    }
+    
+    public function SetHouseMode(int $mode): void
+    {
+        // 0=Anwesenheit, 1=Abwesenheit, 2=Urlaub, 3=Party, 4=Heimkino, 5=Schlafen, 6=Putzen
+        if ($mode == 1 || $mode == 2) {
+            if ($this->ReadPropertyBoolean('CloseOnAbsence')) {
+                // Nur schließen, wenn Tor aktuell nicht schon zu ist
+                $state = GetValue($this->GetIDForIdent('DoorState'));
+                if ($state != 0 && $state != 3) { // 0=Zu, 3=Fährt Zu
+                    IPS_LogMessage('SmartHomeGarage', 'Haus-Modus ist Abwesenheit. Schließe Garagentor automatisch.');
+                    $this->TriggerDoor();
+                } else {
+                    IPS_LogMessage('SmartHomeGarage', 'Haus-Modus ist Abwesenheit. Garagentor ist bereits geschlossen.');
+                }
+            }
+        }
     }
 }
