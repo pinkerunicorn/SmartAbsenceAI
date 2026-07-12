@@ -24,7 +24,7 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyInteger('LawnInstance', 0);
         $this->RegisterPropertyBoolean('EnableLawn', true);
         
-        $this->RegisterPropertyInteger('GarageInstance', 0);
+        $this->RegisterPropertyString('GarageInstances', '[]');
         $this->RegisterPropertyBoolean('EnableGarage', true);
         
         $defaultModes = [
@@ -147,7 +147,7 @@ class SmartHomeControl extends IPSModuleStrict
         $lightInst = $this->ReadPropertyInteger('LightingInstance');
         $shadeInst = $this->ReadPropertyInteger('ShadingInstance');
         $lawnInst = $this->ReadPropertyInteger('LawnInstance');
-        $garageInst = $this->ReadPropertyInteger('GarageInstance');
+        $garageInstsJson = $this->ReadPropertyString('GarageInstances');
 
         $modesJson = $this->ReadPropertyString('HouseModes');
         $modes = json_decode($modesJson, true);
@@ -196,8 +196,18 @@ class SmartHomeControl extends IPSModuleStrict
             SLAI_SetHouseMode($lawnInst, $mode);
         }
         
-        if ($notifyGarage && $this->ReadPropertyBoolean('EnableGarage') && $garageInst > 0 && IPS_InstanceExists($garageInst) && function_exists('SHG_SetHouseMode')) {
-            SHG_SetHouseMode($garageInst, $mode);
+        if ($notifyGarage && $this->ReadPropertyBoolean('EnableGarage')) {
+            $garageInsts = json_decode($garageInstsJson, true);
+            if (is_array($garageInsts)) {
+                foreach ($garageInsts as $garage) {
+                    if (isset($garage['InstanceID'])) {
+                        $gId = $garage['InstanceID'];
+                        if ($gId > 0 && IPS_InstanceExists($gId) && function_exists('SHG_SetHouseMode')) {
+                            SHG_SetHouseMode($gId, $mode);
+                        }
+                    }
+                }
+            }
         }
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {

@@ -189,19 +189,28 @@
             ]
         },
         {
-            "type": "RowLayout",
-            "items": [
+            "type": "List",
+            "name": "GarageInstances",
+            "caption": "SmartHomeGarage Instanzen",
+            "rowCount": 3,
+            "add": true,
+            "delete": true,
+            "columns": [
                 {
-                    "type": "SelectInstance",
-                    "name": "GarageInstance",
-                    "caption": "SmartHomeGarage Instanz"
-                },
-                {
-                    "type": "CheckBox",
-                    "name": "EnableGarage",
-                    "caption": "Aktiv"
+                    "caption": "Instanz",
+                    "name": "InstanceID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
                 }
             ]
+        },
+        {
+            "type": "CheckBox",
+            "name": "EnableGarage",
+            "caption": "Garagensteuerung Aktiv"
         },
         {
             "type": "Label",
