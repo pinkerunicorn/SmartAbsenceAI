@@ -123,47 +123,18 @@
         },
         {
             "type": "List",
-            "name": "GarageVariables",
-            "caption": "Garagentore",
-            "rowCount": 5,
+            "name": "SmartGarageInstances",
+            "caption": "SmartHome Garagen (Instanzen)",
+            "rowCount": 3,
             "add": true,
             "delete": true,
-            "changeOrder": true,
             "columns": [
                 {
-                    "caption": "Name",
-                    "name": "Name",
-                    "width": "150px",
-                    "add": "",
-                    "edit": { "type": "ValidationTextBox" }
-                },
-                {
-                    "caption": "Tor-Kontakt (Sensor)",
-                    "name": "SensorVariableID",
-                    "width": "150px",
-                    "add": 0,
-                    "edit": { "type": "SelectVariable" }
-                },
-                {
-                    "caption": "Wert f. Geschlossen",
-                    "name": "ClosedValue",
-                    "width": "150px",
-                    "add": "false",
-                    "edit": { "type": "ValidationTextBox" }
-                },
-                {
-                    "caption": "Tor-Motor (Aktor)",
-                    "name": "VariableID",
+                    "caption": "Garage Instanz",
+                    "name": "InstanceID",
                     "width": "auto",
                     "add": 0,
-                    "edit": { "type": "SelectVariable" }
-                },
-                {
-                    "caption": "Wert f. Schließen",
-                    "name": "CloseValue",
-                    "width": "100px",
-                    "add": "false",
-                    "edit": { "type": "ValidationTextBox" }
+                    "edit": { "type": "SelectInstance" }
                 },
                 {
                     "caption": "Schließen bei Abwesenheit",
