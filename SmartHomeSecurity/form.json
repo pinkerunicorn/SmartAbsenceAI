@@ -122,6 +122,59 @@
             ]
         },
         {
+            "type": "List",
+            "name": "GarageVariables",
+            "caption": "Garagentore",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Name",
+                    "name": "Name",
+                    "width": "150px",
+                    "add": "",
+                    "edit": { "type": "ValidationTextBox" }
+                },
+                {
+                    "caption": "Tor-Kontakt (Sensor)",
+                    "name": "SensorVariableID",
+                    "width": "150px",
+                    "add": 0,
+                    "edit": { "type": "SelectVariable" }
+                },
+                {
+                    "caption": "Wert f. Geschlossen",
+                    "name": "ClosedValue",
+                    "width": "150px",
+                    "add": "false",
+                    "edit": { "type": "ValidationTextBox" }
+                },
+                {
+                    "caption": "Tor-Motor (Aktor)",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": { "type": "SelectVariable" }
+                },
+                {
+                    "caption": "Wert f. Schließen",
+                    "name": "CloseValue",
+                    "width": "100px",
+                    "add": "false",
+                    "edit": { "type": "ValidationTextBox" }
+                },
+                {
+                    "caption": "Schließen bei Abwesenheit",
+                    "name": "CloseOnAbsence",
+                    "width": "150px",
+                    "add": true,
+                    "edit": { "type": "CheckBox" }
+                }
+            ]
+        },
+        {
             "type": "Label",
             "label": "Automatische Türschloss-Steuerung"
         },
