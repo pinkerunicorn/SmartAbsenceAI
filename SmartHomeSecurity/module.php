@@ -334,10 +334,9 @@ class SmartHomeSecurity extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Aufsperren der Türen durchgeführt.");
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
+    protected function LogMessage($Message, $Type)
     {
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeSecurity: ' . $Message);
-        return true;
     }
 }
 

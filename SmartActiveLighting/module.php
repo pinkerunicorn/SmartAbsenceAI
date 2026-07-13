@@ -292,10 +292,9 @@ class SmartActiveLighting extends IPSModuleStrict
         }
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
+    protected function LogMessage($Message, $Type)
     {
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartActiveLighting: ' . $Message);
-        return true;
     }
 }
 

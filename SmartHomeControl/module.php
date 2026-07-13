@@ -353,10 +353,9 @@ class SmartHomeControl extends IPSModuleStrict
         $this->SetValue('ControllerLog', $html);
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
+    protected function LogMessage($Message, $Type)
     {
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeControl: ' . $Message);
-        return true;
     }
 }
 
