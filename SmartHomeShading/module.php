@@ -60,7 +60,7 @@ class SmartHomeShading extends IPSModuleStrict
         // Variable Profile für Status
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveShadingCount'), [
-            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'WindowBlind'
         ]);
     }

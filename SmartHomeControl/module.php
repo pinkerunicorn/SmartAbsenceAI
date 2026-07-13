@@ -31,10 +31,10 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableGarage', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'Icon' => 'House', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'Icon' => 'Motion', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'Icon' => 'Suitcase', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 5, 'ModeName' => 'Schlafen', 'Icon' => 'Moon', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => true, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => false, 'NotifyGarage' => true]
+            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'ICON' => 'House', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'ICON' => 'Motion', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'ICON' => 'Suitcase', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
+            ['ModeID' => 5, 'ModeName' => 'Schlafen', 'ICON' => 'Moon', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => true, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => false, 'NotifyGarage' => true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
