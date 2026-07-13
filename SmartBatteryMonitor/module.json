@@ -3,11 +3,13 @@
     "name": "SmartBatteryMonitor",
     "type": 3,
     "vendor": "",
-    "aliases": ["SmartBatteryMonitor"],
+    "aliases": [
+        "SmartBatteryMonitor"
+    ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "SBM",
     "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
+    "url": "https://github.com/pinkerunicorn/"
 }

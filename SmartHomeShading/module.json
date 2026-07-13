@@ -3,10 +3,13 @@
     "name": "SmartHomeShading",
     "type": 3,
     "vendor": "SmartHome",
-    "aliases": ["SmartHome Shading"],
+    "aliases": [
+        "SmartHome Shading"
+    ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "SHSH",
-    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
+    "url": "https://github.com/pinkerunicorn/",
+    "author": "Florian Graßinger"
 }

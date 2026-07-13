@@ -3,11 +3,13 @@
     "name": "SmartHomeGarage",
     "type": 3,
     "vendor": "",
-    "aliases": ["SmartHomeGarage"],
+    "aliases": [
+        "SmartHomeGarage"
+    ],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
     "prefix": "SHG",
     "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/SmartAbsenceAI"
+    "url": "https://github.com/pinkerunicorn/"
 }
