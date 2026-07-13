@@ -42,17 +42,16 @@ class SmartHomeHeating extends IPSModuleStrict
             'ICON'         => 'Information'
         ]);
 
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AverageTemperature'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Temperature',
-                'SUFFIX'       => ' °C'
-            ]);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsAbsenkbetrieb'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'TrendDown'
-            ]);
-        }
+        
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AverageTemperature'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'Temperature',
+            'SUFFIX'       => ' °C'
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsAbsenkbetrieb'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'TrendDown'
+        ]);
 
         // Variable Aggregation (Logging) für Ø Haus-Temperatur aktivieren
         $avgTempId = $this->GetIDForIdent('AverageTemperature');

@@ -58,12 +58,11 @@ class SmartHomeShading extends IPSModuleStrict
         $this->UpdateMessageRegistrations();
         
         // Variable Profile für Status
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveShadingCount'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'WindowBlind'
-            ]);
-        }
+        
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveShadingCount'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'         => 'WindowBlind'
+        ]);
     }
     
     private function UpdateMessageRegistrations(): void
