@@ -29,8 +29,6 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '~Alert', 20);
         $this->EnableAction('AlarmFrostWarning');
 
-        // Timer for periodic temperature update
-        $this->RegisterTimer('UpdateTempTimer', 0, 'SHH_UpdateAverageTemperature($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges(): void
@@ -72,12 +70,45 @@ class SmartHomeHeating extends IPSModuleStrict
             }
         }
 
-        $this->SetTimerInterval('UpdateTempTimer', 15 * 60 * 1000); // 15 Minuten
+        // Unregister old messages
+        foreach ($this->GetMessageList() as $senderID => $messages) {
+            foreach ($messages as $message) {
+                if ($message == VM_UPDATE) {
+                    $this->UnregisterMessage($senderID, $message);
+                }
+            }
+        }
+
+        // Register new messages for actual temperatures
+        $heatingInsts = json_decode($this->ReadPropertyString('HeatingInstances'), true);
+        if (is_array($heatingInsts)) {
+            foreach ($heatingInsts as $heating) {
+                $instId = $heating['InstanceID'];
+                if ($instId > 0 && IPS_InstanceExists($instId)) {
+                    foreach (IPS_GetChildrenIDs($instId) as $childId) {
+                        $obj = IPS_GetObject($childId);
+                        $ident = $obj['ObjectIdent'];
+                        $name = $obj['ObjectName'];
+                        if (strpos($name, 'Aktuelle Temperatur') !== false || strpos($name, 'Ventil-Ist-Temperatur') !== false || $ident === 'ACTUAL_TEMPERATURE' || $ident === 'VALVE_ACTUAL_TEMPERATURE') {
+                            $this->RegisterMessage($childId, VM_UPDATE);
+                        }
+                    }
+                }
+            }
+        }
+
         $this->UpdateAverageTemperature();
 
         $this->SetStatus(102);
     }
     
+    public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
+    {
+        if ($Message == VM_UPDATE) {
+            $this->UpdateAverageTemperature();
+        }
+    }
+
     public function RequestAction(string $Ident, $Value): void
     {
         if ($Ident === 'HeatingSeason') {
