@@ -315,20 +315,31 @@ class SmartHomeHeating extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "NumberSpinner",
-            "name": "TargetTemperature",
-            "caption": "Absenktemperatur (°C)",
-            "digits": 1,
-            "minimum": 10,
-            "maximum": 25
-        },
-        {
-            "type": "NumberSpinner",
-            "name": "FrostWarningThreshold",
-            "caption": "Frostwarnung unter (°C)",
-            "digits": 1,
-            "minimum": 1,
-            "maximum": 15
+            "type": "ExpansionPanel",
+            "caption": "⚙️ Allgemeine Einstellungen",
+            "items": [
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "NumberSpinner",
+                            "name": "TargetTemperature",
+                            "caption": "Absenktemperatur (°C)",
+                            "digits": 1,
+                            "minimum": 10,
+                            "maximum": 25
+                        },
+                        {
+                            "type": "NumberSpinner",
+                            "name": "FrostWarningThreshold",
+                            "caption": "Frostwarnung unter (°C)",
+                            "digits": 1,
+                            "minimum": 1,
+                            "maximum": 15
+                        }
+                    ]
+                }
+            ]
         },
         {
             "type": "List",

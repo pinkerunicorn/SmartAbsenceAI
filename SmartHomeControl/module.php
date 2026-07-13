@@ -383,8 +383,9 @@ class SmartHomeControl extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "Label",
-            "caption": "Orchestrierung der SmartHome-Submodule"
+            "type": "ExpansionPanel",
+            "caption": "⚙️ Orchestrierung der SmartHome-Submodule",
+            "items": []
         },
         {
             "type": "List",
@@ -650,7 +651,8 @@ class SmartHomeControl extends IPSModuleStrict
         {
             "type": "Button",
             "caption": "Manueller Kalender Sync",
-            "onClick": "SHC_CheckCalendar($id);"
+            "onClick": "SHC_CheckCalendar($id);",
+            "icon": "Play"
         }
     ]
 }

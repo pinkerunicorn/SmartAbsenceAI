@@ -544,38 +544,54 @@ class SmartHomeLighting extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "ValidationTextBox",
-            "name": "GeminiAPIKey",
-            "caption": "Gemini API Key"
-        },
-        {
-            "type": "Select",
-            "name": "GeminiModel",
-            "caption": "Gemini Modell",
-            "options": [
+            "type": "ExpansionPanel",
+            "caption": "⚙️ Allgemeine Einstellungen",
+            "items": [
                 {
-                    "caption": "Gemini 3.5 Flash",
-                    "value": "gemini-3.5-flash"
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "ValidationTextBox",
+                            "name": "GeminiAPIKey",
+                            "caption": "Gemini API Key"
+                        },
+                        {
+                            "type": "Select",
+                            "name": "GeminiModel",
+                            "caption": "Gemini Modell",
+                            "options": [
+                                {
+                                    "caption": "Gemini 3.5 Flash",
+                                    "value": "gemini-3.5-flash"
+                                },
+                                {
+                                    "caption": "Gemini 2.5 Flash",
+                                    "value": "gemini-2.5-flash"
+                                },
+                                {
+                                    "caption": "Gemini 2.5 Flash Preview",
+                                    "value": "gemini-2.5-flash-preview-09-2025"
+                                }
+                            ]
+                        }
+                    ]
                 },
                 {
-                    "caption": "Gemini 2.5 Flash",
-                    "value": "gemini-2.5-flash"
-                },
-                {
-                    "caption": "Gemini 2.5 Flash Preview",
-                    "value": "gemini-2.5-flash-preview-09-2025"
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "SunsetVariableID",
+                            "caption": "Sonnenuntergangs-Variable (Unix Timestamp oder H:i String)"
+                        },
+                        {
+                            "type": "SelectInstance",
+                            "name": "ArchiveControlID",
+                            "caption": "Archive Control Instanz"
+                        }
+                    ]
                 }
             ]
-        },
-        {
-            "type": "SelectVariable",
-            "name": "SunsetVariableID",
-            "caption": "Sonnenuntergangs-Variable (Unix Timestamp oder H:i String)"
-        },
-        {
-            "type": "SelectInstance",
-            "name": "ArchiveControlID",
-            "caption": "Archive Control Instanz"
         },
         {
             "type": "List",

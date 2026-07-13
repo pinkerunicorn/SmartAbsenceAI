@@ -224,8 +224,9 @@ class SmartHomeSequencer extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "Label",
-            "caption": "Makro-Baustein: Definiert eine Liste von Aktionen, die vom Controller oder manuell ausgelöst werden können."
+            "type": "ExpansionPanel",
+            "caption": "⚙️ Makro-Baustein: Definiert eine Liste von Aktionen, die vom Controller oder manuell ausgelöst werden können.",
+            "items": []
         },
         {
             "type": "List",
@@ -376,12 +377,14 @@ class SmartHomeSequencer extends IPSModuleStrict
         {
             "type": "Button",
             "caption": "Eintritts-Ablauf testen",
-            "onClick": "SHSQ_RunSequence($id);"
+            "onClick": "SHSQ_RunSequence($id);",
+            "icon": "Play"
         },
         {
             "type": "Button",
             "caption": "Austritts-Ablauf testen",
-            "onClick": "SHSQ_RunDeactivationSequence($id);"
+            "onClick": "SHSQ_RunDeactivationSequence($id);",
+            "icon": "Stop"
         }
     ]
 }

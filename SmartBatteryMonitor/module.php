@@ -197,11 +197,16 @@ class SmartBatteryMonitor extends IPSModuleStrict
             "label": "Batterie-Überwachung (SmartBatteryMonitor)"
         },
         {
-            "type": "NumberSpinner",
-            "name": "ThresholdPercent",
-            "caption": "Schwellwert für Prozent-Batterien (%)",
-            "minimum": 1,
-            "maximum": 50
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "NumberSpinner",
+                    "name": "ThresholdPercent",
+                    "caption": "Schwellwert für Prozent-Batterien (%)",
+                    "minimum": 1,
+                    "maximum": 50
+                }
+            ]
         },
         {
             "type": "SelectTime",

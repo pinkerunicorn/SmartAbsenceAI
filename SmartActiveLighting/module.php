@@ -315,8 +315,9 @@ class SmartActiveLighting extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "Label",
-            "caption": "Bewegungsgesteuerte Beleuchtung"
+            "type": "ExpansionPanel",
+            "caption": "⚙️ Bewegungsgesteuerte Beleuchtung",
+            "items": []
         },
         {
             "type": "List",

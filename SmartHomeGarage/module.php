@@ -354,26 +354,38 @@ class SmartHomeGarage extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "Label",
-            "label": "Hardware / Sensorik"
-        },
-        {
-            "type": "CheckBox",
-            "name": "CloseOnAbsence",
-            "caption": "Bei Abwesenheit automatisch schließen"
-        },
-        {
-            "type": "Label",
-            "label": "Tor Konfiguration"
-        },
-        {
-            "type": "SelectVariable",
-            "name": "MotorVariableID",
-            "caption": "Motor Relais (Impuls)"
-        },
-        {
-            "type": "Label",
-            "label": "Sensoren (Endschalter)"
+            "type": "ExpansionPanel",
+            "caption": "⚙️ ",
+            "items": [
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "CheckBox",
+                            "name": "CloseOnAbsence",
+                            "caption": "Bei Abwesenheit automatisch schließen"
+                        }
+                    ]
+                },
+                {
+                    "type": "Label",
+                    "label": "Tor Konfiguration"
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "MotorVariableID",
+                            "caption": "Motor Relais (Impuls)"
+                        }
+                    ]
+                },
+                {
+                    "type": "Label",
+                    "label": "Sensoren (Endschalter)"
+                }
+            ]
         },
         {
             "type": "RowLayout",

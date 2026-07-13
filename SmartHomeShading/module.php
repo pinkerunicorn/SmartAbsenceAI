@@ -387,12 +387,14 @@ class SmartHomeShading extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "Label",
-            "caption": "SmartHome Shading - Intelligente Sonnenstands- & Hitzebeschattung"
-        },
-        {
-            "type": "Label",
-            "caption": "1. Globale Sensorik"
+            "type": "ExpansionPanel",
+            "caption": "⚙️ SmartHome Shading - Intelligente Sonnenstands- & Hitzebeschattung",
+            "items": [
+                {
+                    "type": "Label",
+                    "caption": "1. Globale Sensorik"
+                }
+            ]
         },
         {
             "type": "RowLayout",
