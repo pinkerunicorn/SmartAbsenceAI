@@ -521,9 +521,10 @@ class SmartHomeLighting extends IPSModuleStrict
         }
     }
 
-    protected function LogMessage($Message, $Type)
+    protected function LogMessage(string $Message, int $Type): bool
     {
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeLighting: ' . $Message);
+        return true;
     }
 }
 
