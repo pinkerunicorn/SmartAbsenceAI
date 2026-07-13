@@ -27,18 +27,8 @@ class SmartHomeGarage extends IPSModuleStrict
         $this->RegisterTimer('RelayOffTimer', 0, 'SHG_TurnOffRelay($_IPS[\'TARGET\']);');
         $this->RegisterTimer('OpenAlarmTimer', 0, 'SHG_TriggerOpenAlarm($_IPS[\'TARGET\']);');
 
-        // Profiles
-        if (!IPS_VariableProfileExists('SHG.DoorState')) {
-            IPS_CreateVariableProfile('SHG.DoorState', 1); // Integer
-            IPS_SetVariableProfileAssociation('SHG.DoorState', 0, 'Zu', 'LockClosed', -1);
-            IPS_SetVariableProfileAssociation('SHG.DoorState', 1, 'Auf', 'LockOpen', -1);
-            IPS_SetVariableProfileAssociation('SHG.DoorState', 2, 'Fährt Auf...', 'ArrowUp', -1);
-            IPS_SetVariableProfileAssociation('SHG.DoorState', 3, 'Fährt Zu...', 'ArrowDown', -1);
-            IPS_SetVariableProfileAssociation('SHG.DoorState', 4, 'Teiloffen / Gestoppt', 'Warning', 0xFF8000);
-        }
-
         // Variables
-        $this->RegisterVariableInteger('DoorState', 'Tor Status', 'SHG.DoorState', 1);
+        $this->RegisterVariableInteger('DoorState', '🚪 Torstatus', '', 1);
         $this->RegisterVariableBoolean('DoorControl', 'Tor Steuerung', '~Switch', 2);
         $this->RegisterVariableBoolean('AlarmOpenTooLong', 'Alarm: Tor zu lange offen', '~Alert', 3);
         
@@ -49,6 +39,16 @@ class SmartHomeGarage extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), [
+            'ASSOCIATIONS' => [
+                ['VALUE' => 0, 'NAME' => 'Zu', 'ICON' => 'LockClosed', 'COLOR' => -1],
+                ['VALUE' => 1, 'NAME' => 'Auf', 'ICON' => 'LockOpen', 'COLOR' => -1],
+                ['VALUE' => 2, 'NAME' => 'Fährt Auf...', 'ICON' => 'ArrowUp', 'COLOR' => -1],
+                ['VALUE' => 3, 'NAME' => 'Fährt Zu...', 'ICON' => 'ArrowDown', 'COLOR' => -1],
+                ['VALUE' => 4, 'NAME' => 'Teiloffen / Gestoppt', 'ICON' => 'Warning', 'COLOR' => 0xFF8000]
+            ]
+        ]);
 
         // Register messages for sensors
         $sensorClosed = $this->ReadPropertyInteger('SensorClosedID');
