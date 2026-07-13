@@ -41,12 +41,12 @@ class SmartHomeGarage extends IPSModuleStrict
         parent::ApplyChanges();
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), [
-            'ASSOCIATIONS' => [
-                ['VALUE' => 0, 'NAME' => 'Zu', 'ICON' => 'LockClosed', 'COLOR' => -1],
-                ['VALUE' => 1, 'NAME' => 'Auf', 'ICON' => 'LockOpen', 'COLOR' => -1],
-                ['VALUE' => 2, 'NAME' => 'Fährt Auf...', 'ICON' => 'ArrowUp', 'COLOR' => -1],
-                ['VALUE' => 3, 'NAME' => 'Fährt Zu...', 'ICON' => 'ArrowDown', 'COLOR' => -1],
-                ['VALUE' => 4, 'NAME' => 'Teiloffen / Gestoppt', 'ICON' => 'Warning', 'COLOR' => 0xFF8000]
+            'Associations' => [
+                ['Value' => 0, 'Name' => 'Zu', 'Icon' => 'LockClosed', 'Color' => -1],
+                ['Value' => 1, 'Name' => 'Auf', 'Icon' => 'LockOpen', 'Color' => -1],
+                ['Value' => 2, 'Name' => 'Fährt Auf...', 'Icon' => 'ArrowUp', 'Color' => -1],
+                ['Value' => 3, 'Name' => 'Fährt Zu...', 'Icon' => 'ArrowDown', 'Color' => -1],
+                ['Value' => 4, 'Name' => 'Teiloffen / Gestoppt', 'Icon' => 'Warning', 'Color' => 0xFF8000]
             ]
         ]);
 

@@ -42,7 +42,7 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->MaintainVariable('VestaboardStatus', 'Kurz-Status (Vestaboard)', 3, '', 5, true);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightScheduleStatus'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Clock'
         ]);
 
@@ -54,13 +54,13 @@ class SmartHomeLighting extends IPSModuleStrict
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsCount'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Bulb',
             'SUFFIX'       => ' an'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsList'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Information'
         ]);
 

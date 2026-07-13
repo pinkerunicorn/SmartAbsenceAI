@@ -69,10 +69,10 @@ class SmartHomeControl extends IPSModuleStrict
         $associations = [];
         foreach ($modes as $mode) {
             $associations[] = [
-                'VALUE' => $mode['ModeID'],
-                'NAME' => $mode['ModeName'],
-                'ICON' => $mode['Icon'],
-                'COLOR' => $mode['Color']
+                'Value' => $mode['ModeID'],
+                'Name' => $mode['ModeName'],
+                'Icon' => $mode['Icon'],
+                'Color' => $mode['Color']
             ];
         }
 
@@ -80,7 +80,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
             'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ASSOCIATIONS' => $associations
+            'Associations' => $associations
         ]);
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), [

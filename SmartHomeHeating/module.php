@@ -38,18 +38,18 @@ class SmartHomeHeating extends IPSModuleStrict
         parent::ApplyChanges();
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingStatus'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Information'
         ]);
 
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('AverageTemperature'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'Temperature',
             'SUFFIX'       => ' °C'
         ]);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsAbsenkbetrieb'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'Presentation' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'         => 'TrendDown'
         ]);
 
