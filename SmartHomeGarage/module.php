@@ -40,7 +40,7 @@ class SmartHomeGarage extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), json_encode([
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), [
             'ASSOCIATIONS' => [
                 ['VALUE' => 0, 'NAME' => 'Zu', 'ICON' => 'LockClosed', 'COLOR' => -1],
                 ['VALUE' => 1, 'NAME' => 'Auf', 'ICON' => 'LockOpen', 'COLOR' => -1],
@@ -48,7 +48,7 @@ class SmartHomeGarage extends IPSModuleStrict
                 ['VALUE' => 3, 'NAME' => 'Fährt Zu...', 'ICON' => 'ArrowDown', 'COLOR' => -1],
                 ['VALUE' => 4, 'NAME' => 'Teiloffen / Gestoppt', 'ICON' => 'Warning', 'COLOR' => 0xFF8000]
             ]
-        ]));
+        ]);
 
         // Register messages for sensors
         $sensorClosed = $this->ReadPropertyInteger('SensorClosedID');

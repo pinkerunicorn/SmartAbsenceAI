@@ -78,14 +78,14 @@ class SmartHomeControl extends IPSModuleStrict
 
         // Moderne IP-Symcon 8+ Darstellung anwenden
         
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), json_encode([
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
             'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ASSOCIATIONS' => $associations
-        ]));
+        ]);
         
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), json_encode([
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), [
             'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH
-        ]));
+        ]);
         
         $this->MaintainVariable('AbsenceStatus', '', 0, '', 0, false);
 
