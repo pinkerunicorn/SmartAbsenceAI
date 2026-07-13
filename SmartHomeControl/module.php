@@ -67,21 +67,14 @@ class SmartHomeControl extends IPSModuleStrict
             $modes = [];
         }
         $associations = [];
-        foreach ($modes as $mode) {
-            $associations[] = [
-                'Value' => $mode['ModeID'],
-                'Name' => $mode['ModeName'],
-                'Icon' => $mode['Icon'],
-                'Color' => $mode['Color']
-            ];
+        if (!IPS_VariableProfileExists('SmartAbsence.HouseMode.' . $this->InstanceID)) {
+            IPS_CreateVariableProfile('SmartAbsence.HouseMode.' . $this->InstanceID, 1);
         }
-
-        // Moderne IP-Symcon 8+ Darstellung anwenden
+        foreach ($modes as $mode) {
+            IPS_SetVariableProfileAssociation('SmartAbsence.HouseMode.' . $this->InstanceID, $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
+        }
         
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('HouseMode'), [
-            'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'Associations' => $associations
-        ]);
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('HouseMode'), 'SmartAbsence.HouseMode.' . $this->InstanceID);
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), [
             'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH

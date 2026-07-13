@@ -40,15 +40,15 @@ class SmartHomeGarage extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), [
-            'Associations' => [
-                ['Value' => 0, 'Name' => 'Zu', 'Icon' => 'LockClosed', 'Color' => -1],
-                ['Value' => 1, 'Name' => 'Auf', 'Icon' => 'LockOpen', 'Color' => -1],
-                ['Value' => 2, 'Name' => 'Fährt Auf...', 'Icon' => 'ArrowUp', 'Color' => -1],
-                ['Value' => 3, 'Name' => 'Fährt Zu...', 'Icon' => 'ArrowDown', 'Color' => -1],
-                ['Value' => 4, 'Name' => 'Teiloffen / Gestoppt', 'Icon' => 'Warning', 'Color' => 0xFF8000]
-            ]
-        ]);
+        if (!IPS_VariableProfileExists('SmartAbsence.DoorState')) {
+            IPS_CreateVariableProfile('SmartAbsence.DoorState', 1);
+            IPS_SetVariableProfileAssociation('SmartAbsence.DoorState', 0, 'Zu', 'LockClosed', -1);
+            IPS_SetVariableProfileAssociation('SmartAbsence.DoorState', 1, 'Auf', 'LockOpen', -1);
+            IPS_SetVariableProfileAssociation('SmartAbsence.DoorState', 2, 'Fährt Auf...', 'ArrowUp', -1);
+            IPS_SetVariableProfileAssociation('SmartAbsence.DoorState', 3, 'Fährt Zu...', 'ArrowDown', -1);
+            IPS_SetVariableProfileAssociation('SmartAbsence.DoorState', 4, 'Teiloffen / Gestoppt', 'Warning', 0xFF8000);
+        }
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('DoorState'), 'SmartAbsence.DoorState');
 
         // Register messages for sensors
         $sensorClosed = $this->ReadPropertyInteger('SensorClosedID');
