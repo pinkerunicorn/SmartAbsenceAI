@@ -277,5 +277,64 @@ class SmartHomeHeating extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeHeating: ' . $Message);
         return true;
     }
+
+    public function GetConfigurationForm(): string
+    {
+        return <<<'EOT'
+{
+    "elements": [
+        {
+            "type": "NumberSpinner",
+            "name": "TargetTemperature",
+            "caption": "Absenktemperatur (°C)",
+            "digits": 1,
+            "minimum": 10,
+            "maximum": 25
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "FrostWarningThreshold",
+            "caption": "Frostwarnung unter (°C)",
+            "digits": 1,
+            "minimum": 1,
+            "maximum": 15
+        },
+        {
+            "type": "List",
+            "name": "HeatingInstances",
+            "caption": "Thermostat-Gruppen (HCU Instanzen)",
+            "rowCount": 15,
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Thermostat-Instanz",
+                    "name": "InstanceID",
+                    "width": "300px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectInstance"
+                    }
+                },
+                {
+                    "caption": "Indiv. Absenktemp. (°C)",
+                    "name": "TargetTemperature",
+                    "width": "auto",
+                    "add": 17,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "digits": 1,
+                        "minimum": 10,
+                        "maximum": 25
+                    }
+                }
+            ]
+        }
+    ]
 }
+EOT;
+    }
+}
+
 

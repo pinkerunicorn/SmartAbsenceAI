@@ -217,5 +217,176 @@ class SmartHomeSequencer extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeSequencer: ' . $Message);
         return true;
     }
+
+    public function GetConfigurationForm(): string
+    {
+        return <<<'EOT'
+{
+    "elements": [
+        {
+            "type": "Label",
+            "caption": "Makro-Baustein: Definiert eine Liste von Aktionen, die vom Controller oder manuell ausgelöst werden können."
+        },
+        {
+            "type": "List",
+            "name": "Sequences",
+            "caption": "Eintritts-Ablauf (beim Betreten des Modus)",
+            "rowCount": 10,
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Aktiv",
+                    "name": "Active",
+                    "width": "60px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Aktion",
+                    "name": "ActionType",
+                    "width": "150px",
+                    "add": 1,
+                    "edit": {
+                        "type": "Select",
+                        "options": [
+                            {
+                                "caption": "Gerät/Variable schalten",
+                                "value": 1
+                            },
+                            {
+                                "caption": "Skript / Ablaufplan ausführen",
+                                "value": 0
+                            },
+                            {
+                                "caption": "Wake on LAN (WOL)",
+                                "value": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "caption": "Ziel Instanz / Skript",
+                    "name": "TargetID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectObject"
+                    }
+                },
+                {
+                    "caption": "Wert (Nur für Schalten)",
+                    "name": "Value",
+                    "width": "150px",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Verzögerung (Sek)",
+                    "name": "Delay",
+                    "width": "150px",
+                    "add": 0,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "minimum": 0,
+                        "maximum": 3600
+                    }
+                }
+            ]
+        },
+        {
+            "type": "List",
+            "name": "DeactivationSequences",
+            "caption": "Austritts-Ablauf (beim Verlassen des Modus)",
+            "rowCount": 10,
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Aktiv",
+                    "name": "Active",
+                    "width": "60px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
+                {
+                    "caption": "Aktion",
+                    "name": "ActionType",
+                    "width": "150px",
+                    "add": 1,
+                    "edit": {
+                        "type": "Select",
+                        "options": [
+                            {
+                                "caption": "Gerät/Variable schalten",
+                                "value": 1
+                            },
+                            {
+                                "caption": "Skript / Ablaufplan ausführen",
+                                "value": 0
+                            },
+                            {
+                                "caption": "Wake on LAN (WOL)",
+                                "value": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "caption": "Ziel Instanz / Skript",
+                    "name": "TargetID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectObject"
+                    }
+                },
+                {
+                    "caption": "Wert (Nur für Schalten)",
+                    "name": "Value",
+                    "width": "150px",
+                    "add": "",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Verzögerung (Sek)",
+                    "name": "Delay",
+                    "width": "150px",
+                    "add": 0,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "minimum": 0,
+                        "maximum": 3600
+                    }
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Eintritts-Ablauf testen",
+            "onClick": "SHSQ_RunSequence($id);"
+        },
+        {
+            "type": "Button",
+            "caption": "Austritts-Ablauf testen",
+            "onClick": "SHSQ_RunDeactivationSequence($id);"
+        }
+    ]
 }
+EOT;
+    }
+}
+
 

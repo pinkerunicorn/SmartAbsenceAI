@@ -186,5 +186,48 @@ class SmartBatteryMonitor extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartBatteryMonitor: ' . $Message);
         return true;
     }
+
+    public function GetConfigurationForm(): string
+    {
+        return <<<'EOT'
+{
+    "elements": [
+        {
+            "type": "Label",
+            "label": "Batterie-Überwachung (SmartBatteryMonitor)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "ThresholdPercent",
+            "caption": "Schwellwert für Prozent-Batterien (%)",
+            "minimum": 1,
+            "maximum": 50
+        },
+        {
+            "type": "SelectTime",
+            "name": "CheckTime",
+            "caption": "Tägliche Ausführungszeit"
+        },
+        {
+            "type": "ValidationTextBox",
+            "name": "IgnoreKeywords",
+            "caption": "Ignorierte Namen (Komma-getrennt, z.B. gruppe, heizung)"
+        },
+        {
+            "type": "Label",
+            "label": "Gefundene Profile: ~Battery, ~Battery.100, ~Battery.Reversed, sowie Variablen mit Ident 'LOW_BAT' oder 'LOWBAT'."
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Jetzt prüfen",
+            "onClick": "SBM_CheckBatteries($id);"
+        }
+    ]
 }
+EOT;
+    }
+}
+
 

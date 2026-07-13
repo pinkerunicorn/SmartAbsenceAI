@@ -380,5 +380,180 @@ class SmartHomeShading extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeShading: ' . $Message);
         return true;
     }
+
+    public function GetConfigurationForm(): string
+    {
+        return <<<'EOT'
+{
+    "elements": [
+        {
+            "type": "Label",
+            "caption": "SmartHome Shading - Intelligente Sonnenstands- & Hitzebeschattung"
+        },
+        {
+            "type": "Label",
+            "caption": "1. Globale Sensorik"
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "AzimuthVariableID",
+                    "caption": "Sonnen-Azimut (Location-Modul)"
+                },
+                {
+                    "type": "SelectVariable",
+                    "name": "ElevationVariableID",
+                    "caption": "Sonnen-Höhe (Elevation)"
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "BrightnessVariableID",
+                    "caption": "Helligkeits-Sensor (Lux)"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "BrightnessThreshold",
+                    "caption": "Schwellwert Lux (z.B. 40000)",
+                    "minimum": 0,
+                    "maximum": 200000
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "OutdoorTempVariableID",
+                    "caption": "Außentemperatur-Sensor (°C)"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "TempThreshold",
+                    "caption": "Hitze-Schwellwert (°C, z.B. 24)",
+                    "minimum": -20,
+                    "maximum": 50,
+                    "digits": 1
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "WindVariableID",
+                    "caption": "Wind-Sensor (km/h)"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "WindThreshold",
+                    "caption": "Sturm-Schutz ab (km/h)",
+                    "minimum": 0,
+                    "maximum": 150,
+                    "digits": 1
+                }
+            ]
+        },
+        {
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "SelectVariable",
+                    "name": "SunriseVariableID",
+                    "caption": "Sonnenaufgang Variable (Astro)"
+                },
+                {
+                    "type": "SelectVariable",
+                    "name": "SunsetVariableID",
+                    "caption": "Sonnenuntergang Variable (Astro)"
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "caption": "2. Rollläden & Fenster (Homematic: 0=Zu, 1=Auf)"
+        },
+        {
+            "type": "List",
+            "name": "BlindVariables",
+            "caption": "Rollläden",
+            "rowCount": 15,
+            "add": true,
+            "delete": true,
+            "changeOrder": true,
+            "columns": [
+                {
+                    "caption": "Rollladen Variable",
+                    "name": "VariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Fensterkontakt",
+                    "name": "ContactID",
+                    "width": "150px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Sonne Azimut Von (°)",
+                    "name": "AzimuthFrom",
+                    "width": "150px",
+                    "add": 90,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "minimum": 0,
+                        "maximum": 360
+                    }
+                },
+                {
+                    "caption": "Sonne Azimut Bis (°)",
+                    "name": "AzimuthTo",
+                    "width": "150px",
+                    "add": 270,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "minimum": 0,
+                        "maximum": 360
+                    }
+                },
+                {
+                    "caption": "Schatten-Pos",
+                    "name": "ValueShade",
+                    "width": "150px",
+                    "add": "0.1",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Lüftungs-Pos",
+                    "name": "ValueVentilate",
+                    "width": "150px",
+                    "add": "0.3",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                }
+            ]
+        }
+    ]
 }
+EOT;
+    }
+}
+
 
