@@ -34,6 +34,17 @@ class SmartHomeLighting extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
+        if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
+            $this->RegisterReference($ref_SunsetVariableID);
+        }
+        $ref_ArchiveControlID = $this->ReadPropertyInteger('ArchiveControlID');
+        if ($ref_ArchiveControlID > 1 && @IPS_ObjectExists($ref_ArchiveControlID)) {
+            $this->RegisterReference($ref_ArchiveControlID);
+        }
+        // ---------------------------------
+
 
         $this->MaintainVariable('LightScheduleStatus', 'Aktueller KI-Schaltplan', 3, '', 1, true);
         $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '', 2, true);

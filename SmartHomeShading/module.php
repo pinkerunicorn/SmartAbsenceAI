@@ -45,6 +45,37 @@ class SmartHomeShading extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        $ref_AzimuthVariableID = $this->ReadPropertyInteger('AzimuthVariableID');
+        if ($ref_AzimuthVariableID > 1 && @IPS_ObjectExists($ref_AzimuthVariableID)) {
+            $this->RegisterReference($ref_AzimuthVariableID);
+        }
+        $ref_ElevationVariableID = $this->ReadPropertyInteger('ElevationVariableID');
+        if ($ref_ElevationVariableID > 1 && @IPS_ObjectExists($ref_ElevationVariableID)) {
+            $this->RegisterReference($ref_ElevationVariableID);
+        }
+        $ref_BrightnessVariableID = $this->ReadPropertyInteger('BrightnessVariableID');
+        if ($ref_BrightnessVariableID > 1 && @IPS_ObjectExists($ref_BrightnessVariableID)) {
+            $this->RegisterReference($ref_BrightnessVariableID);
+        }
+        $ref_OutdoorTempVariableID = $this->ReadPropertyInteger('OutdoorTempVariableID');
+        if ($ref_OutdoorTempVariableID > 1 && @IPS_ObjectExists($ref_OutdoorTempVariableID)) {
+            $this->RegisterReference($ref_OutdoorTempVariableID);
+        }
+        $ref_WindVariableID = $this->ReadPropertyInteger('WindVariableID');
+        if ($ref_WindVariableID > 1 && @IPS_ObjectExists($ref_WindVariableID)) {
+            $this->RegisterReference($ref_WindVariableID);
+        }
+        $ref_SunriseVariableID = $this->ReadPropertyInteger('SunriseVariableID');
+        if ($ref_SunriseVariableID > 1 && @IPS_ObjectExists($ref_SunriseVariableID)) {
+            $this->RegisterReference($ref_SunriseVariableID);
+        }
+        $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
+        if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
+            $this->RegisterReference($ref_SunsetVariableID);
+        }
+        // ---------------------------------
+
         
         // Timer aktivieren
         $this->SetTimerInterval('ShadingEvaluator', 3 * 60 * 1000); // 3 Minuten

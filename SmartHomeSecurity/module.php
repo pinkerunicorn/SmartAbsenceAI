@@ -33,6 +33,7 @@ class SmartHomeSecurity extends IPSModuleStrict
     {
         parent::ApplyChanges();
 
+
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('OpenWindowsCount'), [
             'PRESENTATION'   => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'           => 'Window',

@@ -25,6 +25,17 @@ class SmartActiveLighting extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
+        if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
+            $this->RegisterReference($ref_SunsetVariableID);
+        }
+        $ref_SunriseVariableID = $this->ReadPropertyInteger('SunriseVariableID');
+        if ($ref_SunriseVariableID > 1 && @IPS_ObjectExists($ref_SunriseVariableID)) {
+            $this->RegisterReference($ref_SunriseVariableID);
+        }
+        // ---------------------------------
+
 
         // Unregister all previous messages to prevent duplicates
         $messages = $this->GetMessageList();

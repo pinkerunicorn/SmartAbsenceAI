@@ -39,6 +39,22 @@ class SmartHomeGarage extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        $ref_MotorVariableID = $this->ReadPropertyInteger('MotorVariableID');
+        if ($ref_MotorVariableID > 1 && @IPS_ObjectExists($ref_MotorVariableID)) {
+            $this->RegisterReference($ref_MotorVariableID);
+        }
+        $ref_SensorClosedID = $this->ReadPropertyInteger('SensorClosedID');
+        if ($ref_SensorClosedID > 1 && @IPS_ObjectExists($ref_SensorClosedID)) {
+            $this->RegisterReference($ref_SensorClosedID);
+        }
+        $ref_SensorOpenID = $this->ReadPropertyInteger('SensorOpenID');
+        if ($ref_SensorOpenID > 1 && @IPS_ObjectExists($ref_SensorOpenID)) {
+            $this->RegisterReference($ref_SensorOpenID);
+        }
+        // ---------------------------------
+
+
 
         if (!IPS_VariableProfileExists('SmartAbsence.DoorState')) {
             IPS_CreateVariableProfile('SmartAbsence.DoorState', 1);

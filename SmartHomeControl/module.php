@@ -60,6 +60,34 @@ class SmartHomeControl extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        $ref_HeatingInstance = $this->ReadPropertyInteger('HeatingInstance');
+        if ($ref_HeatingInstance > 1 && @IPS_ObjectExists($ref_HeatingInstance)) {
+            $this->RegisterReference($ref_HeatingInstance);
+        }
+        $ref_SecurityInstance = $this->ReadPropertyInteger('SecurityInstance');
+        if ($ref_SecurityInstance > 1 && @IPS_ObjectExists($ref_SecurityInstance)) {
+            $this->RegisterReference($ref_SecurityInstance);
+        }
+        $ref_LightingInstance = $this->ReadPropertyInteger('LightingInstance');
+        if ($ref_LightingInstance > 1 && @IPS_ObjectExists($ref_LightingInstance)) {
+            $this->RegisterReference($ref_LightingInstance);
+        }
+        $ref_ActiveLightingInstance = $this->ReadPropertyInteger('ActiveLightingInstance');
+        if ($ref_ActiveLightingInstance > 1 && @IPS_ObjectExists($ref_ActiveLightingInstance)) {
+            $this->RegisterReference($ref_ActiveLightingInstance);
+        }
+        $ref_ShadingInstance = $this->ReadPropertyInteger('ShadingInstance');
+        if ($ref_ShadingInstance > 1 && @IPS_ObjectExists($ref_ShadingInstance)) {
+            $this->RegisterReference($ref_ShadingInstance);
+        }
+        $ref_LawnInstance = $this->ReadPropertyInteger('LawnInstance');
+        if ($ref_LawnInstance > 1 && @IPS_ObjectExists($ref_LawnInstance)) {
+            $this->RegisterReference($ref_LawnInstance);
+        }
+        // ---------------------------------
+
+
 
         $modesJson = $this->ReadPropertyString('HouseModes');
         $modes = json_decode($modesJson, true);
