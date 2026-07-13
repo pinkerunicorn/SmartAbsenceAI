@@ -325,4 +325,10 @@ class SmartHomeGarage extends IPSModuleStrict
             SetValue($id, $Value);
         }
     }
+
+    protected function LogMessage($Message, $KL_MESSAGE = KL_MESSAGE)
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: ' . $Message);
+    }
 }
+

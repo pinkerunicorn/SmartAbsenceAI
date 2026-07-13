@@ -291,4 +291,10 @@ class SmartActiveLighting extends IPSModuleStrict
             IPS_LogMessage('SmartActiveLighting', 'Haus-Modus hat gewechselt. Schalte aktive Bewegungslichter aus.');
         }
     }
+
+    protected function LogMessage($Message, $KL_MESSAGE = KL_MESSAGE)
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartActiveLighting: ' . $Message);
+    }
 }
+

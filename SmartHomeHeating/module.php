@@ -271,4 +271,10 @@ class SmartHomeHeating extends IPSModuleStrict
             $this->SetValue($Ident, $Value);
         }
     }
+
+    protected function LogMessage($Message, $KL_MESSAGE = KL_MESSAGE)
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeHeating: ' . $Message);
+    }
 }
+

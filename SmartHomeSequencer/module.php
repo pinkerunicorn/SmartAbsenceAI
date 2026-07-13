@@ -211,4 +211,10 @@ class SmartHomeSequencer extends IPSModuleStrict
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: WOL Fehler - Konnte UDP Socket für Magic Packet nicht erstellen.");
         }
     }
+
+    protected function LogMessage($Message, $KL_MESSAGE = KL_MESSAGE)
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeSequencer: ' . $Message);
+    }
 }
+

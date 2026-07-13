@@ -343,4 +343,10 @@ class SmartHomeShading extends IPSModuleStrict
         
         @RequestAction($targetID, $val);
     }
+
+    protected function LogMessage($Message, $KL_MESSAGE = KL_MESSAGE)
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeShading: ' . $Message);
+    }
 }
+
