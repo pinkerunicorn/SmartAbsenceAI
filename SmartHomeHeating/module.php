@@ -269,7 +269,7 @@ class SmartHomeHeating extends IPSModuleStrict
     {
         $id = $this->GetIDForIdent($Ident);
         if (GetValue($id) !== $Value) {
-            SetValue($id, $Value);
+            $this->SetValue($Ident, $Value);
         }
     }
 }
