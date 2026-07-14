@@ -91,8 +91,8 @@ class SmartHomeShading extends IPSModuleStrict
         // Variable Profile für Status
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveShadingCount'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'WindowBlind'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'WindowBlind'
         ]);
     }
     
@@ -284,7 +284,7 @@ class SmartHomeShading extends IPSModuleStrict
             if ($contactID > 0 && IPS_VariableExists($contactID)) {
                 $contactVal = GetValue($contactID);
                 if (is_string($contactVal)) {
-                    $isOpen = (strtoupper($contactVal) === 'OPEN' || strtoupper($contactVal) === 'TILTED');
+                    $isOpen = (strtoupper($contactVal) === 'OPEN'|| strtoupper($contactVal) === 'TILTED');
                 } elseif (is_bool($contactVal)) {
                     $isOpen = $contactVal;
                 } else {
@@ -359,7 +359,7 @@ class SmartHomeShading extends IPSModuleStrict
         $val = $valStr;
         
         if ($var['VariableType'] == 0) { // Boolean
-            $val = (strtolower($valStr) === 'true' || $valStr === '1');
+            $val = (strtolower($valStr) === 'true'|| $valStr === '1');
         } elseif ($var['VariableType'] == 1) { // Integer
             $val = (int)$valStr;
         } elseif ($var['VariableType'] == 2) { // Float
@@ -367,7 +367,7 @@ class SmartHomeShading extends IPSModuleStrict
             $val = (float)$valStr;
         }
         
-        // Timestamp speichern, damit MessageSink es als "Modul-Fahrt" erkennt
+        // Timestamp speichern, damit MessageSink es als "Modul-Fahrt"erkennt
         $lastActions = json_decode($this->ReadAttributeString('LastModuleActions'), true);
         $lastActions[$targetID] = time();
         $this->WriteAttributeString('LastModuleActions', json_encode($lastActions));
@@ -377,7 +377,7 @@ class SmartHomeShading extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeShading: ' . $Message);
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeShading: '. $Message);
         return true;
     }
 
@@ -388,7 +388,7 @@ class SmartHomeShading extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "⚙️ SmartHome Shading - Intelligente Sonnenstands- & Hitzebeschattung",
+            "caption": "⚙ SmartHome Shading - Intelligente Sonnenstands- & Hitzebeschattung",
             "items": [
                 {
                     "type": "Label",

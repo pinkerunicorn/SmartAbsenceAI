@@ -31,10 +31,10 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyBoolean('EnableGarage', true);
         
         $defaultModes = [
-            ['ModeID' => 0, 'ModeName' => 'Anwesenheit', 'ICON' => 'House', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 1, 'ModeName' => 'Abwesenheit', 'ICON' => 'Motion', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 2, 'ModeName' => 'Urlaub', 'ICON' => 'Suitcase', 'Color' => -1, 'IsAbsence' => true, 'IsSleep' => false, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => true, 'NotifyGarage' => true],
-            ['ModeID' => 5, 'ModeName' => 'Schlafen', 'ICON' => 'Moon', 'Color' => -1, 'IsAbsence' => false, 'IsSleep' => true, 'SequencerInstance' => 0, 'NotifyHeating' => true, 'NotifyLighting' => true, 'NotifyActiveLighting' => true, 'NotifySecurity' => true, 'NotifyShading' => true, 'NotifyLawn' => false, 'NotifyGarage' => true]
+            ['ModeID'=> 0, 'ModeName'=> 'Anwesenheit', 'ICON'=> 'House', 'Color'=> -1, 'IsAbsence'=> false, 'IsSleep'=> false, 'SequencerInstance'=> 0, 'NotifyHeating'=> true, 'NotifyLighting'=> true, 'NotifyActiveLighting'=> true, 'NotifySecurity'=> true, 'NotifyShading'=> true, 'NotifyLawn'=> true, 'NotifyGarage'=> true],
+            ['ModeID'=> 1, 'ModeName'=> 'Abwesenheit', 'ICON'=> 'Motion', 'Color'=> -1, 'IsAbsence'=> true, 'IsSleep'=> false, 'SequencerInstance'=> 0, 'NotifyHeating'=> true, 'NotifyLighting'=> true, 'NotifyActiveLighting'=> true, 'NotifySecurity'=> true, 'NotifyShading'=> true, 'NotifyLawn'=> true, 'NotifyGarage'=> true],
+            ['ModeID'=> 2, 'ModeName'=> 'Urlaub', 'ICON'=> 'Suitcase', 'Color'=> -1, 'IsAbsence'=> true, 'IsSleep'=> false, 'SequencerInstance'=> 0, 'NotifyHeating'=> true, 'NotifyLighting'=> true, 'NotifyActiveLighting'=> true, 'NotifySecurity'=> true, 'NotifyShading'=> true, 'NotifyLawn'=> true, 'NotifyGarage'=> true],
+            ['ModeID'=> 5, 'ModeName'=> 'Schlafen', 'ICON'=> 'Moon', 'Color'=> -1, 'IsAbsence'=> false, 'IsSleep'=> true, 'SequencerInstance'=> 0, 'NotifyHeating'=> true, 'NotifyLighting'=> true, 'NotifyActiveLighting'=> true, 'NotifySecurity'=> true, 'NotifyShading'=> true, 'NotifyLawn'=> false, 'NotifyGarage'=> true]
         ];
         $this->RegisterPropertyString('HouseModes', json_encode($defaultModes));
         
@@ -95,17 +95,17 @@ class SmartHomeControl extends IPSModuleStrict
             $modes = [];
         }
         $associations = [];
-        if (!IPS_VariableProfileExists('SmartAbsence.HouseMode.' . $this->InstanceID)) {
-            IPS_CreateVariableProfile('SmartAbsence.HouseMode.' . $this->InstanceID, 1);
+        if (!IPS_VariableProfileExists('SmartAbsence.HouseMode.'. $this->InstanceID)) {
+            IPS_CreateVariableProfile('SmartAbsence.HouseMode.'. $this->InstanceID, 1);
         }
         foreach ($modes as $mode) {
-            IPS_SetVariableProfileAssociation('SmartAbsence.HouseMode.' . $this->InstanceID, $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
+            IPS_SetVariableProfileAssociation('SmartAbsence.HouseMode.'. $this->InstanceID, $mode['ModeID'], $mode['ModeName'], $mode['Icon'], $mode['Color']);
         }
         
-        IPS_SetVariableCustomProfile($this->GetIDForIdent('HouseMode'), 'SmartAbsence.HouseMode.' . $this->InstanceID);
+        IPS_SetVariableCustomProfile($this->GetIDForIdent('HouseMode'), 'SmartAbsence.HouseMode.'. $this->InstanceID);
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('PresenceStatus'), [
-            'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH
+            'PRESENTATION'  => VARIABLE_PRESENTATION_SWITCH
         ]);
         
         $this->MaintainVariable('AbsenceStatus', '', 0, '', 0, false);
@@ -153,7 +153,7 @@ class SmartHomeControl extends IPSModuleStrict
                     $seqInst = $m['SequencerInstance'] ?? 0;
                     if ($seqInst > 0 && IPS_InstanceExists($seqInst) && function_exists('SHSQ_RunDeactivationSequence')) {
                         SHSQ_RunDeactivationSequence($seqInst);
-                        $this->AddLogEvent("Austritts-Sequenz für Modus '" . $m['ModeName'] . "' ausgeführt.", '⏪');
+                        $this->AddLogEvent("Austritts-Sequenz für Modus '". $m['ModeName'] . "'ausgeführt.", '⏪');
                     }
                     break;
                 }
@@ -185,7 +185,7 @@ class SmartHomeControl extends IPSModuleStrict
         }
         
         $modeName = $currentModeConfig ? $currentModeConfig['ModeName'] : "Unbekannt ($mode)";
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: Haus-Modus gewechselt auf " . $modeName);
+        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: Haus-Modus gewechselt auf ". $modeName);
 
         // Standard-Matrix (falls nichts konfiguriert ist, alles ausführen)
         $notifyHeating = $currentModeConfig ? ($currentModeConfig['NotifyHeating'] ?? true) : true;
@@ -200,7 +200,7 @@ class SmartHomeControl extends IPSModuleStrict
         $isAbsence = $currentModeConfig ? ($currentModeConfig['IsAbsence'] ?? ($mode == 1 || $mode == 2)) : ($mode == 1 || $mode == 2);
         $isSleep = $currentModeConfig ? ($currentModeConfig['IsSleep'] ?? ($mode == 5)) : ($mode == 5);
 
-        $this->AddLogEvent("Modus gewechselt auf: " . $modeName, '🏠');
+        $this->AddLogEvent("Modus gewechselt auf: ". $modeName, '🏠');
 
         if ($notifyHeating && $this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SHH_SetHouseMode')) {
             SHH_SetHouseMode($heatingInst, $mode, $isAbsence, $isSleep, $vacationEndTime);
@@ -242,7 +242,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {
             SHSQ_RunSequence($sequencerInst);
-            $this->AddLogEvent("Eintritts-Sequenz ausgeführt.", '▶️');
+            $this->AddLogEvent("Eintritts-Sequenz ausgeführt.", '▶');
         }
 
     }
@@ -251,7 +251,7 @@ class SmartHomeControl extends IPSModuleStrict
     {
         $url = $this->ReadPropertyString('CalendarURL');
         if (empty($url)) {
-            $this->AddLogEvent("SmartHomeControl: CheckCalendar - Keine iCal-URL hinterlegt.", 'ℹ️');
+            $this->AddLogEvent("SmartHomeControl: CheckCalendar - Keine iCal-URL hinterlegt.", 'ℹ');
             return;
         }
         
@@ -312,8 +312,8 @@ class SmartHomeControl extends IPSModuleStrict
         $currentMode = GetValue($this->GetIDForIdent('HouseMode'));
         
         if ($vacationFound && $currentMode !== 2) {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: " . date('d.m.Y H:i', $vacationEndTime) . ").");
-            $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '🧳');
+            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: ". date('d.m.Y H:i', $vacationEndTime) . ").");
+            $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: ". date('d.m. H:i', $vacationEndTime) . ").", '🧳');
             $this->SetHouseMode(2, $vacationEndTime);
         } elseif (!$vacationFound && $currentMode === 2) {
             IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.");
@@ -322,20 +322,20 @@ class SmartHomeControl extends IPSModuleStrict
         } elseif (!$vacationFound) {
             $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Aktuell ist kein Urlaub eingetragen.", '📅');
         } else {
-            $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Urlaub ist aktiv (Ende: " . date('d.m. H:i', $vacationEndTime) . ").", '📅');
+            $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Urlaub ist aktiv (Ende: ". date('d.m. H:i', $vacationEndTime) . ").", '📅');
         }
     }
 
-    private function AddLogEvent(string $message, string $icon = 'ℹ️'): void
+    private function AddLogEvent(string $message, string $icon = 'ℹ'): void
     {
         $logJson = $this->ReadAttributeString('LogData');
         $log = json_decode($logJson, true);
         if (!is_array($log)) $log = [];
         
         array_unshift($log, [
-            'time' => time(),
-            'msg' => $message,
-            'icon' => $icon
+            'time'=> time(),
+            'msg'=> $message,
+            'icon'=> $icon
         ]);
         
         if (count($log) > 50) {
@@ -360,10 +360,10 @@ class SmartHomeControl extends IPSModuleStrict
             $icon = $entry['icon'];
 
             $html .= '<div style="background: rgba(255,255,255,0.05); border-left: 3px solid #00a8ff; padding: 8px 12px; border-radius: 4px;">';
-            $html .= '<div style="font-size: 0.8em; color: #aaa; margin-bottom: 3px;">' . $timeStr . '</div>';
+            $html .= '<div style="font-size: 0.8em; color: #aaa; margin-bottom: 3px;">'. $timeStr . '</div>';
             $html .= '<div style="display: flex; align-items: center; gap: 8px;">';
-            $html .= '<span style="font-size: 1.2em;">' . $icon . '</span>';
-            $html .= '<span>' . $msg . '</span>';
+            $html .= '<span style="font-size: 1.2em;">'. $icon . '</span>';
+            $html .= '<span>'. $msg . '</span>';
             $html .= '</div></div>';
         }
         $html .= '</div>';
@@ -373,7 +373,7 @@ class SmartHomeControl extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeControl: ' . $Message);
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeControl: '. $Message);
         return true;
     }
 
@@ -384,7 +384,7 @@ class SmartHomeControl extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "⚙️ Orchestrierung der SmartHome-Submodule",
+            "caption": "⚙ Orchestrierung der SmartHome-Submodule",
             "items": []
         },
         {

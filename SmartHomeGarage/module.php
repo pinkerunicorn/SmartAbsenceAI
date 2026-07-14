@@ -199,14 +199,14 @@ class SmartHomeGarage extends IPSModuleStrict
             $newState = 1; // Auf
         } else {
             // Weder Zu noch Auf. 
-            // Wenn der letzte Zustand "Zu" (0) oder "Auf" (1) war, 
+            // Wenn der letzte Zustand "Zu"(0) oder "Auf"(1) war, 
             // wissen wir, dass es jetzt per Hand bewegt wurde oder der Impuls losgeht.
-            // Ist es aber z.B. schon auf "Fährt Auf" (2), belassen wir es dabei.
+            // Ist es aber z.B. schon auf "Fährt Auf"(2), belassen wir es dabei.
             if ($currentState == 0) {
-                // Es hat "Zu" verlassen -> Es fährt wahrscheinlich auf.
+                // Es hat "Zu"verlassen -> Es fährt wahrscheinlich auf.
                 $newState = 2; 
             } elseif ($currentState == 1) {
-                // Es hat "Auf" verlassen -> Es fährt wahrscheinlich zu.
+                // Es hat "Auf"verlassen -> Es fährt wahrscheinlich zu.
                 $newState = 3;
             }
         }
@@ -285,7 +285,7 @@ class SmartHomeGarage extends IPSModuleStrict
             return true; // Empty string means trigger on ANY update
         }
         if (is_bool($actual)) {
-            $targetBool = ($expected === 'true' || $expected === '1' || strtolower((string)$expected) === 'wahr');
+            $targetBool = ($expected === 'true'|| $expected === '1'|| strtolower((string)$expected) === 'wahr');
             return ($actual === $targetBool);
         } elseif (is_int($actual)) {
             return ($actual === (int)$expected);
@@ -344,7 +344,7 @@ class SmartHomeGarage extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: ' . $Message);
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: '. $Message);
         return true;
     }
 
@@ -355,7 +355,7 @@ class SmartHomeGarage extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "⚙️ ",
+            "caption": "⚙ ",
             "items": [
                 {
                     "type": "RowLayout",
@@ -425,7 +425,7 @@ class SmartHomeGarage extends IPSModuleStrict
             "type": "NumberSpinner",
             "name": "AlarmDelayMinutes",
             "caption": "Alarm: Tor zu lange offen (Minuten, 0 = aus)",
-            "suffix": " min"
+            "suffix": "min"
         },
         {
             "type": "Label",

@@ -93,7 +93,7 @@ class SmartActiveLighting extends IPSModuleStrict
                         if ($isTrigger) {
                             $this->ProcessMotionTrigger($rule, $index);
                         } else {
-                            // Some motion sensors send 'false' when motion stops. We don't turn off immediately, 
+                            // Some motion sensors send 'false'when motion stops. We don't turn off immediately, 
                             // we rely on the off-delay timer which was set/reset when motion started.
                             // Or we could start the countdown here. For now, the countdown starts/resets on motion.
                         }
@@ -155,8 +155,8 @@ class SmartActiveLighting extends IPSModuleStrict
 
         // Set Off-Delay Timer
         $duration = $rule['DurationSec'] ?? 120;
-        $timerName = 'MotionOffTimer_' . $ruleIndex;
-        $this->RegisterTimer($timerName, $duration * 1000, 'SAL_ProcessMotionOff($_IPS[\'TARGET\'], ' . $ruleIndex . ');');
+        $timerName = 'MotionOffTimer_'. $ruleIndex;
+        $this->RegisterTimer($timerName, $duration * 1000, 'SAL_ProcessMotionOff($_IPS[\'TARGET\'], '. $ruleIndex . ');');
         
         // Track active timer
         $activeTimers = json_decode($this->ReadAttributeString('ActiveTimers'), true);
@@ -167,7 +167,7 @@ class SmartActiveLighting extends IPSModuleStrict
 
     public function ProcessMotionOff(int $ruleIndex): void
     {
-        $timerName = 'MotionOffTimer_' . $ruleIndex;
+        $timerName = 'MotionOffTimer_'. $ruleIndex;
         $this->SetTimerInterval($timerName, 0); // Stop timer
 
         $motionRules = json_decode($this->ReadPropertyString('MotionRules'), true);
@@ -246,8 +246,8 @@ class SmartActiveLighting extends IPSModuleStrict
                 }
                 
                 $diffMs = ($targetTime - $now) * 1000;
-                $timerName = 'TwilightTimer_' . $index;
-                $this->RegisterTimer($timerName, $diffMs, 'SAL_ProcessTwilightTrigger($_IPS[\'TARGET\'], ' . $index . ');');
+                $timerName = 'TwilightTimer_'. $index;
+                $this->RegisterTimer($timerName, $diffMs, 'SAL_ProcessTwilightTrigger($_IPS[\'TARGET\'], '. $index . ');');
             }
         }
     }
@@ -255,7 +255,7 @@ class SmartActiveLighting extends IPSModuleStrict
     public function ProcessTwilightTrigger(int $ruleIndex): void
     {
         // One-shot timer, so disable it
-        $timerName = 'TwilightTimer_' . $ruleIndex;
+        $timerName = 'TwilightTimer_'. $ruleIndex;
         $this->SetTimerInterval($timerName, 0);
 
         $rules = json_decode($this->ReadPropertyString('TwilightRules'), true);
@@ -305,7 +305,7 @@ class SmartActiveLighting extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartActiveLighting: ' . $Message);
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartActiveLighting: '. $Message);
         return true;
     }
 
@@ -316,7 +316,7 @@ class SmartActiveLighting extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "⚙️ Bewegungsgesteuerte Beleuchtung",
+            "caption": "⚙ Bewegungsgesteuerte Beleuchtung",
             "items": []
         },
         {

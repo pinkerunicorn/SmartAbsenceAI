@@ -19,10 +19,10 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->RegisterAttributeString('PreviousStates', '{}');
 
         // GUI Variables
-        $this->RegisterVariableString('HeatingStatus', 'ℹ️ Status', '', 1);
-        $this->RegisterVariableFloat('AverageTemperature', '🌡️ Ø Haus-Temperatur', '', 2);
+        $this->RegisterVariableString('HeatingStatus', 'ℹ Status', '', 1);
+        $this->RegisterVariableFloat('AverageTemperature', '🌡 Ø Haus-Temperatur', '', 2);
         
-        $this->RegisterVariableBoolean('HeatingSeason', '❄️ Heizperiode aktiv', '~Switch', 10);
+        $this->RegisterVariableBoolean('HeatingSeason', '❄ Heizperiode aktiv', '~Switch', 10);
         $this->EnableAction('HeatingSeason');
         
         $this->RegisterVariableBoolean('IsAbsenkbetrieb', '📉 Absenkbetrieb', '', 15);
@@ -36,19 +36,19 @@ class SmartHomeHeating extends IPSModuleStrict
         parent::ApplyChanges();
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingStatus'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Information'
         ]);
 
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('AverageTemperature'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Temperature',
-            'SUFFIX'       => ' °C'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Temperature',
+            'SUFFIX'      => '°C'
         ]);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('IsAbsenkbetrieb'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'TrendDown'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'TrendDown'
         ]);
 
         // Variable Aggregation (Logging) für Ø Haus-Temperatur aktivieren
@@ -89,7 +89,7 @@ class SmartHomeHeating extends IPSModuleStrict
                         $obj = IPS_GetObject($childId);
                         $ident = $obj['ObjectIdent'];
                         $name = $obj['ObjectName'];
-                        if (strpos($name, 'Aktuelle Temperatur') !== false || strpos($name, 'Ventil-Ist-Temperatur') !== false || $ident === 'ACTUAL_TEMPERATURE' || $ident === 'VALVE_ACTUAL_TEMPERATURE') {
+                        if (strpos($name, 'Aktuelle Temperatur') !== false || strpos($name, 'Ventil-Ist-Temperatur') !== false || $ident === 'ACTUAL_TEMPERATURE'|| $ident === 'VALVE_ACTUAL_TEMPERATURE') {
                             $this->RegisterMessage($childId, VM_UPDATE);
                         }
                     }
@@ -133,7 +133,7 @@ class SmartHomeHeating extends IPSModuleStrict
             $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
             if (!$isHeatingSeason) {
                 $this->SetValue('IsAbsenkbetrieb', false);
-                $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Keine Absenkung');
+                $this->SetValue('HeatingStatus', '☀ Heizpause (Sommer) - Keine Absenkung');
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.");
                 return;
             }
@@ -165,19 +165,19 @@ class SmartHomeHeating extends IPSModuleStrict
                     $ident = $obj['ObjectIdent'];
                     $name = $obj['ObjectName'];
                     
-                    if (strpos($name, 'Sollwert Temperatur') !== false || $ident === 'SET_POINT_TEMPERATURE' || $ident === 'POINT_TEMPERATURE') {
+                    if (strpos($name, 'Sollwert Temperatur') !== false || $ident === 'SET_POINT_TEMPERATURE'|| $ident === 'POINT_TEMPERATURE') {
                         $targetTempId = $childId;
                     }
-                    if (strpos($name, 'Kontrollmodus') !== false || strpos($name, 'Control Mode') !== false || $ident === 'CONTROL_MODE' || $ident === 'SET_POINT_MODE') {
+                    if (strpos($name, 'Kontrollmodus') !== false || strpos($name, 'Control Mode') !== false || $ident === 'CONTROL_MODE'|| $ident === 'SET_POINT_MODE') {
                         $controlModeId = $childId;
                     }
                 }
 
                 $state = [
-                    'tempId' => $targetTempId,
-                    'prevTemp' => ($targetTempId > 0 && IPS_VariableExists($targetTempId)) ? GetValue($targetTempId) : null,
-                    'modeId' => $controlModeId,
-                    'prevMode' => ($controlModeId > 0 && IPS_VariableExists($controlModeId)) ? GetValue($controlModeId) : null
+                    'tempId'=> $targetTempId,
+                    'prevTemp'=> ($targetTempId > 0 && IPS_VariableExists($targetTempId)) ? GetValue($targetTempId) : null,
+                    'modeId'=> $controlModeId,
+                    'prevMode'=> ($controlModeId > 0 && IPS_VariableExists($controlModeId)) ? GetValue($controlModeId) : null
                 ];
                 $previousStates[$instId] = $state;
 
@@ -198,11 +198,11 @@ class SmartHomeHeating extends IPSModuleStrict
             $this->WriteAttributeString('PreviousStates', json_encode($previousStates));
             
             if ($isVacation) {
-                $dateStr = ($vacationEndTime > 0) ? " bis " . date('d.m. H:i', $vacationEndTime) : "";
-                $this->SetValue('HeatingStatus', '🧳 Urlaub aktiv' . $dateStr . ' (' . $roomCount . ' Räume tief abgesenkt)');
+                $dateStr = ($vacationEndTime > 0) ? "bis ". date('d.m. H:i', $vacationEndTime) : "";
+                $this->SetValue('HeatingStatus', '🧳 Urlaub aktiv'. $dateStr . '('. $roomCount . 'Räume tief abgesenkt)');
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Urlaubs-Absenktemperatur aktiviert.");
             } else {
-                $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv (' . $roomCount . ' Räume manuell abgesenkt)');
+                $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv ('. $roomCount . 'Räume manuell abgesenkt)');
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Absenktemperatur (mit Manu-Modus) aktiviert.");
             }
         } else {
@@ -210,7 +210,7 @@ class SmartHomeHeating extends IPSModuleStrict
             $this->SetValue('IsAbsenkbetrieb', false);
             $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
             if (!$isHeatingSeason) {
-                $this->SetValue('HeatingStatus', '☀️ Heizpause (Sommer) - Inaktiv');
+                $this->SetValue('HeatingStatus', '☀ Heizpause (Sommer) - Inaktiv');
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, keine Änderungen beim Statuswechsel.");
                 return;
             }
@@ -305,7 +305,7 @@ class SmartHomeHeating extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeHeating: ' . $Message);
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeHeating: '. $Message);
         return true;
     }
 
@@ -316,7 +316,7 @@ class SmartHomeHeating extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "⚙️ Allgemeine Einstellungen",
+            "caption": "⚙ Allgemeine Einstellungen",
             "items": [
                 {
                     "type": "RowLayout",

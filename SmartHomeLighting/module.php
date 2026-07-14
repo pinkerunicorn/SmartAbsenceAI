@@ -17,8 +17,8 @@ class SmartHomeLighting extends IPSModuleStrict
 
         $this->RegisterAttributeString('LightSchedule', '[]');
 
-        $this->RegisterVariableString('LightScheduleStatus', 'ℹ️ Aktueller KI-Schaltplan', '', 1);
-        $this->RegisterVariableBoolean('GeminiError', '⚠️ Fehler aufgetreten', '', 2);
+        $this->RegisterVariableString('LightScheduleStatus', 'ℹ Aktueller KI-Schaltplan', '', 1);
+        $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '', 2);
         
         $this->RegisterVariableInteger('ActiveLightsCount', '💡 Aktive Lampen (Zähler)', '', 3);
         $this->RegisterVariableString('ActiveLightsList', '📝 Aktive Lampen (Namen)', '', 4);
@@ -53,26 +53,26 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->MaintainVariable('VestaboardStatus', 'Kurz-Status (Vestaboard)', 3, '', 5, true);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightScheduleStatus'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Clock'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Clock'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('GeminiError'), [
-            'PRESENTATION'   => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'           => 'Warning',
-            'GLOW_COLOR'     => 16711680, // Rot
-            'GLOW_INTENSITY' => 50
+            'PRESENTATION'  => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'          => 'Warning',
+            'GLOW_COLOR'    => 16711680, // Rot
+            'GLOW_INTENSITY'=> 50
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsCount'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Bulb',
-            'SUFFIX'       => ' an'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Bulb',
+            'SUFFIX'      => 'an'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsList'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'         => 'Information'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Information'
         ]);
 
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');
@@ -133,12 +133,12 @@ class SmartHomeLighting extends IPSModuleStrict
                     } else if (is_int($currentVal) || is_float($currentVal)) {
                         $isActive = ($currentVal > 0);
                     } else if (is_string($currentVal)) {
-                        $isActive = (strtolower(trim($currentVal)) === 'true' || trim($currentVal) === '1');
+                        $isActive = (strtolower(trim($currentVal)) === 'true'|| trim($currentVal) === '1');
                     }
                     
                     if ($isActive) {
                         $count++;
-                        $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : IPS_GetName($id);
+                        $name = isset($light['Name']) && $light['Name'] != ''? $light['Name'] : IPS_GetName($id);
                         $activeNames[] = $name;
                     }
                 }
@@ -153,7 +153,7 @@ class SmartHomeLighting extends IPSModuleStrict
         } else {
             $namesStr = implode(", ", $activeNames);
             $this->SetValueIfChanged('ActiveLightsList', $namesStr);
-            $this->SetValueIfChanged('VestaboardStatus', $count . ' an');
+            $this->SetValueIfChanged('VestaboardStatus', $count . 'an');
         }
     }
 
@@ -256,68 +256,68 @@ class SmartHomeLighting extends IPSModuleStrict
 
         foreach ($lightVars as $light) {
             $id = $light['VariableID'];
-            $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Schalter ".$id;
+            $name = isset($light['Name']) && $light['Name'] != ''? $light['Name'] : "Schalter ".$id;
             if ($id > 0) {
                 if (!AC_GetLoggingStatus($archiveId, $id)) continue;
                 $values = AC_GetLoggedValues($archiveId, $id, $startTime, $endTime, 50);
                 $compactLog = [];
                 foreach ($values as $v) {
-                    $compactLog[] = ["time" => date('Y-m-d H:i', $v['TimeStamp']), "val" => $v['Value']];
+                    $compactLog[] = ["time"=> date('Y-m-d H:i', $v['TimeStamp']), "val"=> $v['Value']];
                 }
                 $historyDataSwitches[$id] = [
-                    "name" => $name,
-                    "log" => $compactLog
+                    "name"=> $name,
+                    "log"=> $compactLog
                 ];
             }
         }
         
         foreach ($dimmerVars as $light) {
             $id = $light['VariableID'];
-            $name = isset($light['Name']) && $light['Name'] != '' ? $light['Name'] : "Dimmer ".$id;
+            $name = isset($light['Name']) && $light['Name'] != ''? $light['Name'] : "Dimmer ".$id;
             if ($id > 0) {
                 if (!AC_GetLoggingStatus($archiveId, $id)) continue;
                 $values = AC_GetLoggedValues($archiveId, $id, $startTime, $endTime, 50);
                 $compactLog = [];
                 foreach ($values as $v) {
-                    $compactLog[] = ["time" => date('Y-m-d H:i', $v['TimeStamp']), "val" => $v['Value']];
+                    $compactLog[] = ["time"=> date('Y-m-d H:i', $v['TimeStamp']), "val"=> $v['Value']];
                 }
                 $historyDataDimmers[$id] = [
-                    "name" => $name,
-                    "log" => $compactLog
+                    "name"=> $name,
+                    "log"=> $compactLog
                 ];
             }
         }
 
-        $prompt = "Du bist eine Smart Home KI. Heute ist der " . date('Y-m-d') . ". Der Sonnenuntergang ist um " . $sunsetTimeStr . " Uhr.\n";
+        $prompt = "Du bist eine Smart Home KI. Heute ist der ". date('Y-m-d') . ". Der Sonnenuntergang ist um ". $sunsetTimeStr . "Uhr.\n";
         $prompt .= "Hier sind die Schaltdaten der Lichter der letzten 14 Tage inkl. Name/Raum als JSON:\n";
         if (count($historyDataSwitches) > 0) {
-            $prompt .= "Geräte vom Typ SCHALTER (Werte: true/false):\n" . json_encode($historyDataSwitches) . "\n";
+            $prompt .= "Geräte vom Typ SCHALTER (Werte: true/false):\n". json_encode($historyDataSwitches) . "\n";
         }
         if (count($historyDataDimmers) > 0) {
-            $prompt .= "Geräte vom Typ DIMMER (Werte: 0-100):\n" . json_encode($historyDataDimmers) . "\n";
+            $prompt .= "Geräte vom Typ DIMMER (Werte: 0-100):\n". json_encode($historyDataDimmers) . "\n";
         }
         $prompt .= "Generiere einen realistischen Schaltplan für den heutigen Abend, der echte Anwesenheit simuliert und sich an den historischen Daten orientiert. Nutze die Raumnamen, um einen logischen Ablauf (z.B. Wohnzimmer vor Schlafzimmer) zu erstellen. ";
-        $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen), verwende für 'device' zwingend die übermittelte numerische ID:\n";
+        $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen), verwende für 'device'zwingend die übermittelte numerische ID:\n";
         $prompt .= "[ {\"time\":\"HH:MM\", \"device\": 12345, \"state\": true/false/dimvalue} ]";
 
         $model = $this->ReadPropertyString('GeminiModel');
         if (empty($model)) $model = 'gemini-3.5-flash';
 
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/" . $model . ":generateContent?key=" . $apiKey;
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/". $model . ":generateContent?key=". $apiKey;
         $payload = [
-            "contents" => [["parts" => [["text" => $prompt]]]],
-            "generationConfig" => ["response_mime_type" => "application/json"]
+            "contents"=> [["parts"=> [["text"=> $prompt]]]],
+            "generationConfig"=> ["response_mime_type"=> "application/json"]
         ];
 
         $payloadJson = json_encode($payload);
 
         // Asynchroner Aufruf über IPS_RunScriptText, um den IP-Symcon Thread nicht zu blockieren
         $script = '<?php
-            $ch = curl_init("' . $url . '");
+            $ch = curl_init("'. $url . '");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, ' . var_export($payloadJson, true) . ');
+            curl_setopt($ch, CURLOPT_POSTFIELDS, '. var_export($payloadJson, true) . ');
             curl_setopt($ch, CURLOPT_TIMEOUT, 60);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
             $response = curl_exec($ch);
@@ -325,9 +325,9 @@ class SmartHomeLighting extends IPSModuleStrict
             curl_close($ch);
             
             if ($error) {
-                SHL_ProcessGeminiResponse(' . $this->InstanceID . ', json_encode(["error" => "cURL Fehler: " . $error]));
+                SHL_ProcessGeminiResponse('. $this->InstanceID . ', json_encode(["error"=> "cURL Fehler: ". $error]));
             } else {
-                SHL_ProcessGeminiResponse(' . $this->InstanceID . ', $response);
+                SHL_ProcessGeminiResponse('. $this->InstanceID . ', $response);
             }
         ';
         IPS_RunScriptText($script);
@@ -372,19 +372,19 @@ class SmartHomeLighting extends IPSModuleStrict
 
                 $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
                 foreach ($scheduleArray as $action) {
-                    $state = $action['state'] ? "AN" : "AUS";
+                    $state = $action['state'] ? "AN": "AUS";
                     if (is_numeric($action['state']) && $action['state'] > 1) {
-                        $state = "Wert: " . $action['state'];
+                        $state = "Wert: ". $action['state'];
                     }
-                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
+                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät ". $action['device'];
+                    $formattedSchedule .= "- ". $action['time'] . "Uhr: ". $devName . "-> ". $state . "\n";
                 }
                 $this->SetValue('LightScheduleStatus', $formattedSchedule);
             } else {
                 $this->HandleGeminiError("Ungültiges JSON empfangen.");
             }
         } else if (isset($json['error'])) {
-            $this->HandleGeminiError("Gemini API Error: " . json_encode($json['error']));
+            $this->HandleGeminiError("Gemini API Error: ". json_encode($json['error']));
         } else {
             $this->HandleGeminiError("Unerwartete Antwortstruktur.");
         }
@@ -451,12 +451,12 @@ class SmartHomeLighting extends IPSModuleStrict
                 $formattedSchedule = "Keine weiteren Schaltvorgänge für heute geplant.";
             } else {
                 foreach ($remainingSchedule as $action) {
-                    $state = $action['state'] ? "AN" : "AUS";
+                    $state = $action['state'] ? "AN": "AUS";
                     if (is_numeric($action['state']) && $action['state'] > 1) {
-                        $state = "Wert: " . $action['state'];
+                        $state = "Wert: ". $action['state'];
                     }
-                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
-                    $formattedSchedule .= "- " . $action['time'] . " Uhr: " . $devName . " -> " . $state . "\n";
+                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät ". $action['device'];
+                    $formattedSchedule .= "- ". $action['time'] . "Uhr: ". $devName . "-> ". $state . "\n";
                 }
             }
             $this->SetValue('LightScheduleStatus', $formattedSchedule);
@@ -534,7 +534,7 @@ class SmartHomeLighting extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeLighting: ' . $Message);
+        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeLighting: '. $Message);
         return true;
     }
 
@@ -545,7 +545,7 @@ class SmartHomeLighting extends IPSModuleStrict
     "elements": [
         {
             "type": "ExpansionPanel",
-            "caption": "⚙️ Allgemeine Einstellungen",
+            "caption": "⚙ Allgemeine Einstellungen",
             "items": [
                 {
                     "type": "RowLayout",
