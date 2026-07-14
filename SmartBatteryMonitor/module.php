@@ -58,14 +58,14 @@ class SmartBatteryMonitor extends IPSModuleStrict
         $allBatteriesLog = [];
         
         foreach ($batteryList as $item) {
-            $varID = $item['VariableID'] ?? 0;
-            if (!IPS_VariableExists($varID)) {
+            $varID = (int)($item['VariableID'] ?? 0);
+            if ($varID === 0 || !IPS_VariableExists($varID)) {
                 continue;
             }
             
             $val = GetValue($varID);
             $type = $item['Type'] ?? 'Auto';
-            $threshold = $item['Threshold'] ?? 0;
+            $threshold = (float)($item['Threshold'] ?? 0);
             $name = !empty($item['Name']) ? $item['Name'] : IPS_GetName($varID);
             
             $isLow = false;
