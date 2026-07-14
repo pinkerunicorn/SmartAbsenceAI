@@ -63,7 +63,12 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 continue;
             }
             
-            $val = GetValue($varID);
+            $var = @IPS_GetVariable($varID);
+            if (!is_array($var)) {
+                continue; // Skip if variable metadata is inaccessible
+            }
+            
+            $val = @GetValue($varID);
             $type = $item['Type'] ?? 'Auto';
             $threshold = (float)($item['Threshold'] ?? 0);
             $name = !empty($item['Name']) ? $item['Name'] : IPS_GetName($varID);
@@ -71,27 +76,28 @@ class SmartBatteryMonitor extends IPSModuleStrict
             $isLow = false;
             
             if ($type === 'Auto') {
-                $var = IPS_GetVariable($varID);
                 $profile = $var['VariableCustomProfile'] != '' ? $var['VariableCustomProfile'] : $var['VariableProfile'];
-                $ident = IPS_GetObject($varID)['ObjectIdent'];
+                $obj = @IPS_GetObject($varID);
+                $ident = is_array($obj) ? $obj['ObjectIdent'] : '';
                 
                 if ($profile === '~Battery' || strpos(strtolower($ident), 'low_bat') !== false || strpos(strtolower($ident), 'lowbat') !== false) {
                     if ($val === true || $val === 1) $isLow = true;
                 } elseif ($profile === '~Battery.Reversed') {
                     if ($val === false || $val === 0) $isLow = true;
                 } elseif ($profile === '~Battery.100') {
-                    if ($val <= $threshold) $isLow = true;
+                    if ($val !== false && $val <= $threshold) $isLow = true;
                 }
             } elseif ($type === 'BoolTrue') {
                 if ($val === true || $val === 1) $isLow = true;
             } elseif ($type === 'BoolFalse') {
                 if ($val === false || $val === 0) $isLow = true;
             } elseif ($type === 'Percent' || $type === 'Voltage') {
-                if ($val <= $threshold) $isLow = true;
+                if ($val !== false && $val <= $threshold) $isLow = true;
             }
             
             $statusText = $isLow ? 'LEER' : 'OK';
-            $realValue = GetValueFormatted($varID);
+            $realValue = @GetValueFormatted($varID);
+            if ($realValue === false) $realValue = 'Fehler';
             
             $allBatteriesLog[] = "[$statusText] $name ($realValue)";
             
