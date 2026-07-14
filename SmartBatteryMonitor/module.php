@@ -8,9 +8,8 @@ class SmartBatteryMonitor extends IPSModuleStrict
     {
         parent::Create();
         
-        $this->RegisterPropertyInteger('ThresholdPercent', 15);
+        $this->RegisterPropertyString('BatteryVariables', '[]');
         $this->RegisterPropertyString('CheckTime', '{"hour":18,"minute":0,"second":0}');
-        $this->RegisterPropertyString('IgnoreKeywords', 'gruppe, group, heizung, security');
         
         $this->RegisterTimer('DailyCheckTimer', 0, 'SBM_CheckBatteries($_IPS[\'TARGET\']);');
         
@@ -49,94 +48,65 @@ class SmartBatteryMonitor extends IPSModuleStrict
         // When checking finishes, we recalculate the timer to the next day
         $this->SetDailyTimer();
 
-        $threshold = $this->ReadPropertyInteger('ThresholdPercent');
-        $ignoreStr = $this->ReadPropertyString('IgnoreKeywords');
-        $ignoreKeywords = array_filter(array_map('trim', explode(',', strtolower($ignoreStr))));
+        $batteryListJson = $this->ReadPropertyString('BatteryVariables');
+        $batteryList = json_decode($batteryListJson, true);
+        if (!is_array($batteryList)) {
+            $batteryList = [];
+        }
         
-        $allVariables = IPS_GetVariableList();
         $lowBatteries = [];
         $allBatteriesLog = [];
         
-        foreach ($allVariables as $varID) {
-            $var = IPS_GetVariable($varID);
-            $profile = $var['VariableCustomProfile'] != '' ? $var['VariableCustomProfile'] : $var['VariableProfile'];
-            $ident = IPS_GetObject($varID)['ObjectIdent'];
-            
-            $isLow = false;
-            $isBattery = false;
-            
-            // Boolean Profiles or explicit LOW_BAT Ident
-            if ($profile === '~Battery' || $profile === '~Battery.Reversed' || strpos(strtolower($ident), 'low_bat') !== false || strpos(strtolower($ident), 'lowbat') !== false) {
-                $isBattery = true;
-                // If it doesn't have a specific profile but has the LOW_BAT ident, treat it as normal Battery where true = empty
-                $val = GetValue($varID);
-                if (is_bool($val)) {
-                    if ($profile === '~Battery.Reversed') {
-                        // false means empty
-                        if ($val === false) $isLow = true;
-                    } else {
-                        // true means empty
-                        if ($val === true) $isLow = true;
-                    }
-                } elseif (is_int($val)) {
-                    if ($val === 1) $isLow = true; // Homematic sometimes uses int for boolean
-                }
-            } 
-            // Percentage Profile
-            elseif ($profile === '~Battery.100') {
-                $isBattery = true;
-                $val = GetValue($varID);
-                if (is_int($val) || is_float($val)) {
-                    if ($val <= $threshold) $isLow = true;
-                }
+        foreach ($batteryList as $item) {
+            $varID = $item['VariableID'] ?? 0;
+            if (!IPS_VariableExists($varID)) {
+                continue;
             }
             
-            if ($isBattery) {
-                $varObj = IPS_GetObject($varID);
-                $parentID = $varObj['ParentID'];
-                $parentName = 'Unbekannt';
-                if ($parentID > 0 && IPS_ObjectExists($parentID)) {
-                    $parentName = IPS_GetObject($parentID)['ObjectName'];
-                }
+            $val = GetValue($varID);
+            $type = $item['Type'] ?? 'Auto';
+            $threshold = $item['Threshold'] ?? 0;
+            $name = !empty($item['Name']) ? $item['Name'] : IPS_GetName($varID);
+            
+            $isLow = false;
+            
+            if ($type === 'Auto') {
+                $var = IPS_GetVariable($varID);
+                $profile = $var['VariableCustomProfile'] != '' ? $var['VariableCustomProfile'] : $var['VariableProfile'];
+                $ident = IPS_GetObject($varID)['ObjectIdent'];
                 
-                // Filter out ignored groups
-                $skip = false;
-                $lowerParent = strtolower($parentName);
-                foreach ($ignoreKeywords as $kw) {
-                    if ($kw !== '' && strpos($lowerParent, $kw) !== false) {
-                        $skip = true;
-                        break;
-                    }
+                if ($profile === '~Battery' || strpos(strtolower($ident), 'low_bat') !== false || strpos(strtolower($ident), 'lowbat') !== false) {
+                    if ($val === true || $val === 1) $isLow = true;
+                } elseif ($profile === '~Battery.Reversed') {
+                    if ($val === false || $val === 0) $isLow = true;
+                } elseif ($profile === '~Battery.100') {
+                    if ($val <= $threshold) $isLow = true;
                 }
-                if ($skip) {
-                    continue; // Skip this device entirely
-                }
-                
-                // Viele Variablen heißen "Batterie schwach" oder "Low Bat" - das verwirrt in der Liste.
-                $varName = $varObj['ObjectName'];
-                if (stripos($varName, 'batterie schwach') !== false || stripos($varName, 'low bat') !== false || stripos($varName, 'lowbat') !== false) {
-                    $varName = 'Batterie-Status';
-                }
-                
-                $statusText = $isLow ? 'LEER' : 'OK';
-                $realValue = GetValueFormatted($varID);
-                
-                $allBatteriesLog[] = "[$statusText] $parentName ($varName: $realValue)";
-                
-                if ($isLow) {
-                    $lowBatteries[] = $varID;
-                }
+            } elseif ($type === 'BoolTrue') {
+                if ($val === true || $val === 1) $isLow = true;
+            } elseif ($type === 'BoolFalse') {
+                if ($val === false || $val === 0) $isLow = true;
+            } elseif ($type === 'Percent' || $type === 'Voltage') {
+                if ($val <= $threshold) $isLow = true;
+            }
+            
+            $statusText = $isLow ? 'LEER' : 'OK';
+            $realValue = GetValueFormatted($varID);
+            
+            $allBatteriesLog[] = "[$statusText] $name ($realValue)";
+            
+            if ($isLow) {
+                // Store the custom name alongside the varID for SyncLinks
+                $lowBatteries[$varID] = $name;
             }
         }
         
         $this->SetValue('MonitoredBatteries', "Gesamtanzahl: " . count($allBatteriesLog) . "\n\n" . implode("\n", $allBatteriesLog));
         
-        // Update the counts and alarm
         $count = count($lowBatteries);
         $this->SetValue('AlarmActive', $count > 0);
         $this->SetValue('LowBatteryCount', $count);
         
-        // Sync Links
         $this->SyncLinks($lowBatteries);
         
         IPS_LogMessage('SmartVillaKunterbunt', "SmartBatteryMonitor: Überprüfung abgeschlossen. $count leere Batterien gefunden.");
@@ -154,27 +124,21 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 $targetID = IPS_GetLink($id)['TargetID'];
                 
                 // If the link points to a battery that is NO LONGER low, delete it
-                if (!in_array($targetID, $lowBatteries)) {
+                if (!array_key_exists($targetID, $lowBatteries)) {
                     IPS_DeleteLink($id);
                 } else {
                     $linkTargets[] = $targetID; // Keep track of existing
+                    IPS_SetName($id, $lowBatteries[$targetID]); // Update name just in case it was changed in the config
                 }
             }
         }
         
         // Add new links for low batteries that don't have a link yet
-        foreach ($lowBatteries as $varID) {
+        foreach ($lowBatteries as $varID => $name) {
             if (!in_array($varID, $linkTargets)) {
                 $linkID = IPS_CreateLink();
-                $varObj = IPS_GetObject($varID);
-                $parentID = $varObj['ParentID'];
-                $parentName = 'Unbekannt';
-                if ($parentID > 0 && IPS_ObjectExists($parentID)) {
-                    $parentName = IPS_GetObject($parentID)['ObjectName'];
-                }
-                
                 IPS_SetParent($linkID, $this->InstanceID);
-                IPS_SetName($linkID, $parentName . " (" . $varObj['ObjectName'] . ")");
+                IPS_SetName($linkID, $name);
                 IPS_SetLinkTargetID($linkID, $varID);
                 IPS_SetPosition($linkID, 10);
             }
@@ -197,14 +161,59 @@ class SmartBatteryMonitor extends IPSModuleStrict
             "label": "Batterie-Überwachung (SmartBatteryMonitor)"
         },
         {
-            "type": "RowLayout",
-            "items": [
+            "type": "List",
+            "name": "BatteryVariables",
+            "caption": "Überwachte Batterien",
+            "add": true,
+            "delete": true,
+            "sort": {
+                "column": "Name",
+                "direction": "ascending"
+            },
+            "columns": [
                 {
-                    "type": "NumberSpinner",
-                    "name": "ThresholdPercent",
-                    "caption": "Schwellwert für Prozent-Batterien (%)",
-                    "minimum": 1,
-                    "maximum": 50
+                    "caption": "Name",
+                    "name": "Name",
+                    "width": "250px",
+                    "add": "Neue Batterie",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Variable",
+                    "name": "VariableID",
+                    "width": "300px",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Typ",
+                    "name": "Type",
+                    "width": "200px",
+                    "add": "Auto",
+                    "edit": {
+                        "type": "Select",
+                        "options": [
+                            {"label": "Automatisch (Profil/Ident)", "value": "Auto"},
+                            {"label": "Boolean (True = Leer)", "value": "BoolTrue"},
+                            {"label": "Boolean (False = Leer)", "value": "BoolFalse"},
+                            {"label": "Prozent", "value": "Percent"},
+                            {"label": "Spannung", "value": "Voltage"}
+                        ]
+                    }
+                },
+                {
+                    "caption": "Schwellwert",
+                    "name": "Threshold",
+                    "width": "150px",
+                    "add": 15,
+                    "edit": {
+                        "type": "NumberSpinner",
+                        "digits": 2
+                    }
                 }
             ]
         },
@@ -212,15 +221,6 @@ class SmartBatteryMonitor extends IPSModuleStrict
             "type": "SelectTime",
             "name": "CheckTime",
             "caption": "Tägliche Ausführungszeit"
-        },
-        {
-            "type": "ValidationTextBox",
-            "name": "IgnoreKeywords",
-            "caption": "Ignorierte Namen (Komma-getrennt, z.B. gruppe, heizung)"
-        },
-        {
-            "type": "Label",
-            "label": "Gefundene Profile: ~Battery, ~Battery.100, ~Battery.Reversed, sowie Variablen mit Ident 'LOW_BAT' oder 'LOWBAT'."
         }
     ],
     "actions": [
