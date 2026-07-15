@@ -160,7 +160,20 @@ class SmartActiveLighting extends IPSModuleStrict
             if (is_array($buttonRules)) {
                 foreach ($buttonRules as $rule) {
                     if (isset($rule['ButtonVariableID']) && $rule['ButtonVariableID'] == $SenderID) {
-                        if ($isTrigger) {
+                        
+                        $triggerValStr = strtolower(trim((string)($rule['TriggerValue'] ?? 'true')));
+                        $currentValStr = strtolower(trim((string)$val));
+                        
+                        $matched = false;
+                        if ($triggerValStr === 'true') {
+                            $matched = $isTrigger; // Fallback to generic trigger logic for booleans/numbers
+                        }
+                        
+                        if ($triggerValStr === $currentValStr) {
+                            $matched = true;
+                        }
+
+                        if ($matched) {
                             $this->ProcessButtonTrigger($rule);
                         }
                     }
@@ -749,6 +762,15 @@ class SmartActiveLighting extends IPSModuleStrict
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Auslöse-Wert (Optional)",
+                    "name": "TriggerValue",
+                    "width": "150px",
+                    "add": "true",
+                    "edit": {
+                        "type": "ValidationTextBox"
                     }
                 }
             ]
