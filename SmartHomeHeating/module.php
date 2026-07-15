@@ -24,14 +24,20 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->RegisterVariableFloat('AverageTemperature', '🌡 Ø Haus-Temperatur', '', 2);
         IPS_SetIcon($this->GetIDForIdent('AverageTemperature'), 'Temperature');
         
-        $this->RegisterVariableBoolean('HeatingSeason', '❄ Heizperiode aktiv', '~Switch', 10);
+        $this->RegisterVariableBoolean('HeatingSeason', '❄ Heizperiode aktiv', '', 10);
         IPS_SetIcon($this->GetIDForIdent('HeatingSeason'), 'Flame');
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingSeason'), 'Switch');
+        }
         $this->EnableAction('HeatingSeason');
         
         $this->RegisterVariableBoolean('IsAbsenkbetrieb', '📉 Absenkbetrieb', '', 15);
         IPS_SetIcon($this->GetIDForIdent('IsAbsenkbetrieb'), 'Information');
-        $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '~Alert', 20);
+        $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '', 20);
         IPS_SetIcon($this->GetIDForIdent('AlarmFrostWarning'), 'Warning');
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmFrostWarning'), 'Alert');
+        }
         $this->EnableAction('AlarmFrostWarning');
 
     }

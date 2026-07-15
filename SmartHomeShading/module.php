@@ -31,8 +31,11 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterAttributeString('CurrentState', '{}'); // Aktueller Beschattungs-Zustand pro Rollladen
         
         // Status Variablen
-        $this->RegisterVariableBoolean('AlarmWindWarning', 'Alarm: Sturmschutz aktiv', '~Alert', 1);
+        $this->RegisterVariableBoolean('AlarmWindWarning', 'Alarm: Sturmschutz aktiv', '', 1);
         IPS_SetIcon($this->GetIDForIdent('AlarmWindWarning'), 'Warning');
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmWindWarning'), 'Alert');
+        }
         $this->EnableAction('AlarmWindWarning');
         
         $this->RegisterVariableInteger('ActiveShadingCount', 'Schatten aktiv (Anzahl)', '', 2);
