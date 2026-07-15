@@ -135,8 +135,6 @@ class SmartBatteryMonitor extends IPSModuleStrict
         $this->SetValue('LowBatteryCount', $count);
         
         $this->SyncLinks($lowBatteries);
-        
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartBatteryMonitor: Überprüfung abgeschlossen. $count leere Batterien gefunden.");
     }
     
     private function SyncLinks(array $lowBatteries): void
