@@ -30,9 +30,9 @@ class SmartHomeGarage extends IPSModuleStrict
         // Variables
         $this->RegisterVariableInteger('DoorState', '🚪 Torstatus', '', 1);
         IPS_SetIcon($this->GetIDForIdent('DoorState'), 'Information');
-        $this->RegisterVariableBoolean('DoorControl', 'Tor Steuerung', '~Switch', 2);
+        $this->RegisterVariableBoolean('DoorControl', 'Tor Steuerung', '', 2);
         IPS_SetIcon($this->GetIDForIdent('DoorControl'), 'Window');
-        $this->RegisterVariableBoolean('AlarmOpenTooLong', 'Alarm: Tor zu lange offen', '~Alert', 3);
+        $this->RegisterVariableBoolean('AlarmOpenTooLong', 'Alarm: Tor zu lange offen', '', 3);
         IPS_SetIcon($this->GetIDForIdent('AlarmOpenTooLong'), 'Warning');
         
         $this->EnableAction('DoorControl');
@@ -58,6 +58,28 @@ class SmartHomeGarage extends IPSModuleStrict
         // ---------------------------------
 
 
+
+
+        if (@IPS_GetObjectIDByIdent('DoorState', $this->InstanceID) !== false) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'Information'
+            ]);
+        }
+        
+        if (@IPS_GetObjectIDByIdent('DoorControl', $this->InstanceID) !== false) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorControl'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+                'ICON'         => 'Window'
+            ]);
+        }
+        
+        if (@IPS_GetObjectIDByIdent('AlarmOpenTooLong', $this->InstanceID) !== false) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmOpenTooLong'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'Warning'
+            ]);
+        }
 
         if (!IPS_VariableProfileExists('SmartAbsence.DoorState')) {
             IPS_CreateVariableProfile('SmartAbsence.DoorState', 1);

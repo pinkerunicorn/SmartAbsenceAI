@@ -26,7 +26,7 @@ class SmartHomeLighting extends IPSModuleStrict
         IPS_SetIcon($this->GetIDForIdent('ActiveLightsCount'), 'Bulb');
         $this->RegisterVariableString('ActiveLightsList', '📝 Aktive Lampen (Namen)', '', 4);
         IPS_SetIcon($this->GetIDForIdent('ActiveLightsList'), 'Bulb');
-        $this->RegisterVariableBoolean('AlarmLightsOnDuringAbsence', 'Alarm: Licht brennt bei Abwesenheit', '~Alert', 5);
+        $this->RegisterVariableBoolean('AlarmLightsOnDuringAbsence', 'Alarm: Licht brennt bei Abwesenheit', '', 5);
         IPS_SetIcon($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), 'Warning');
         $this->EnableAction('AlarmLightsOnDuringAbsence');
         
@@ -77,6 +77,16 @@ class SmartHomeLighting extends IPSModuleStrict
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsList'), [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Information'
+        ]);
+        
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Warning'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('VestaboardStatus'), [
             'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'        => 'Information'
         ]);
