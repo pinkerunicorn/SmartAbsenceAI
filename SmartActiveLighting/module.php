@@ -89,12 +89,37 @@ class SmartActiveLighting extends IPSModuleStrict
             }
         }
 
-        // Register Button Triggers
+        // Register Button Triggers & Maintain Group Variables
         $buttonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
+        $activeGroups = [];
         if (is_array($buttonRules)) {
             foreach ($buttonRules as $rule) {
                 if (isset($rule['ButtonVariableID']) && $rule['ButtonVariableID'] > 0) {
                     $this->RegisterMessage($rule['ButtonVariableID'], VM_UPDATE);
+                }
+                $groupName = trim($rule['GroupName'] ?? '');
+                if ($groupName !== '') {
+                    $ident = 'Group_' . preg_replace('/[^A-Za-z0-9_]/', '', $groupName);
+                    $activeGroups[$ident] = $groupName;
+                }
+            }
+        }
+
+        foreach ($activeGroups as $ident => $name) {
+            $this->MaintainVariable($ident, $name, 0, '', 0, true);
+            $this->EnableAction($ident);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent($ident), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+                'ICON' => 'Bulb'
+            ]);
+        }
+        
+        // Delete inactive groups
+        foreach (IPS_GetChildrenIDs($this->InstanceID) as $childID) {
+            $obj = IPS_GetObject($childID);
+            if (strpos($obj['ObjectIdent'], 'Group_') === 0) {
+                if (!isset($activeGroups[$obj['ObjectIdent']])) {
+                    $this->MaintainVariable($obj['ObjectIdent'], '', 0, '', 0, false);
                 }
             }
         }
@@ -106,6 +131,39 @@ class SmartActiveLighting extends IPSModuleStrict
         $now = time();
         $nextMidnight = strtotime('tomorrow 00:05');
         $this->SetTimerInterval('DailyTwilightRecalc', ($nextMidnight - $now) * 1000);
+    }
+
+    public function RequestAction($Ident, $Value)
+    {
+        if (strpos($Ident, 'Group_') === 0) {
+            $this->SetValue($Ident, $Value);
+            $this->SwitchGroup($Ident, $Value);
+        }
+    }
+
+    private function SwitchGroup(string $Ident, bool $Value): void
+    {
+        $buttonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
+        if (is_array($buttonRules)) {
+            $groupIdent = str_replace('Group_', '', $Ident);
+            foreach ($buttonRules as $rule) {
+                $ruleGroupName = trim($rule['GroupName'] ?? '');
+                if ($ruleGroupName !== '') {
+                    $ruleIdent = preg_replace('/[^A-Za-z0-9_]/', '', $ruleGroupName);
+                    if ($ruleIdent === $groupIdent) {
+                        $tid = $rule['TargetLightID'] ?? 0;
+                        if ($tid > 0 && IPS_VariableExists($tid)) {
+                            $var = IPS_GetVariable($tid);
+                            if ($var['VariableType'] == 0) {
+                                RequestAction($tid, $Value);
+                            } else {
+                                RequestAction($tid, $Value ? 100 : 0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public function MessageSink(int $TimeStamp, int $SenderID, int $Message, array $Data): void
@@ -159,6 +217,7 @@ class SmartActiveLighting extends IPSModuleStrict
             $buttonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
             if (is_array($buttonRules)) {
                 $targetsToToggle = [];
+                $associatedGroups = [];
                 foreach ($buttonRules as $rule) {
                     if (isset($rule['ButtonVariableID']) && $rule['ButtonVariableID'] == $SenderID) {
                         
@@ -179,6 +238,11 @@ class SmartActiveLighting extends IPSModuleStrict
                             if ($targetId > 0 && IPS_VariableExists($targetId)) {
                                 $targetsToToggle[] = $targetId;
                             }
+                            $groupName = trim($rule['GroupName'] ?? '');
+                            if ($groupName !== '') {
+                                $ident = 'Group_' . preg_replace('/[^A-Za-z0-9_]/', '', $groupName);
+                                $associatedGroups[$ident] = true;
+                            }
                         }
                     }
                 }
@@ -196,12 +260,20 @@ class SmartActiveLighting extends IPSModuleStrict
                     }
                     
                     // If any is ON -> turn ALL OFF. If all are OFF -> turn ALL ON.
+                    $newState = !$anyOn;
                     foreach ($targetsToToggle as $tid) {
                         $var = IPS_GetVariable($tid);
                         if ($var['VariableType'] == 0) {
-                            RequestAction($tid, !$anyOn);
+                            RequestAction($tid, $newState);
                         } else {
-                            RequestAction($tid, $anyOn ? 0 : 100);
+                            RequestAction($tid, $newState ? 100 : 0);
+                        }
+                    }
+                    
+                    // Update group variables
+                    foreach (array_keys($associatedGroups) as $ident) {
+                        if (@IPS_GetObjectIDByIdent($ident, $this->InstanceID) !== false) {
+                            $this->SetValue($ident, $newState);
                         }
                     }
                 }
@@ -773,10 +845,19 @@ class SmartActiveLighting extends IPSModuleStrict
                     }
                 },
                 {
-                    "caption": "Auslöse-Wert (Optional)",
+                    "caption": "Auslöse-Wert",
                     "name": "TriggerValue",
-                    "width": "150px",
+                    "width": "100px",
                     "add": "true",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Gruppen-Name (Virtual Switch)",
+                    "name": "GroupName",
+                    "width": "150px",
+                    "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
                     }
