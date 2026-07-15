@@ -10,6 +10,7 @@ class SmartActiveLighting extends IPSModuleStrict
 
         // Properties
         $this->RegisterPropertyString('MotionRules', '[]');
+        $this->RegisterPropertyString('DoorRules', '[]');
         $this->RegisterPropertyString('TwilightRules', '[]');
         $this->RegisterPropertyString('SceneRules', '[]');
         $this->RegisterPropertyInteger('GlobalLuxSensorID', 0);
@@ -60,6 +61,16 @@ class SmartActiveLighting extends IPSModuleStrict
             }
         }
 
+        // Register Door Sensors
+        $doorRules = json_decode($this->ReadPropertyString('DoorRules'), true);
+        if (is_array($doorRules)) {
+            foreach ($doorRules as $rule) {
+                if (isset($rule['DoorVariableID']) && $rule['DoorVariableID'] > 0) {
+                    $this->RegisterMessage($rule['DoorVariableID'], VM_UPDATE);
+                }
+            }
+        }
+
         // Register Scene Triggers
         $sceneRules = json_decode($this->ReadPropertyString('SceneRules'), true);
         if (is_array($sceneRules)) {
@@ -102,6 +113,16 @@ class SmartActiveLighting extends IPSModuleStrict
                             // we rely on the off-delay timer which was set/reset when motion started.
                             // Or we could start the countdown here. For now, the countdown starts/resets on motion.
                         }
+                    }
+                }
+            }
+
+            // Check if Sender is a Door Sensor
+            $doorRules = json_decode($this->ReadPropertyString('DoorRules'), true);
+            if (is_array($doorRules)) {
+                foreach ($doorRules as $index => $rule) {
+                    if (isset($rule['DoorVariableID']) && $rule['DoorVariableID'] == $SenderID) {
+                        $this->ProcessDoorTrigger($rule, $index, $isTrigger);
                     }
                 }
             }
@@ -178,6 +199,83 @@ class SmartActiveLighting extends IPSModuleStrict
         $motionRules = json_decode($this->ReadPropertyString('MotionRules'), true);
         if (is_array($motionRules) && isset($motionRules[$ruleIndex])) {
             $targetId = $motionRules[$ruleIndex]['TargetLightID'] ?? 0;
+            if ($targetId > 0 && IPS_VariableExists($targetId)) {
+                $var = IPS_GetVariable($targetId);
+                if ($var['VariableType'] == 0) {
+                    RequestAction($targetId, false);
+                } else {
+                    RequestAction($targetId, 0);
+                }
+            }
+        }
+    }
+
+    private function ProcessDoorTrigger(array $rule, int $ruleIndex, bool $isOpen): void
+    {
+        $targetId = $rule['TargetLightID'] ?? 0;
+        if ($targetId <= 0 || !IPS_VariableExists($targetId)) return;
+
+        $timerName = 'DoorOffTimer_' . $ruleIndex;
+
+        if ($isOpen) {
+            // Stop off-timer if it's running
+            $this->SetTimerInterval($timerName, 0);
+
+            // Check Lux
+            $luxId = $this->ReadPropertyInteger('GlobalLuxSensorID');
+            $maxLux = $rule['MaxLux'] ?? 1000;
+            if ($luxId > 0 && IPS_VariableExists($luxId)) {
+                $currentLux = GetValue($luxId);
+                if ($currentLux >= $maxLux) {
+                    return; // Too bright, do not turn on
+                }
+            }
+
+            // Night Mode?
+            $nightMode = $rule['NightMode'] ?? false;
+            $targetValue = true; // Default Boolean Switch
+            if ($nightMode) {
+                $hour = (int)date('H');
+                if ($hour >= 23 || $hour < 6) { // Night time
+                    $targetValue = 10; // 10%
+                } else {
+                    $targetValue = 100; // 100%
+                }
+            }
+
+            // Turn on
+            $var = IPS_GetVariable($targetId);
+            if ($var['VariableType'] == 0) { // Boolean
+                RequestAction($targetId, true);
+            } else {
+                RequestAction($targetId, $targetValue);
+            }
+            
+            // Track active timer (reusing active timer dict so house mode can clear it)
+            $activeTimers = json_decode($this->ReadAttributeString('ActiveTimers'), true);
+            if (!is_array($activeTimers)) $activeTimers = [];
+            $activeTimers[$timerName] = $targetId;
+            $this->WriteAttributeString('ActiveTimers', json_encode($activeTimers));
+
+        } else {
+            // Door closed, start off-delay timer
+            $duration = $rule['DurationSec'] ?? 10;
+            if ($duration == 0) {
+                $this->ProcessDoorOff($ruleIndex);
+            } else {
+                $this->RegisterTimer($timerName, $duration * 1000, 'SAL_ProcessDoorOff($_IPS[\'TARGET\'], ' . $ruleIndex . ');');
+            }
+        }
+    }
+
+    public function ProcessDoorOff(int $ruleIndex): void
+    {
+        $timerName = 'DoorOffTimer_' . $ruleIndex;
+        $this->SetTimerInterval($timerName, 0); // Stop timer
+
+        $doorRules = json_decode($this->ReadPropertyString('DoorRules'), true);
+        if (is_array($doorRules) && isset($doorRules[$ruleIndex])) {
+            $targetId = $doorRules[$ruleIndex]['TargetLightID'] ?? 0;
             if ($targetId > 0 && IPS_VariableExists($targetId)) {
                 $var = IPS_GetVariable($targetId);
                 if ($var['VariableType'] == 0) {
@@ -364,6 +462,61 @@ class SmartActiveLighting extends IPSModuleStrict
                     "name": "MaxLux",
                     "width": "80px",
                     "add": 50,
+                    "edit": {
+                        "type": "NumberSpinner"
+                    }
+                },
+                {
+                    "caption": "Nacht-Modus (10%)",
+                    "name": "NightMode",
+                    "width": "100px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "List",
+            "name": "DoorRules",
+            "caption": "Tür-/Fenster-Kontakt-Regeln",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Sensor (Tür/Fenster)",
+                    "name": "DoorVariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Ziel-Licht (Aktor)",
+                    "name": "TargetLightID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Nachlauf (Sek)",
+                    "name": "DurationSec",
+                    "width": "80px",
+                    "add": 10,
+                    "edit": {
+                        "type": "NumberSpinner"
+                    }
+                },
+                {
+                    "caption": "Max Lux",
+                    "name": "MaxLux",
+                    "width": "80px",
+                    "add": 1000,
                     "edit": {
                         "type": "NumberSpinner"
                     }
