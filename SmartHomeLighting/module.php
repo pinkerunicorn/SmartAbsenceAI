@@ -58,37 +58,26 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->MaintainVariable('ActiveLightsList', 'Aktive Lampen (Namen)', 3, '', 4, true);
         $this->MaintainVariable('VestaboardStatus', 'Kurz-Status (Vestaboard)', 3, '', 5, true);
 
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('LightScheduleStatus'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'        => 'Clock'
-        ]);
+        IPS_SetIcon($this->GetIDForIdent('LightScheduleStatus'), 'Clock');
+        IPS_SetIcon($this->GetIDForIdent('GeminiError'), 'Warning');
+        IPS_SetIcon($this->GetIDForIdent('ActiveLightsCount'), 'Bulb');
+        IPS_SetIcon($this->GetIDForIdent('ActiveLightsList'), 'Bulb');
+        IPS_SetIcon($this->GetIDForIdent('VestaboardStatus'), 'Information');
+        IPS_SetIcon($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), 'Warning');
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('GeminiError'), [
             'PRESENTATION'  => VARIABLE_PRESENTATION_SWITCH,
-            'ICON'          => 'Warning',
             'GLOW_COLOR'    => 16711680, // Rot
             'GLOW_INTENSITY'=> 50
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsCount'), [
             'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'        => 'Bulb',
-            'SUFFIX'      => 'an'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveLightsList'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'        => 'Information'
+            'SUFFIX'      => ' an'
         ]);
         
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'        => 'Warning'
-        ]);
-
-        IPS_SetVariableCustomPresentation($this->GetIDForIdent('VestaboardStatus'), [
-            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'        => 'Information'
+            'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH
         ]);
 
         $apiKey = $this->ReadPropertyString('GeminiAPIKey');

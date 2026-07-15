@@ -59,25 +59,18 @@ class SmartHomeGarage extends IPSModuleStrict
 
 
 
+        IPS_SetIcon($this->GetIDForIdent('DoorControl'), 'Window');
+        IPS_SetIcon($this->GetIDForIdent('AlarmOpenTooLong'), 'Warning');
 
-        if (@IPS_GetObjectIDByIdent('DoorState', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorState'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Information'
-            ]);
-        }
-        
         if (@IPS_GetObjectIDByIdent('DoorControl', $this->InstanceID) !== false) {
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('DoorControl'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-                'ICON'         => 'Window'
+                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
             ]);
         }
         
         if (@IPS_GetObjectIDByIdent('AlarmOpenTooLong', $this->InstanceID) !== false) {
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmOpenTooLong'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-                'ICON'         => 'Warning'
+                'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH
             ]);
         }
 
@@ -104,6 +97,13 @@ class SmartHomeGarage extends IPSModuleStrict
         // Create links for the sensors so they are visible under the instance
         $this->MaintainLink('LinkSensorClosed', 'Sensor Zu', $sensorClosed, 3);
         $this->MaintainLink('LinkSensorOpen', 'Sensor Auf', $sensorOpen, 4);
+        
+        if (@IPS_GetObjectIDByIdent('LinkSensorClosed', $this->InstanceID) !== false) {
+            IPS_SetIcon($this->GetIDForIdent('LinkSensorClosed'), 'LockClosed');
+        }
+        if (@IPS_GetObjectIDByIdent('LinkSensorOpen', $this->InstanceID) !== false) {
+            IPS_SetIcon($this->GetIDForIdent('LinkSensorOpen'), 'LockOpen');
+        }
 
         // Register messages for buttons
         $buttons = json_decode($this->ReadPropertyString('ButtonVariables'), true);
