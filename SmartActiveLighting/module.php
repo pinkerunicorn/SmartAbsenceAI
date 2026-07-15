@@ -133,11 +133,11 @@ class SmartActiveLighting extends IPSModuleStrict
         $this->SetTimerInterval('DailyTwilightRecalc', ($nextMidnight - $now) * 1000);
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction(string $Ident, mixed $Value): void
     {
         if (strpos($Ident, 'Group_') === 0) {
             $this->SetValue($Ident, $Value);
-            $this->SwitchGroup($Ident, $Value);
+            $this->SwitchGroup($Ident, (bool)$Value);
         }
     }
 
