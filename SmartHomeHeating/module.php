@@ -27,7 +27,7 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->RegisterVariableBoolean('HeatingSeason', '❄ Heizperiode aktiv', '', 10);
         IPS_SetIcon($this->GetIDForIdent('HeatingSeason'), 'Flame');
         if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingSeason'), 'Switch');
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingSeason'), ['PRESENTATION' => 1]);
         }
         $this->EnableAction('HeatingSeason');
         
@@ -36,7 +36,7 @@ class SmartHomeHeating extends IPSModuleStrict
         $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '', 20);
         IPS_SetIcon($this->GetIDForIdent('AlarmFrostWarning'), 'Warning');
         if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmFrostWarning'), 'Alert');
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmFrostWarning'), ['PRESENTATION' => 1]);
         }
         $this->EnableAction('AlarmFrostWarning');
 

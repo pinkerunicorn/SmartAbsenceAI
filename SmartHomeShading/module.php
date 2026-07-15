@@ -34,7 +34,7 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterVariableBoolean('AlarmWindWarning', 'Alarm: Sturmschutz aktiv', '', 1);
         IPS_SetIcon($this->GetIDForIdent('AlarmWindWarning'), 'Warning');
         if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmWindWarning'), 'Alert');
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmWindWarning'), ['PRESENTATION' => 1]);
         }
         $this->EnableAction('AlarmWindWarning');
         

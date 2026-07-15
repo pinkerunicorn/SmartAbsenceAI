@@ -28,7 +28,7 @@ class SmartHomeSecurity extends IPSModuleStrict
         $this->RegisterVariableBoolean('AlarmWindowsOpenDuringAbsence', 'Alarm: Fenster/Tür offen bei Abwesenheit', '', 3);
         IPS_SetIcon($this->GetIDForIdent('AlarmWindowsOpenDuringAbsence'), 'Warning');
         if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmWindowsOpenDuringAbsence'), 'Alert');
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmWindowsOpenDuringAbsence'), ['PRESENTATION' => 1]);
         }
         $this->EnableAction('AlarmWindowsOpenDuringAbsence');
         
