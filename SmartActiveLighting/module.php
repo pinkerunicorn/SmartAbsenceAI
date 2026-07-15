@@ -12,6 +12,7 @@ class SmartActiveLighting extends IPSModuleStrict
         $this->RegisterPropertyString('MotionRules', '[]');
         $this->RegisterPropertyString('TwilightRules', '[]');
         $this->RegisterPropertyString('SceneRules', '[]');
+        $this->RegisterPropertyInteger('GlobalLuxSensorID', 0);
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('SunriseVariableID', 0);
 
@@ -26,6 +27,10 @@ class SmartActiveLighting extends IPSModuleStrict
     {
         parent::ApplyChanges();
         // --- Auto-generated References ---
+        $ref_GlobalLuxSensorID = $this->ReadPropertyInteger('GlobalLuxSensorID');
+        if ($ref_GlobalLuxSensorID > 1 && @IPS_ObjectExists($ref_GlobalLuxSensorID)) {
+            $this->RegisterReference($ref_GlobalLuxSensorID);
+        }
         $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
         if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
             $this->RegisterReference($ref_SunsetVariableID);
@@ -119,7 +124,7 @@ class SmartActiveLighting extends IPSModuleStrict
         if ($targetId <= 0 || !IPS_VariableExists($targetId)) return;
 
         // Check Lux
-        $luxId = $rule['LuxVariableID'] ?? 0;
+        $luxId = $this->ReadPropertyInteger('GlobalLuxSensorID');
         $maxLux = $rule['MaxLux'] ?? 50;
         if ($luxId > 0 && IPS_VariableExists($luxId)) {
             $currentLux = GetValue($luxId);
@@ -330,7 +335,7 @@ class SmartActiveLighting extends IPSModuleStrict
                 {
                     "caption": "Sensor (Bewegung)",
                     "name": "MotionVariableID",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -339,7 +344,7 @@ class SmartActiveLighting extends IPSModuleStrict
                 {
                     "caption": "Ziel-Licht (Aktor)",
                     "name": "TargetLightID",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -352,15 +357,6 @@ class SmartActiveLighting extends IPSModuleStrict
                     "add": 120,
                     "edit": {
                         "type": "NumberSpinner"
-                    }
-                },
-                {
-                    "caption": "Lux-Sensor (Opt)",
-                    "name": "LuxVariableID",
-                    "width": "150px",
-                    "add": 0,
-                    "edit": {
-                        "type": "SelectVariable"
                     }
                 },
                 {
@@ -430,7 +426,7 @@ class SmartActiveLighting extends IPSModuleStrict
                 {
                     "caption": "Ziel-Licht",
                     "name": "TargetLightID",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -472,7 +468,7 @@ class SmartActiveLighting extends IPSModuleStrict
                 {
                     "caption": "Trigger (Szenen-Schalter)",
                     "name": "SceneVariableID",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -481,7 +477,7 @@ class SmartActiveLighting extends IPSModuleStrict
                 {
                     "caption": "Ziel-Licht",
                     "name": "TargetLightID",
-                    "width": "200px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -511,6 +507,11 @@ class SmartActiveLighting extends IPSModuleStrict
             "type": "SelectVariable",
             "name": "SunriseVariableID",
             "caption": "Variable für Sonnenaufgang (Unix Timestamp)"
+        },
+        {
+            "type": "SelectVariable",
+            "name": "GlobalLuxSensorID",
+            "caption": "Globaler Lux-Sensor für Bewegungsmelder (Optional)"
         }
     ]
 }
