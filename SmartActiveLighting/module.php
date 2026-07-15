@@ -13,6 +13,7 @@ class SmartActiveLighting extends IPSModuleStrict
         $this->RegisterPropertyString('DoorRules', '[]');
         $this->RegisterPropertyString('TwilightRules', '[]');
         $this->RegisterPropertyString('SceneRules', '[]');
+        $this->RegisterPropertyString('ButtonRules', '[]');
         $this->RegisterPropertyInteger('GlobalLuxSensorID', 0);
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('SunriseVariableID', 0);
@@ -88,6 +89,16 @@ class SmartActiveLighting extends IPSModuleStrict
             }
         }
 
+        // Register Button Triggers
+        $buttonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
+        if (is_array($buttonRules)) {
+            foreach ($buttonRules as $rule) {
+                if (isset($rule['ButtonVariableID']) && $rule['ButtonVariableID'] > 0) {
+                    $this->RegisterMessage($rule['ButtonVariableID'], VM_UPDATE);
+                }
+            }
+        }
+
         // Calculate Twilight Timers and start midnight recalc timer
         $this->CalculateTwilightTimers();
         
@@ -140,6 +151,18 @@ class SmartActiveLighting extends IPSModuleStrict
                 foreach ($sceneRules as $rule) {
                     if (isset($rule['SceneVariableID']) && $rule['SceneVariableID'] == $SenderID && $isTrigger) {
                         $this->ProcessSceneTrigger($rule);
+                    }
+                }
+            }
+
+            // Check if Sender is a Button Trigger (Toggle)
+            $buttonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
+            if (is_array($buttonRules)) {
+                foreach ($buttonRules as $rule) {
+                    if (isset($rule['ButtonVariableID']) && $rule['ButtonVariableID'] == $SenderID) {
+                        if ($isTrigger) {
+                            $this->ProcessButtonTrigger($rule);
+                        }
                     }
                 }
             }
@@ -308,6 +331,26 @@ class SmartActiveLighting extends IPSModuleStrict
         else $targetVal = $targetValStr;
 
         RequestAction($targetId, $targetVal);
+    }
+
+    private function ProcessButtonTrigger(array $rule): void
+    {
+        $targetId = $rule['TargetLightID'] ?? 0;
+        if ($targetId <= 0 || !IPS_VariableExists($targetId)) return;
+
+        $var = IPS_GetVariable($targetId);
+        $currentVal = GetValue($targetId);
+        
+        if ($var['VariableType'] == 0) { // Boolean
+            RequestAction($targetId, !$currentVal);
+        } else {
+            // Integer / Float (Dimmer)
+            if ($currentVal > 0) {
+                RequestAction($targetId, 0);
+            } else {
+                RequestAction($targetId, 100);
+            }
+        }
     }
 
     public function CalculateTwilightTimers(): void
@@ -674,6 +717,38 @@ class SmartActiveLighting extends IPSModuleStrict
                     "add": "true",
                     "edit": {
                         "type": "ValidationTextBox"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "caption": "Manuelle Steuerung"
+        },
+        {
+            "type": "List",
+            "name": "ButtonRules",
+            "caption": "Taster-Steuerung (Toggle)",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Taster (Impuls)",
+                    "name": "ButtonVariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Ziel-Licht",
+                    "name": "TargetLightID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
                     }
                 }
             ]
