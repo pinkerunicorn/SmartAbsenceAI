@@ -13,14 +13,38 @@ class SmartBatteryMonitor extends IPSModuleStrict
         
         $this->RegisterTimer('DailyCheckTimer', 0, 'SBM_CheckBatteries($_IPS[\'TARGET\']);');
         
-        $this->RegisterVariableBoolean('AlarmActive', 'Batterie Alarm', '~Alert', 1);
+        $this->RegisterVariableBoolean('AlarmActive', 'Batterie Alarm', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('AlarmActive'), 'Warning');
         $this->RegisterVariableInteger('LowBatteryCount', 'Leere Batterien', '', 2);
-        $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', '~TextBox', 3);
+        IPS_SetIcon($this->GetIDForIdent('LowBatteryCount'), 'Battery');
+        $this->RegisterVariableString('MonitoredBatteries', 'Überwachte Batterien (Liste)', '', 3);
+        IPS_SetIcon($this->GetIDForIdent('MonitoredBatteries'), 'Battery');
     }
 
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        
+        if (@IPS_GetObjectIDByIdent('AlarmActive', $this->InstanceID) !== false) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmActive'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'Warning'
+            ]);
+        }
+        
+        if (@IPS_GetObjectIDByIdent('LowBatteryCount', $this->InstanceID) !== false) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('LowBatteryCount'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+                'ICON'         => 'Battery'
+            ]);
+        }
+        
+        if (@IPS_GetObjectIDByIdent('MonitoredBatteries', $this->InstanceID) !== false) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MonitoredBatteries'), [
+                'PRESENTATION' => VARIABLE_PRESENTATION_MULTILINE_VALUE_PRESENTATION,
+                'ICON'         => 'Battery'
+            ]);
+        }
         
         $this->SetDailyTimer();
         $this->CheckBatteries();

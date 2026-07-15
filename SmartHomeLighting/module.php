@@ -18,14 +18,20 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->RegisterAttributeString('LightSchedule', '[]');
 
         $this->RegisterVariableString('LightScheduleStatus', 'ℹ Aktueller KI-Schaltplan', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('LightScheduleStatus'), 'Information');
         $this->RegisterVariableBoolean('GeminiError', 'Fehler aufgetreten', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('GeminiError'), 'Warning');
         
         $this->RegisterVariableInteger('ActiveLightsCount', '💡 Aktive Lampen (Zähler)', '', 3);
+        IPS_SetIcon($this->GetIDForIdent('ActiveLightsCount'), 'Bulb');
         $this->RegisterVariableString('ActiveLightsList', '📝 Aktive Lampen (Namen)', '', 4);
+        IPS_SetIcon($this->GetIDForIdent('ActiveLightsList'), 'Bulb');
         $this->RegisterVariableBoolean('AlarmLightsOnDuringAbsence', 'Alarm: Licht brennt bei Abwesenheit', '~Alert', 5);
+        IPS_SetIcon($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), 'Warning');
         $this->EnableAction('AlarmLightsOnDuringAbsence');
         
         $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 6);
+        IPS_SetIcon($this->GetIDForIdent('VestaboardStatus'), 'Information');
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SHL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SHL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');

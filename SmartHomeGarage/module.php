@@ -29,8 +29,11 @@ class SmartHomeGarage extends IPSModuleStrict
 
         // Variables
         $this->RegisterVariableInteger('DoorState', '🚪 Torstatus', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('DoorState'), 'Information');
         $this->RegisterVariableBoolean('DoorControl', 'Tor Steuerung', '~Switch', 2);
+        IPS_SetIcon($this->GetIDForIdent('DoorControl'), 'Window');
         $this->RegisterVariableBoolean('AlarmOpenTooLong', 'Alarm: Tor zu lange offen', '~Alert', 3);
+        IPS_SetIcon($this->GetIDForIdent('AlarmOpenTooLong'), 'Warning');
         
         $this->EnableAction('DoorControl');
         $this->EnableAction('AlarmOpenTooLong'); // Allow acknowledging

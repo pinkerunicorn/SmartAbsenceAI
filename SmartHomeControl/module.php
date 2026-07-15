@@ -41,10 +41,12 @@ class SmartHomeControl extends IPSModuleStrict
         $this->RegisterPropertyString('CalendarURL', '');
         
         $this->RegisterVariableInteger('HouseMode', '🏠 Haus Modus', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('HouseMode'), 'Gear');
         $this->EnableAction('HouseMode');
         
         // Google Home / Alexa Interface Variable (Boolean)
         $this->RegisterVariableBoolean('PresenceStatus', 'Anwesenheit (Google Home)', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('PresenceStatus'), 'Information');
         $this->EnableAction('PresenceStatus');
         
         // Timer für Kalender-Check
@@ -55,6 +57,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         // HTML Log Variable
         $this->RegisterVariableString('ControllerLog', '📝 System Log', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('ControllerLog'), 'Gear');
     }
 
     public function ApplyChanges(): void

@@ -22,11 +22,15 @@ class SmartHomeSecurity extends IPSModuleStrict
 
         // Variablen für den WebFront-Status
         $this->RegisterVariableInteger('OpenWindowsCount', '🚪 Offene Fenster / Türen (Zähler)', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('OpenWindowsCount'), 'Window');
         $this->RegisterVariableString('OpenWindowsList', '📝 Offene Fenster / Türen (Namen)', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('OpenWindowsList'), 'Window');
         $this->RegisterVariableBoolean('AlarmWindowsOpenDuringAbsence', 'Alarm: Fenster/Tür offen bei Abwesenheit', '~Alert', 3);
+        IPS_SetIcon($this->GetIDForIdent('AlarmWindowsOpenDuringAbsence'), 'Warning');
         $this->EnableAction('AlarmWindowsOpenDuringAbsence');
         
         $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 4);
+        IPS_SetIcon($this->GetIDForIdent('VestaboardStatus'), 'Information');
     }
 
     public function ApplyChanges(): void

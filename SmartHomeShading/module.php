@@ -32,9 +32,11 @@ class SmartHomeShading extends IPSModuleStrict
         
         // Status Variablen
         $this->RegisterVariableBoolean('AlarmWindWarning', 'Alarm: Sturmschutz aktiv', '~Alert', 1);
+        IPS_SetIcon($this->GetIDForIdent('AlarmWindWarning'), 'Warning');
         $this->EnableAction('AlarmWindWarning');
         
         $this->RegisterVariableInteger('ActiveShadingCount', 'Schatten aktiv (Anzahl)', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('ActiveShadingCount'), 'Count');
         
         // Timer für Evaluierung (alle 3 Minuten)
         $this->RegisterTimer('ShadingEvaluator', 0, 'SHSH_EvaluateConditions($_IPS[\'TARGET\']);');

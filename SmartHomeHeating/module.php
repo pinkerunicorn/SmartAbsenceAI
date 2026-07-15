@@ -20,13 +20,18 @@ class SmartHomeHeating extends IPSModuleStrict
 
         // GUI Variables
         $this->RegisterVariableString('HeatingStatus', 'ℹ Status', '', 1);
+        IPS_SetIcon($this->GetIDForIdent('HeatingStatus'), 'Information');
         $this->RegisterVariableFloat('AverageTemperature', '🌡 Ø Haus-Temperatur', '', 2);
+        IPS_SetIcon($this->GetIDForIdent('AverageTemperature'), 'Temperature');
         
         $this->RegisterVariableBoolean('HeatingSeason', '❄ Heizperiode aktiv', '~Switch', 10);
+        IPS_SetIcon($this->GetIDForIdent('HeatingSeason'), 'Flame');
         $this->EnableAction('HeatingSeason');
         
         $this->RegisterVariableBoolean('IsAbsenkbetrieb', '📉 Absenkbetrieb', '', 15);
+        IPS_SetIcon($this->GetIDForIdent('IsAbsenkbetrieb'), 'Information');
         $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '~Alert', 20);
+        IPS_SetIcon($this->GetIDForIdent('AlarmFrostWarning'), 'Warning');
         $this->EnableAction('AlarmFrostWarning');
 
     }
