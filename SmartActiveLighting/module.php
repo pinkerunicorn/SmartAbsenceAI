@@ -22,6 +22,13 @@ class SmartActiveLighting extends IPSModuleStrict
 
         // Timer for daily recalculation of sunset/sunrise
         $this->RegisterTimer('DailyTwilightRecalc', 0, 'SAL_CalculateTwilightTimers($_IPS[\'TARGET\']);');
+
+        // Pre-register timers for up to 50 rules per category (mandatory in IPS 7+)
+        for ($i = 0; $i < 50; $i++) {
+            $this->RegisterTimer("MotionOffTimer_$i", 0, 'SAL_ProcessMotionOff($_IPS[\'TARGET\'], ' . $i . ');');
+            $this->RegisterTimer("DoorOffTimer_$i", 0, 'SAL_ProcessDoorOff($_IPS[\'TARGET\'], ' . $i . ');');
+            $this->RegisterTimer("TwilightTimer_$i", 0, 'SAL_ProcessTwilightTrigger($_IPS[\'TARGET\'], ' . $i . ');');
+        }
     }
 
     public function ApplyChanges(): void
@@ -182,7 +189,7 @@ class SmartActiveLighting extends IPSModuleStrict
         // Set Off-Delay Timer
         $duration = $rule['DurationSec'] ?? 120;
         $timerName = 'MotionOffTimer_'. $ruleIndex;
-        $this->RegisterTimer($timerName, $duration * 1000, 'SAL_ProcessMotionOff($_IPS[\'TARGET\'], '. $ruleIndex . ');');
+        $this->SetTimerInterval($timerName, $duration * 1000);
         
         // Track active timer
         $activeTimers = json_decode($this->ReadAttributeString('ActiveTimers'), true);
@@ -263,7 +270,7 @@ class SmartActiveLighting extends IPSModuleStrict
             if ($duration == 0) {
                 $this->ProcessDoorOff($ruleIndex);
             } else {
-                $this->RegisterTimer($timerName, $duration * 1000, 'SAL_ProcessDoorOff($_IPS[\'TARGET\'], ' . $ruleIndex . ');');
+                $this->SetTimerInterval($timerName, $duration * 1000);
             }
         }
     }
@@ -350,7 +357,7 @@ class SmartActiveLighting extends IPSModuleStrict
                 
                 $diffMs = ($targetTime - $now) * 1000;
                 $timerName = 'TwilightTimer_'. $index;
-                $this->RegisterTimer($timerName, $diffMs, 'SAL_ProcessTwilightTrigger($_IPS[\'TARGET\'], '. $index . ');');
+                $this->SetTimerInterval($timerName, $diffMs);
             }
         }
     }
