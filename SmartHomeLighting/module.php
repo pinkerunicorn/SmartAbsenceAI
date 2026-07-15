@@ -158,7 +158,8 @@ class SmartHomeLighting extends IPSModuleStrict
         } else {
             $namesStr = implode(", ", $activeNames);
             $this->SetValueIfChanged('ActiveLightsList', $namesStr);
-            $this->SetValueIfChanged('VestaboardStatus', $count . 'an');
+            $suffix = ($count == 1) ? ' Lampe an' : ' Lampen an';
+            $this->SetValueIfChanged('VestaboardStatus', $count . $suffix);
         }
     }
 
