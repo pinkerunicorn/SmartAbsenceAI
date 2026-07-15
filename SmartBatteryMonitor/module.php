@@ -40,10 +40,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
         }
         
         if (@IPS_GetObjectIDByIdent('MonitoredBatteries', $this->InstanceID) !== false) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MonitoredBatteries'), [
-                'PRESENTATION' => VARIABLE_PRESENTATION_MULTILINE_VALUE_PRESENTATION,
-                'ICON'         => 'Battery'
-            ]);
+            IPS_SetIcon($this->GetIDForIdent('MonitoredBatteries'), 'Battery');
         }
         
         $this->SetDailyTimer();
