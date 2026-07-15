@@ -312,6 +312,11 @@ class SmartActiveLighting extends IPSModuleStrict
 
     public function CalculateTwilightTimers(): void
     {
+        // Stop all twilight timers first to clear deleted or inactive rules
+        for ($i = 0; $i < 50; $i++) {
+            $this->SetTimerInterval("TwilightTimer_$i", 0);
+        }
+
         $rules = json_decode($this->ReadPropertyString('TwilightRules'), true);
         if (!is_array($rules)) return;
 
@@ -331,6 +336,13 @@ class SmartActiveLighting extends IPSModuleStrict
         $now = time();
 
         foreach ($rules as $index => $rule) {
+            if ($index >= 50) break;
+
+            $isActive = $rule['Active'] ?? true;
+            if (!$isActive) {
+                continue;
+            }
+
             $triggerType = $rule['TriggerType'] ?? 1; // 1=Sunset, 2=Sunrise, 3=Time
             $timeVal = $rule['TimeValue'] ?? '0';
             
@@ -370,15 +382,18 @@ class SmartActiveLighting extends IPSModuleStrict
 
         $rules = json_decode($this->ReadPropertyString('TwilightRules'), true);
         if (is_array($rules) && isset($rules[$ruleIndex])) {
-            $targetId = $rules[$ruleIndex]['TargetLightID'] ?? 0;
-            $actionVal = $rules[$ruleIndex]['ActionValue'] ?? 1; // 1=On, 0=Off
+            $isActive = $rules[$ruleIndex]['Active'] ?? true;
+            if ($isActive) {
+                $targetId = $rules[$ruleIndex]['TargetLightID'] ?? 0;
+                $actionVal = $rules[$ruleIndex]['ActionValue'] ?? 1; // 1=On, 0=Off
 
-            if ($targetId > 0 && IPS_VariableExists($targetId)) {
-                $var = IPS_GetVariable($targetId);
-                if ($var['VariableType'] == 0) {
-                    RequestAction($targetId, ($actionVal == 1));
-                } else {
-                    RequestAction($targetId, ($actionVal == 1) ? 100 : 0);
+                if ($targetId > 0 && IPS_VariableExists($targetId)) {
+                    $var = IPS_GetVariable($targetId);
+                    if ($var['VariableType'] == 0) {
+                        RequestAction($targetId, ($actionVal == 1));
+                    } else {
+                        RequestAction($targetId, ($actionVal == 1) ? 100 : 0);
+                    }
                 }
             }
         }
@@ -551,6 +566,15 @@ class SmartActiveLighting extends IPSModuleStrict
             "add": true,
             "delete": true,
             "columns": [
+                {
+                    "caption": "Aktiv",
+                    "name": "Active",
+                    "width": "60px",
+                    "add": true,
+                    "edit": {
+                        "type": "CheckBox"
+                    }
+                },
                 {
                     "caption": "Trigger-Typ",
                     "name": "TriggerType",
