@@ -26,18 +26,12 @@ class SmartHomeHeating extends IPSModuleStrict
         
         $this->RegisterVariableBoolean('HeatingSeason', '❄ Heizperiode aktiv', '', 10);
         IPS_SetIcon($this->GetIDForIdent('HeatingSeason'), 'Flame');
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingSeason'), ['PRESENTATION' => 1]);
-        }
         $this->EnableAction('HeatingSeason');
         
         $this->RegisterVariableBoolean('IsAbsenkbetrieb', '📉 Absenkbetrieb', '', 15);
         IPS_SetIcon($this->GetIDForIdent('IsAbsenkbetrieb'), 'Information');
         $this->RegisterVariableBoolean('AlarmFrostWarning', 'Alarm: Frostgefahr', '', 20);
         IPS_SetIcon($this->GetIDForIdent('AlarmFrostWarning'), 'Warning');
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmFrostWarning'), ['PRESENTATION' => 1]);
-        }
         $this->EnableAction('AlarmFrostWarning');
 
     }
