@@ -7,6 +7,12 @@ class SmartHomeHeating extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            foreach(['HeatingSeason', 'AlarmFrostWarning'] as $ident) {
+                $id = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
+                if ($id !== false) @IPS_SetVariableCustomPresentation($id, []);
+            }
+        }
 
         // Target temperature during absence (Fallback)
         $this->RegisterPropertyFloat('TargetTemperature', 17.0);

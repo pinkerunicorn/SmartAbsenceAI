@@ -7,6 +7,12 @@ class SmartHomeSecurity extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            foreach(['AlarmWindowsOpenDuringAbsence'] as $ident) {
+                $id = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
+                if ($id !== false) @IPS_SetVariableCustomPresentation($id, []);
+            }
+        }
 
         $this->RegisterPropertyString('DoorVariables', '[]');
         $this->RegisterPropertyString('WindowVariables', '[]');

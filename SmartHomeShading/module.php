@@ -7,6 +7,12 @@ class SmartHomeShading extends IPSModuleStrict
     public function Create(): void
     {
         parent::Create();
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            foreach(['AlarmWindWarning'] as $ident) {
+                $id = @IPS_GetObjectIDByIdent($ident, $this->InstanceID);
+                if ($id !== false) @IPS_SetVariableCustomPresentation($id, []);
+            }
+        }
 
         // 1. Globale Sensorik
         $this->RegisterPropertyInteger('AzimuthVariableID', 0);
