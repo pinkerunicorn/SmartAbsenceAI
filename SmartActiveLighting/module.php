@@ -158,6 +158,7 @@ class SmartActiveLighting extends IPSModuleStrict
             // Check if Sender is a Button Trigger (Toggle)
             $buttonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
             if (is_array($buttonRules)) {
+                $targetsToToggle = [];
                 foreach ($buttonRules as $rule) {
                     if (isset($rule['ButtonVariableID']) && $rule['ButtonVariableID'] == $SenderID) {
                         
@@ -174,7 +175,33 @@ class SmartActiveLighting extends IPSModuleStrict
                         }
 
                         if ($matched) {
-                            $this->ProcessButtonTrigger($rule);
+                            $targetId = $rule['TargetLightID'] ?? 0;
+                            if ($targetId > 0 && IPS_VariableExists($targetId)) {
+                                $targetsToToggle[] = $targetId;
+                            }
+                        }
+                    }
+                }
+                
+                // Synchronize all targets mapped to this button
+                if (count($targetsToToggle) > 0) {
+                    $anyOn = false;
+                    foreach ($targetsToToggle as $tid) {
+                        $var = IPS_GetVariable($tid);
+                        $cv = GetValue($tid);
+                        if (($var['VariableType'] == 0 && $cv) || ($var['VariableType'] != 0 && $cv > 0)) {
+                            $anyOn = true;
+                            break;
+                        }
+                    }
+                    
+                    // If any is ON -> turn ALL OFF. If all are OFF -> turn ALL ON.
+                    foreach ($targetsToToggle as $tid) {
+                        $var = IPS_GetVariable($tid);
+                        if ($var['VariableType'] == 0) {
+                            RequestAction($tid, !$anyOn);
+                        } else {
+                            RequestAction($tid, $anyOn ? 0 : 100);
                         }
                     }
                 }
@@ -346,25 +373,6 @@ class SmartActiveLighting extends IPSModuleStrict
         RequestAction($targetId, $targetVal);
     }
 
-    private function ProcessButtonTrigger(array $rule): void
-    {
-        $targetId = $rule['TargetLightID'] ?? 0;
-        if ($targetId <= 0 || !IPS_VariableExists($targetId)) return;
-
-        $var = IPS_GetVariable($targetId);
-        $currentVal = GetValue($targetId);
-        
-        if ($var['VariableType'] == 0) { // Boolean
-            RequestAction($targetId, !$currentVal);
-        } else {
-            // Integer / Float (Dimmer)
-            if ($currentVal > 0) {
-                RequestAction($targetId, 0);
-            } else {
-                RequestAction($targetId, 100);
-            }
-        }
-    }
 
     public function CalculateTwilightTimers(): void
     {
