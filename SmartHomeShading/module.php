@@ -42,6 +42,11 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterVariableInteger('ActiveShadingCount', 'Schatten aktiv (Anzahl)', '', 2);
         IPS_SetIcon($this->GetIDForIdent('ActiveShadingCount'), 'Count');
         
+        $this->RegisterVariableBoolean('StatusIsNight', 'Status: Es ist Nacht', '', 10);
+        $this->RegisterVariableBoolean('StatusIsHotAndBright', 'Status: Hitze & Helligkeit erreicht', '', 11);
+        $this->RegisterVariableInteger('StatusSunInSectorCount', 'Status: Rollläden in der Sonne (Anzahl)', '', 12);
+        $this->RegisterVariableInteger('StatusLastEvaluation', 'Status: Letzte Berechnung', '', 13);
+        
         // Timer für Evaluierung (alle 3 Minuten)
         $this->RegisterTimer('ShadingEvaluator', 0, 'SHSH_EvaluateConditions($_IPS[\'TARGET\']);');
     }
@@ -93,6 +98,24 @@ class SmartHomeShading extends IPSModuleStrict
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('ActiveShadingCount'), [
             'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON'        => 'WindowBlind'
+        ]);
+        
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('StatusIsNight'), [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Moon'
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('StatusIsHotAndBright'), [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Sun'
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('StatusSunInSectorCount'), [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Count'
+        ]);
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('StatusLastEvaluation'), [
+            'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
+            'ICON'        => 'Clock',
+            'FORMATTER'   => VARIABLE_FORMATTER_TIMESTAMP
         ]);
     }
     
@@ -219,6 +242,7 @@ class SmartHomeShading extends IPSModuleStrict
         $states = json_decode($this->ReadAttributeString('CurrentState'), true);
         
         $isHotAndBright = ($temp >= $tempThreshold && $brightness >= $brightnessThreshold);
+        $this->SetValue('StatusIsHotAndBright', $isHotAndBright);
         $this->LogMessage("DEBUG: Sensorwerte - Azimuth: $azimuth, Helligkeit: $brightness ($brightnessThreshold), Temp: $temp ($tempThreshold) -> isHotAndBright: " . ($isHotAndBright ? 'JA' : 'NEIN'), 0);
         
         $sunriseTime = $this->GetFloatVal('SunriseVariableID');
@@ -239,7 +263,12 @@ class SmartHomeShading extends IPSModuleStrict
                 }
             }
         }
+        $this->SetValue('StatusIsNight', $isNight);
+        $this->SetValue('StatusLastEvaluation', time());
         $this->LogMessage("DEBUG: isNight Evaluierung -> isNight: " . ($isNight ? 'JA' : 'NEIN') . " (now: $now, sunrise: $sunriseTime, sunset: $sunsetTime)", 0);
+        
+        $sunCount = 0;
+        $shadingCount = 0;
         
         foreach ($blinds as $blind) {
             $id = $blind['VariableID'] ?? 0;
@@ -273,6 +302,9 @@ class SmartHomeShading extends IPSModuleStrict
                 $sunInSector = ($azimuth >= $aziFrom && $azimuth <= $aziTo);
             } else {
                 $sunInSector = ($azimuth >= $aziFrom || $azimuth <= $aziTo);
+            }
+            if ($sunInSector) {
+                $sunCount++;
             }
             
             $targetState = 'OPEN';
@@ -313,8 +345,14 @@ class SmartHomeShading extends IPSModuleStrict
             } else {
                 $this->LogMessage("DEBUG: Rollladen $id übersprungen. Zustand unverändert: $currentState", 0);
             }
+            
+            if ($targetState === 'SHADING') {
+                $shadingCount++;
+            }
         }
         
+        $this->SetValue('StatusSunInSectorCount', $sunCount);
+        $this->SetValue('ActiveShadingCount', $shadingCount);
         $this->WriteAttributeString('CurrentState', json_encode($states));
     }
     
