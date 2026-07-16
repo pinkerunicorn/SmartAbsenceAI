@@ -244,7 +244,18 @@ class SmartActiveLighting extends IPSModuleStrict
                                 $actionValue = $val ? 100 : 0;
                             }
                             
-                            RequestAction($targetId, $actionValue);
+                            // Type cast strictly to match Symcon Variable Type
+                            if ($targetVar['VariableType'] == 0) {
+                                $actionValue = (bool)$actionValue;
+                            } elseif ($targetVar['VariableType'] == 1) {
+                                $actionValue = (int)$actionValue;
+                            } elseif ($targetVar['VariableType'] == 2) {
+                                $actionValue = (float)$actionValue;
+                            }
+                            
+                            if (!@RequestAction($targetId, $actionValue)) {
+                                $this->SendDebug('SyncRules', 'Fehler beim Schalten von TargetID: ' . $targetId, 0);
+                            }
                         }
                     }
                 }
