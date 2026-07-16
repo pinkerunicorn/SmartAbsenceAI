@@ -14,6 +14,7 @@ class SmartActiveLighting extends IPSModuleStrict
         $this->RegisterPropertyString('TwilightRules', '[]');
         $this->RegisterPropertyString('SceneRules', '[]');
         $this->RegisterPropertyString('ButtonRules', '[]');
+        $this->RegisterPropertyString('SyncRules', '[]');
         $this->RegisterPropertyInteger('GlobalLuxSensorID', 0);
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('SunriseVariableID', 0);
@@ -101,6 +102,16 @@ class SmartActiveLighting extends IPSModuleStrict
                 if ($groupName !== '') {
                     $ident = 'Group_' . preg_replace('/[^A-Za-z0-9_]/', '', $groupName);
                     $activeGroups[$ident] = $groupName;
+                }
+            }
+        }
+
+        // Register Sync Triggers
+        $syncRules = json_decode($this->ReadPropertyString('SyncRules'), true);
+        if (is_array($syncRules)) {
+            foreach ($syncRules as $rule) {
+                if (isset($rule['MasterVariableID']) && $rule['MasterVariableID'] > 0) {
+                    $this->RegisterMessage($rule['MasterVariableID'], VM_UPDATE);
                 }
             }
         }
@@ -209,6 +220,32 @@ class SmartActiveLighting extends IPSModuleStrict
                 foreach ($sceneRules as $rule) {
                     if (isset($rule['SceneVariableID']) && $rule['SceneVariableID'] == $SenderID && $isTrigger) {
                         $this->ProcessSceneTrigger($rule);
+                    }
+                }
+            }
+
+            // Check if Sender is a Master in SyncRules
+            $syncRules = json_decode($this->ReadPropertyString('SyncRules'), true);
+            if (is_array($syncRules)) {
+                foreach ($syncRules as $rule) {
+                    if (isset($rule['MasterVariableID']) && $rule['MasterVariableID'] == $SenderID) {
+                        $targetId = $rule['TargetLightID'] ?? 0;
+                        if ($targetId > 0 && IPS_VariableExists($targetId)) {
+                            $targetVar = IPS_GetVariable($targetId);
+                            $sourceVar = IPS_GetVariable($SenderID);
+                            
+                            $actionValue = $val;
+                            
+                            if ($targetVar['VariableType'] == 0 && $sourceVar['VariableType'] != 0) {
+                                // Master is Dimmer (int/float), Target is Boolean
+                                $actionValue = ($val > 0);
+                            } elseif ($targetVar['VariableType'] != 0 && $sourceVar['VariableType'] == 0) {
+                                // Master is Boolean, Target is Dimmer
+                                $actionValue = $val ? 100 : 0;
+                            }
+                            
+                            RequestAction($targetId, $actionValue);
+                        }
                     }
                 }
             }
@@ -860,6 +897,38 @@ class SmartActiveLighting extends IPSModuleStrict
                     "add": "",
                     "edit": {
                         "type": "ValidationTextBox"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Label",
+            "caption": "Synchronisation (Master-Slave)"
+        },
+        {
+            "type": "List",
+            "name": "SyncRules",
+            "caption": "Licht-Synchronisation",
+            "rowCount": 5,
+            "add": true,
+            "delete": true,
+            "columns": [
+                {
+                    "caption": "Master-Licht / Dimmer",
+                    "name": "MasterVariableID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
+                    }
+                },
+                {
+                    "caption": "Ziel-Licht (Slave)",
+                    "name": "TargetLightID",
+                    "width": "auto",
+                    "add": 0,
+                    "edit": {
+                        "type": "SelectVariable"
                     }
                 }
             ]
