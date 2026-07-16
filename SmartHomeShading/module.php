@@ -147,7 +147,10 @@ class SmartHomeShading extends IPSModuleStrict
                 $contactID = $blind['ContactID'] ?? 0;
                 
                 if ($SenderID == $varID) {
-                    $this->CheckManualOperation($varID, $Data[0]);
+                    // $Data[1] ist true, wenn sich der Wert wirklich geändert hat
+                    if (isset($Data[1]) && $Data[1] === true) {
+                        $this->CheckManualOperation($varID, $Data[0]);
+                    }
                 }
                 
                 if ($SenderID == $contactID) {
@@ -401,7 +404,11 @@ class SmartHomeShading extends IPSModuleStrict
         $lastActions[$targetID] = time();
         $this->WriteAttributeString('LastModuleActions', json_encode($lastActions));
         
-        @RequestAction($targetID, $val);
+        $this->LogMessage("DEBUG: Sende RequestAction an ID $targetID mit Wert: " . var_export($val, true), 0);
+        $result = RequestAction($targetID, $val);
+        if (!$result) {
+            $this->LogMessage("FEHLER: RequestAction für ID $targetID fehlgeschlagen!", 0);
+        }
     }
 
     protected function LogMessage(string $Message, int $Type): bool
