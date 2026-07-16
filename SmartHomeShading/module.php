@@ -289,10 +289,16 @@ class SmartHomeShading extends IPSModuleStrict
         
         foreach ($blinds as $blind) {
             $id = $blind['VariableID'] ?? 0;
-            if ($id <= 0) continue;
+            if ($id <= 0) {
+                $this->LogMessage("DEBUG: Überspringe Eintrag, da VariableID ungültig ist.", 0);
+                continue;
+            }
             
             // Wenn manuell gesperrt, überspringen
-            if (isset($locks[$id]) && $locks[$id] === true) continue;
+            if (isset($locks[$id]) && $locks[$id] === true) {
+                $this->LogMessage("DEBUG: Rollladen $id übersprungen wegen manueller Sperre!", 0);
+                continue;
+            }
             
             // Fensterkontakt prüfen
             $contactID = $blind['ContactID'] ?? 0;
