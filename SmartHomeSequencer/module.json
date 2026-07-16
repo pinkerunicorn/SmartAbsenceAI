@@ -1,15 +1,21 @@
 {
-    "id": "{9F8E7D6C-5B4A-3C2D-1E0F-A1B2C3D4E5F6}",
-    "name": "SmartHomeSequencer",
-    "type": 3,
-    "vendor": "VillaKunterbunt",
-    "aliases": [
-        "Villa Kunterbunt Sequencer"
-    ],
-    "parentRequirements": [],
-    "childRequirements": [],
-    "implemented": [],
-    "prefix": "SHSQ",
-    "url": "https://github.com/pinkerunicorn/",
-    "author": "Florian Graßinger"
+    "id":  "{9F8E7D6C-5B4A-3C2D-1E0F-A1B2C3D4E5F6}",
+    "name":  "SmartHomeSequencer",
+    "type":  3,
+    "vendor":  "VillaKunterbunt",
+    "aliases":  [
+                    "Villa Kunterbunt Sequencer"
+                ],
+    "parentRequirements":  [
+
+                           ],
+    "childRequirements":  [
+
+                          ],
+    "implemented":  [
+
+                    ],
+    "prefix":  "SHSQ",
+    "url":  "https://github.com/pinkerunicorn/",
+    "author":  "Florian GraÃŸinger"
 }

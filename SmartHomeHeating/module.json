@@ -1,15 +1,21 @@
 {
-    "id": "{A1B2C3D4-E5F6-4789-8A9B-C1D2E3F4A5B6}",
-    "name": "SmartHomeHeating",
-    "type": 3,
-    "vendor": "Florian Graßinger",
-    "aliases": [
-        "SmartHomeHeating"
-    ],
-    "parentRequirements": [],
-    "childRequirements": [],
-    "implemented": [],
-    "prefix": "SHH",
-    "url": "https://github.com/pinkerunicorn/",
-    "author": "Florian Graßinger"
+    "id":  "{A1B2C3D4-E5F6-4789-8A9B-C1D2E3F4A5B6}",
+    "name":  "SmartHomeHeating",
+    "type":  3,
+    "vendor":  "Florian Graßinger",
+    "aliases":  [
+                    "SmartHomeHeating"
+                ],
+    "parentRequirements":  [
+
+                           ],
+    "childRequirements":  [
+
+                          ],
+    "implemented":  [
+
+                    ],
+    "prefix":  "SHH",
+    "url":  "https://github.com/pinkerunicorn/",
+    "author":  "Florian GraÃŸinger"
 }
