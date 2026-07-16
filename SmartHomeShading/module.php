@@ -216,8 +216,9 @@ class SmartHomeShading extends IPSModuleStrict
         $lastActions = json_decode($this->ReadAttributeString('LastModuleActions'), true);
         $lastTime = $lastActions[$varID] ?? 0;
         
-        // Wenn die letzte Modul-Fahrt weniger als 15 Sekunden her ist, war es das Modul
-        if ((time() - $lastTime) < 15) {
+        // Wenn die letzte Modul-Fahrt weniger als 120 Sekunden her ist, war es höchstwahrscheinlich
+        // noch die Rückmeldung vom Aktor selbst (Jalousien brauchen oft 30-60 Sekunden für eine Fahrt!)
+        if ((time() - $lastTime) < 120) {
             return; 
         }
         
