@@ -580,6 +580,13 @@ class SmartHomeShading extends IPSModuleStrict
                 }
             ]
         }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Manuelle Sperren (Taster) für heute aufheben",
+            "onClick": "SHSH_ResetDailyLocks($id);"
+        }
     ]
 }
 EOT;
