@@ -272,10 +272,16 @@ class SmartHomeShading extends IPSModuleStrict
         $isNight = false;
         
         // Location-Modul speichert Sonnenauf/untergang als Unix-Timestamp
+        // und aktualisiert diese oft direkt nach dem Ereignis auf den nächsten Tag.
         if ($sunriseTime > 0 && $sunsetTime > 0) {
-            // Wenn es nach Sonnenuntergang oder noch vor Sonnenaufgang ist
-            if ($now >= $sunsetTime || $now < $sunriseTime) {
-                $isNight = true;
+            if ($sunriseTime > $sunsetTime) {
+                // Sunrise ist weiter in der Zukunft als Sunset -> es ist Tag
+                $isNight = false;
+            } else {
+                // Sunrise kommt VOR Sunset -> wir sind in der Nacht oder am ganz frühen Morgen
+                if ($now >= $sunsetTime || $now < $sunriseTime) {
+                    $isNight = true;
+                }
             }
         }
         
