@@ -201,7 +201,8 @@ class SmartHomeShading extends IPSModuleStrict
                     foreach ($blinds as $blind) {
                         $varID = $blind['VariableID'] ?? 0;
                         if ($varID > 0 && IPS_VariableExists($varID)) {
-                            RequestAction($varID, 0.0); // 0.0 = Komplett auf (Sicherheits-Position)
+                            $openPosStr = $blind['ValueOpen'] ?? "0";
+                            $this->ExecuteAction($varID, $openPosStr); // Sicherheits-Position auf
                             $actions[$varID] = time();
                             $states[$varID] = false; // Beschattung inaktiv
                         }
@@ -302,11 +303,11 @@ class SmartHomeShading extends IPSModuleStrict
             }
             
             $targetState = 'OPEN';
-            $targetValueStr = "0"; // Default offen
+            $targetValueStr = $blind['ValueOpen'] ?? "0"; // Default offen
             
             if ($isNight) {
                 $targetState = 'NIGHT';
-                $targetValueStr = "1"; // Zu
+                $targetValueStr = $blind['ValueClose'] ?? "1"; // Zu
             } elseif ($sunInSector && $isHotAndBright) {
                 $targetState = 'SHADING';
                 $targetValueStr = $blind['ValueShade'] ?? "0.1";
@@ -319,8 +320,14 @@ class SmartHomeShading extends IPSModuleStrict
                 $ventPos = (float)$ventPosStr;
                 $currentTargetPos = (float)$targetValueStr;
                 
-                // Da 1=Zu und 0=Auf: Nur auf Lüftungsposition fahren, wenn der Rollladen weiter zu wäre (Wert ist größer)
-                if ($currentTargetPos > $ventPos) {
+                $openPos = (float)($blind['ValueOpen'] ?? "0");
+                
+                // Distanz von Offen-Position berechnen, um Richtung zu abstrahieren
+                $distTarget = abs($currentTargetPos - $openPos);
+                $distVent = abs($ventPos - $openPos);
+                
+                // Nur auf Lüftungsposition fahren, wenn das Ziel "weiter zu" ist als die Lüftungsposition
+                if ($distTarget > $distVent) {
                     $targetState = 'VENTILATE';
                     $targetValueStr = $ventPosStr;
                 }
@@ -532,6 +539,24 @@ class SmartHomeShading extends IPSModuleStrict
                         "type": "NumberSpinner",
                         "minimum": 0,
                         "maximum": 360
+                    }
+                },
+                {
+                    "caption": "Auf-Pos",
+                    "name": "ValueOpen",
+                    "width": "80px",
+                    "add": "0",
+                    "edit": {
+                        "type": "ValidationTextBox"
+                    }
+                },
+                {
+                    "caption": "Zu-Pos",
+                    "name": "ValueClose",
+                    "width": "80px",
+                    "add": "1",
+                    "edit": {
+                        "type": "ValidationTextBox"
                     }
                 },
                 {
