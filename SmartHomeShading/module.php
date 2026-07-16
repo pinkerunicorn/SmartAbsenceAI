@@ -250,7 +250,7 @@ class SmartHomeShading extends IPSModuleStrict
         if (!is_array($blinds) || count($blinds) === 0) return;
         
         if ($this->GetValue('AlarmWindWarning')) {
-            // Sturmschutz hat Priorität, keine Beschattung!
+            $this->LogMessage("DEBUG: Abbruch wegen Sturmwarnung.", 0);
             return;
         }
         
@@ -265,6 +265,7 @@ class SmartHomeShading extends IPSModuleStrict
         $states = json_decode($this->ReadAttributeString('CurrentState'), true);
         
         $isHotAndBright = ($temp >= $tempThreshold && $brightness >= $brightnessThreshold);
+        $this->LogMessage("DEBUG: Sensorwerte - Azimuth: $azimuth, Helligkeit: $brightness ($brightnessThreshold), Temp: $temp ($tempThreshold) -> isHotAndBright: " . ($isHotAndBright ? 'JA' : 'NEIN'), 0);
         
         $sunriseTime = $this->GetFloatVal('SunriseVariableID');
         $sunsetTime = $this->GetFloatVal('SunsetVariableID');
@@ -284,6 +285,7 @@ class SmartHomeShading extends IPSModuleStrict
                 }
             }
         }
+        $this->LogMessage("DEBUG: isNight Evaluierung -> isNight: " . ($isNight ? 'JA' : 'NEIN') . " (now: $now, sunrise: $sunriseTime, sunset: $sunsetTime)", 0);
         
         foreach ($blinds as $blind) {
             $id = $blind['VariableID'] ?? 0;
@@ -305,6 +307,7 @@ class SmartHomeShading extends IPSModuleStrict
                     $isOpen = ($contactVal > 0);
                 }
             }
+            $this->LogMessage("DEBUG: Fensterkontakt für Rollladen $id -> isOpen: " . ($isOpen ? 'JA' : 'NEIN'), 0);
             
             // Sonnen-Sektor
             $aziFrom = (float)($blind['AzimuthFrom'] ?? 90);
@@ -328,6 +331,8 @@ class SmartHomeShading extends IPSModuleStrict
                 $targetState = 'SHADING';
                 $targetValueStr = $blind['ValueShade'] ?? "0.1";
             }
+            $this->LogMessage("DEBUG: Rollladen $id - sunInSector: " . ($sunInSector ? 'JA' : 'NEIN') . ", targetState (vor Vent): $targetState, targetValue: $targetValueStr", 0);
+
             
             // Lüftungs-Position (Schutz vor Aussperren)
             if ($isOpen && $targetState !== 'OPEN') {
@@ -346,10 +351,13 @@ class SmartHomeShading extends IPSModuleStrict
             $currentState = $states[$id] ?? 'UNKNOWN';
             
             if ($currentState !== $targetState) {
+                $this->LogMessage("DEBUG: Rollladen $id MUSS FAHREN. currentState: $currentState, targetState: $targetState", 0);
                 // Wert in Typ konvertieren und fahren
                 $this->ExecuteAction($id, $targetValueStr);
                 $states[$id] = $targetState;
                 IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Rollladen $id fährt auf Zustand: $targetState");
+            } else {
+                $this->LogMessage("DEBUG: Rollladen $id übersprungen. Zustand unverändert: $currentState", 0);
             }
         }
         
