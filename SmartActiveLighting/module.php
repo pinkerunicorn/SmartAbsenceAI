@@ -241,14 +241,25 @@ class SmartActiveLighting extends IPSModuleStrict
                                 $actionValue = ($val > 0);
                             } elseif ($targetVar['VariableType'] != 0 && $sourceVar['VariableType'] == 0) {
                                 // Master is Boolean, Target is Dimmer
-                                $actionValue = $val ? 100 : 0;
+                                $targetRange = $this->GetProfileMinMax($targetId);
+                                $actionValue = $val ? $targetRange['max'] : $targetRange['min'];
+                            } elseif ($targetVar['VariableType'] != 0 && $sourceVar['VariableType'] != 0) {
+                                // Master is Dimmer, Target is Dimmer. Scale the value!
+                                $sourceRange = $this->GetProfileMinMax($SenderID);
+                                $targetRange = $this->GetProfileMinMax($targetId);
+                                
+                                $sourcePercentage = ($val - $sourceRange['min']) / max(0.001, $sourceRange['max'] - $sourceRange['min']);
+                                if ($sourcePercentage < 0) $sourcePercentage = 0;
+                                if ($sourcePercentage > 1) $sourcePercentage = 1;
+                                
+                                $actionValue = $targetRange['min'] + ($sourcePercentage * ($targetRange['max'] - $targetRange['min']));
                             }
                             
                             // Type cast strictly to match Symcon Variable Type
                             if ($targetVar['VariableType'] == 0) {
                                 $actionValue = (bool)$actionValue;
                             } elseif ($targetVar['VariableType'] == 1) {
-                                $actionValue = (int)$actionValue;
+                                $actionValue = (int)round($actionValue);
                             } elseif ($targetVar['VariableType'] == 2) {
                                 $actionValue = (float)$actionValue;
                             }
@@ -967,6 +978,25 @@ class SmartActiveLighting extends IPSModuleStrict
 }
 EOT;
     }
+
+    private function GetProfileMinMax(int $variableId): array
+    {
+        $min = 0;
+        $max = 100;
+        
+        if (IPS_VariableExists($variableId)) {
+            $var = IPS_GetVariable($variableId);
+            $profileName = $var['VariableCustomProfile'] != '' ? $var['VariableCustomProfile'] : $var['VariableProfile'];
+            
+            if ($profileName != '' && IPS_VariableProfileExists($profileName)) {
+                $profile = IPS_GetVariableProfile($profileName);
+                if ($profile['MaxValue'] > $profile['MinValue']) {
+                    $min = $profile['MinValue'];
+                    $max = $profile['MaxValue'];
+                }
+            }
+        }
+        
+        return ['min' => $min, 'max' => $max];
+    }
 }
-
-
