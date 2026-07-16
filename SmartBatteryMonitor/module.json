@@ -1,21 +1,15 @@
 {
-    "id":  "{EEDEB7ED-6C97-4911-B15A-AF97D9C5F468}",
-    "name":  "SmartBatteryMonitor",
-    "type":  3,
-    "vendor":  "",
-    "aliases":  [
-                    "SmartBatteryMonitor"
-                ],
-    "parentRequirements":  [
-
-                           ],
-    "childRequirements":  [
-
-                          ],
-    "implemented":  [
-
-                    ],
-    "prefix":  "SBM",
-    "author":  "Florian GraÃŸinger",
-    "url":  "https://github.com/pinkerunicorn/"
+    "id": "{EEDEB7ED-6C97-4911-B15A-AF97D9C5F468}",
+    "name": "SmartBatteryMonitor",
+    "type": 3,
+    "vendor": "",
+    "aliases": [
+        "SmartBatteryMonitor"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SBM",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/"
 }

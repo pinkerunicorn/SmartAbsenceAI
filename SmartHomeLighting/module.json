@@ -1,21 +1,15 @@
 {
-    "id":  "{C3D4E5F6-A7B8-49AB-A1B2-C3D4E5F6A7B8}",
-    "name":  "SmartHomeLighting",
-    "type":  3,
-    "vendor":  "Florian Graßinger",
-    "aliases":  [
-                    "SmartHomeLighting"
-                ],
-    "parentRequirements":  [
-
-                           ],
-    "childRequirements":  [
-
-                          ],
-    "implemented":  [
-
-                    ],
-    "prefix":  "SHL",
-    "url":  "https://github.com/pinkerunicorn/",
-    "author":  "Florian GraÃŸinger"
+    "id": "{C3D4E5F6-A7B8-49AB-A1B2-C3D4E5F6A7B8}",
+    "name": "SmartHomeLighting",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "SmartHomeLighting"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SHL",
+    "url": "https://github.com/pinkerunicorn/",
+    "author": "Florian Graßinger"
 }

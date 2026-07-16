@@ -1,21 +1,15 @@
 {
-    "id":  "{B2C3D4E5-F6A7-489A-9B0C-D1E2F3A4B5C6}",
-    "name":  "SmartHomeSecurity",
-    "type":  3,
-    "vendor":  "Florian Graßinger",
-    "aliases":  [
-                    "SmartHomeSecurity"
-                ],
-    "parentRequirements":  [
-
-                           ],
-    "childRequirements":  [
-
-                          ],
-    "implemented":  [
-
-                    ],
-    "prefix":  "SHS",
-    "url":  "https://github.com/pinkerunicorn/",
-    "author":  "Florian GraÃŸinger"
+    "id": "{B2C3D4E5-F6A7-489A-9B0C-D1E2F3A4B5C6}",
+    "name": "SmartHomeSecurity",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "SmartHomeSecurity"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SHS",
+    "url": "https://github.com/pinkerunicorn/",
+    "author": "Florian Graßinger"
 }

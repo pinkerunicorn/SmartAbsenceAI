@@ -1,21 +1,15 @@
 {
-    "id":  "{CAB83203-67D9-437A-B954-3B828A75C5AD}",
-    "name":  "SmartActiveLighting",
-    "type":  3,
-    "vendor":  "Florian Graßinger",
-    "aliases":  [
-                    "SmartActiveLighting"
-                ],
-    "parentRequirements":  [
-
-                           ],
-    "childRequirements":  [
-
-                          ],
-    "implemented":  [
-
-                    ],
-    "prefix":  "SAL",
-    "url":  "https://github.com/pinkerunicorn/",
-    "author":  "Florian GraÃŸinger"
+    "id": "{CAB83203-67D9-437A-B954-3B828A75C5AD}",
+    "name": "SmartActiveLighting",
+    "type": 3,
+    "vendor": "Florian Graßinger",
+    "aliases": [
+        "SmartActiveLighting"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SAL",
+    "url": "https://github.com/pinkerunicorn/",
+    "author": "Florian Graßinger"
 }

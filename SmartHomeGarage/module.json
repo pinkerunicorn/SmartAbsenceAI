@@ -1,21 +1,15 @@
 {
-    "id":  "{7F9F8083-156B-4FCB-855A-ABC6A7F224E3}",
-    "name":  "SmartHomeGarage",
-    "type":  3,
-    "vendor":  "",
-    "aliases":  [
-                    "SmartHomeGarage"
-                ],
-    "parentRequirements":  [
-
-                           ],
-    "childRequirements":  [
-
-                          ],
-    "implemented":  [
-
-                    ],
-    "prefix":  "SHG",
-    "author":  "Florian GraÃŸinger",
-    "url":  "https://github.com/pinkerunicorn/"
+    "id": "{7F9F8083-156B-4FCB-855A-ABC6A7F224E3}",
+    "name": "SmartHomeGarage",
+    "type": 3,
+    "vendor": "",
+    "aliases": [
+        "SmartHomeGarage"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
+    "prefix": "SHG",
+    "author": "Florian Graßinger",
+    "url": "https://github.com/pinkerunicorn/"
 }
