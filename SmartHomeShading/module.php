@@ -32,8 +32,6 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterPropertyString('BlindVariables', '[]');
 
         // Interne Attribute für Sperren und Queue
-        $this->RegisterAttributeString('ManualLocks', '{}');
-        $this->RegisterAttributeString('LastModuleActions', '{}'); // Um eigene Fahrten von manuellen zu unterscheiden
         $this->RegisterAttributeString('CurrentState', '{}'); // Aktueller Beschattungs-Zustand pro Rollladen
         
         // Status Variablen
@@ -46,8 +44,6 @@ class SmartHomeShading extends IPSModuleStrict
         
         // Timer für Evaluierung (alle 3 Minuten)
         $this->RegisterTimer('ShadingEvaluator', 0, 'SHSH_EvaluateConditions($_IPS[\'TARGET\']);');
-        // Timer für Daily Reset (um Mitternacht)
-        $this->RegisterTimer('DailyReset', 0, 'SHSH_ResetDailyLocks($_IPS[\'TARGET\']);');
     }
 
     public function ApplyChanges(): void
@@ -87,11 +83,7 @@ class SmartHomeShading extends IPSModuleStrict
         
         // Timer aktivieren
         $this->SetTimerInterval('ShadingEvaluator', 3 * 60 * 1000); // 3 Minuten
-        
-        $now = time();
-        $nextRun = strtotime("tomorrow 00:05:00");
-        $diff = $nextRun - $now;
-        $this->SetTimerInterval('DailyReset', $diff * 1000);
+
 
         // Nachrichten für Rollläden und Fensterkontakte registrieren
         $this->UpdateMessageRegistrations();
@@ -143,15 +135,7 @@ class SmartHomeShading extends IPSModuleStrict
             if (!is_array($blinds)) return;
             
             foreach ($blinds as $blind) {
-                $varID = $blind['VariableID'] ?? 0;
                 $contactID = $blind['ContactID'] ?? 0;
-                
-                if ($SenderID == $varID) {
-                    // $Data[1] ist true, wenn sich der Wert wirklich geändert hat
-                    if (isset($Data[1]) && $Data[1] === true) {
-                        $this->CheckManualOperation($varID, $Data[0]);
-                    }
-                }
                 
                 if ($SenderID == $contactID) {
                     // Fensterkontakt hat sich geändert -> Sofort evaluieren
@@ -214,39 +198,6 @@ class SmartHomeShading extends IPSModuleStrict
         }
     }
     
-    private function CheckManualOperation(int $varID, $newValue): void
-    {
-        $lastActions = json_decode($this->ReadAttributeString('LastModuleActions'), true);
-        $lastTime = $lastActions[$varID] ?? 0;
-        
-        // Wenn die letzte Modul-Fahrt weniger als 120 Sekunden her ist, war es höchstwahrscheinlich
-        // noch die Rückmeldung vom Aktor selbst (Jalousien brauchen oft 30-60 Sekunden für eine Fahrt!)
-        if ((time() - $lastTime) < 120) {
-            return; 
-        }
-        
-        // Ansonsten war es eine manuelle Bedienung am Taster!
-        $locks = json_decode($this->ReadAttributeString('ManualLocks'), true);
-        if (!isset($locks[$varID]) || !$locks[$varID]) {
-            $locks[$varID] = true;
-            $this->WriteAttributeString('ManualLocks', json_encode($locks));
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Manuelle Bedienung an Rollladen $varID erkannt. Automatik für heute gesperrt.");
-        }
-    }
-    
-    public function ResetDailyLocks(): void
-    {
-        $this->WriteAttributeString('ManualLocks', '{}');
-        $this->WriteAttributeString('CurrentState', '{}');
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Tägliche Sperren zurückgesetzt.");
-        
-        // Timer für nächsten Tag
-        $now = time();
-        $nextRun = strtotime("tomorrow 00:05:00");
-        $diff = $nextRun - $now;
-        $this->SetTimerInterval('DailyReset', $diff * 1000);
-    }
-    
     public function EvaluateConditions(): void
     {
         $blindsJson = $this->ReadPropertyString('BlindVariables');
@@ -265,7 +216,6 @@ class SmartHomeShading extends IPSModuleStrict
         $temp = $this->GetFloatVal('OutdoorTempVariableID');
         $tempThreshold = $this->ReadPropertyFloat('TempThreshold');
         
-        $locks = json_decode($this->ReadAttributeString('ManualLocks'), true);
         $states = json_decode($this->ReadAttributeString('CurrentState'), true);
         
         $isHotAndBright = ($temp >= $tempThreshold && $brightness >= $brightnessThreshold);
@@ -295,12 +245,6 @@ class SmartHomeShading extends IPSModuleStrict
             $id = $blind['VariableID'] ?? 0;
             if ($id <= 0) {
                 $this->LogMessage("DEBUG: Überspringe Eintrag, da VariableID ungültig ist.", 0);
-                continue;
-            }
-            
-            // Wenn manuell gesperrt, überspringen
-            if (isset($locks[$id]) && $locks[$id] === true) {
-                $this->LogMessage("DEBUG: Rollladen $id übersprungen wegen manueller Sperre!", 0);
                 continue;
             }
             
@@ -398,11 +342,6 @@ class SmartHomeShading extends IPSModuleStrict
             $valStr = str_replace(',', '.', $valStr);
             $val = (float)$valStr;
         }
-        
-        // Timestamp speichern, damit MessageSink es als "Modul-Fahrt"erkennt
-        $lastActions = json_decode($this->ReadAttributeString('LastModuleActions'), true);
-        $lastActions[$targetID] = time();
-        $this->WriteAttributeString('LastModuleActions', json_encode($lastActions));
         
         $this->LogMessage("DEBUG: Sende RequestAction an ID $targetID mit Wert: " . var_export($val, true), 0);
         $result = RequestAction($targetID, $val);
@@ -587,13 +526,6 @@ class SmartHomeShading extends IPSModuleStrict
                     }
                 }
             ]
-        }
-    ],
-    "actions": [
-        {
-            "type": "Button",
-            "caption": "Manuelle Sperren (Taster) für heute aufheben",
-            "onClick": "SHSH_ResetDailyLocks($id);"
         }
     ]
 }
