@@ -201,7 +201,7 @@ class SmartHomeShading extends IPSModuleStrict
                     foreach ($blinds as $blind) {
                         $varID = $blind['VariableID'] ?? 0;
                         if ($varID > 0 && IPS_VariableExists($varID)) {
-                            RequestAction($varID, 1.0); // 1.0 = Komplett auf (Sicherheits-Position)
+                            RequestAction($varID, 0.0); // 0.0 = Komplett auf (Sicherheits-Position)
                             $actions[$varID] = time();
                             $states[$varID] = false; // Beschattung inaktiv
                         }
@@ -307,11 +307,11 @@ class SmartHomeShading extends IPSModuleStrict
             }
             
             $targetState = 'OPEN';
-            $targetValueStr = "1"; // Default offen
+            $targetValueStr = "0"; // Default offen
             
             if ($isNight) {
                 $targetState = 'NIGHT';
-                $targetValueStr = "0"; // Zu
+                $targetValueStr = "1"; // Zu
             } elseif ($sunInSector && $isHotAndBright) {
                 $targetState = 'SHADING';
                 $targetValueStr = $blind['ValueShade'] ?? "0.1";
@@ -325,8 +325,8 @@ class SmartHomeShading extends IPSModuleStrict
                 $ventPos = (float)$ventPosStr;
                 $currentTargetPos = (float)$targetValueStr;
                 
-                // Nur auf Lüftungsposition fahren, wenn der Rollladen ansonsten weiter unten wäre
-                if ($currentTargetPos < $ventPos) {
+                // Da 1=Zu und 0=Auf: Nur auf Lüftungsposition fahren, wenn der Rollladen weiter zu wäre (Wert ist größer)
+                if ($currentTargetPos > $ventPos) {
                     $targetState = 'VENTILATE';
                     $targetValueStr = $ventPosStr;
                 }
@@ -493,7 +493,7 @@ class SmartHomeShading extends IPSModuleStrict
         },
         {
             "type": "Label",
-            "caption": "2. Rollläden & Fenster (Homematic: 0=Zu, 1=Auf)"
+            "caption": "2. Rollläden & Fenster (0=Auf, 1=Zu)"
         },
         {
             "type": "List",
