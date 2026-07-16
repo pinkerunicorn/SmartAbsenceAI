@@ -517,9 +517,9 @@ class SmartHomeShading extends IPSModuleStrict
                     }
                 },
                 {
-                    "caption": "Lüftungs-Pos",
+                    "caption": "Tür/Fenster Offen Position",
                     "name": "ValueVentilate",
-                    "width": "150px",
+                    "width": "200px",
                     "add": "0.3",
                     "edit": {
                         "type": "ValidationTextBox"
