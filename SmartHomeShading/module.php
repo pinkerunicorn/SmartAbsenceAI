@@ -45,7 +45,7 @@ class SmartHomeShading extends IPSModuleStrict
         $this->RegisterVariableBoolean('StatusIsNight', 'Status: Es ist Nacht', '', 10);
         $this->RegisterVariableBoolean('StatusIsHotAndBright', 'Status: Hitze & Helligkeit erreicht', '', 11);
         $this->RegisterVariableInteger('StatusSunInSectorCount', 'Status: Rollläden in der Sonne (Anzahl)', '', 12);
-        $this->RegisterVariableInteger('StatusLastEvaluation', 'Status: Letzte Berechnung', '', 13);
+        $this->RegisterVariableInteger('StatusLastEvaluation', 'Status: Letzte Berechnung', '~UnixTimestamp', 13);
         
         // Timer für Evaluierung (alle 3 Minuten)
         $this->RegisterTimer('ShadingEvaluator', 0, 'SHSH_EvaluateConditions($_IPS[\'TARGET\']);');
@@ -114,8 +114,7 @@ class SmartHomeShading extends IPSModuleStrict
         ]);
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('StatusLastEvaluation'), [
             'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,
-            'ICON'        => 'Clock',
-            'FORMATTER'   => VARIABLE_FORMATTER_TIMESTAMP
+            'ICON'        => 'Clock'
         ]);
     }
     
