@@ -45,6 +45,20 @@ class SmartHomeHeating extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
+        $list_HeatingInstances = json_decode($this->ReadPropertyString('HeatingInstances'), true);
+        if (is_array($list_HeatingInstances)) {
+            foreach ($list_HeatingInstances as $item) {
+                $vid = $item['InstanceID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        // ---------------------------------
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('HeatingStatus'), [
             'PRESENTATION'=> VARIABLE_PRESENTATION_VALUE_PRESENTATION,

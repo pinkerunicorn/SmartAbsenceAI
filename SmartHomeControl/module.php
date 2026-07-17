@@ -64,6 +64,9 @@ class SmartHomeControl extends IPSModuleStrict
     {
         parent::ApplyChanges();
         // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
         $ref_HeatingInstance = $this->ReadPropertyInteger('HeatingInstance');
         if ($ref_HeatingInstance > 1 && @IPS_ObjectExists($ref_HeatingInstance)) {
             $this->RegisterReference($ref_HeatingInstance);
@@ -87,6 +90,24 @@ class SmartHomeControl extends IPSModuleStrict
         $ref_LawnInstance = $this->ReadPropertyInteger('LawnInstance');
         if ($ref_LawnInstance > 1 && @IPS_ObjectExists($ref_LawnInstance)) {
             $this->RegisterReference($ref_LawnInstance);
+        }
+        $list_HouseModes = json_decode($this->ReadPropertyString('HouseModes'), true);
+        if (is_array($list_HouseModes)) {
+            foreach ($list_HouseModes as $item) {
+                $vid = $item['SequencerInstance'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_GarageInstances = json_decode($this->ReadPropertyString('GarageInstances'), true);
+        if (is_array($list_GarageInstances)) {
+            foreach ($list_GarageInstances as $item) {
+                $vid = $item['InstanceID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
         }
         // ---------------------------------
 

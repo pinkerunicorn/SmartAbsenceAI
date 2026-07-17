@@ -55,6 +55,9 @@ class SmartHomeShading extends IPSModuleStrict
     {
         parent::ApplyChanges();
         // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
         $ref_AzimuthVariableID = $this->ReadPropertyInteger('AzimuthVariableID');
         if ($ref_AzimuthVariableID > 1 && @IPS_ObjectExists($ref_AzimuthVariableID)) {
             $this->RegisterReference($ref_AzimuthVariableID);
@@ -82,6 +85,19 @@ class SmartHomeShading extends IPSModuleStrict
         $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
         if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
             $this->RegisterReference($ref_SunsetVariableID);
+        }
+        $list_BlindVariables = json_decode($this->ReadPropertyString('BlindVariables'), true);
+        if (is_array($list_BlindVariables)) {
+            foreach ($list_BlindVariables as $item) {
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['ContactID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
         }
         // ---------------------------------
 

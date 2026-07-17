@@ -24,6 +24,20 @@ class SmartBatteryMonitor extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
+        $list_BatteryVariables = json_decode($this->ReadPropertyString('BatteryVariables'), true);
+        if (is_array($list_BatteryVariables)) {
+            foreach ($list_BatteryVariables as $item) {
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        // ---------------------------------
         
         if (@IPS_GetObjectIDByIdent('AlarmActive', $this->InstanceID) !== false) {
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('AlarmActive'), [

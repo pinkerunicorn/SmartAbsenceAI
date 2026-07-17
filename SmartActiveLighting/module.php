@@ -37,9 +37,8 @@ class SmartActiveLighting extends IPSModuleStrict
     {
         parent::ApplyChanges();
         // --- Auto-generated References ---
-        $ref_GlobalLuxSensorID = $this->ReadPropertyInteger('GlobalLuxSensorID');
-        if ($ref_GlobalLuxSensorID > 1 && @IPS_ObjectExists($ref_GlobalLuxSensorID)) {
-            $this->RegisterReference($ref_GlobalLuxSensorID);
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
         }
         $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
         if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
@@ -48,6 +47,84 @@ class SmartActiveLighting extends IPSModuleStrict
         $ref_SunriseVariableID = $this->ReadPropertyInteger('SunriseVariableID');
         if ($ref_SunriseVariableID > 1 && @IPS_ObjectExists($ref_SunriseVariableID)) {
             $this->RegisterReference($ref_SunriseVariableID);
+        }
+        $ref_GlobalLuxSensorID = $this->ReadPropertyInteger('GlobalLuxSensorID');
+        if ($ref_GlobalLuxSensorID > 1 && @IPS_ObjectExists($ref_GlobalLuxSensorID)) {
+            $this->RegisterReference($ref_GlobalLuxSensorID);
+        }
+        $list_MotionRules = json_decode($this->ReadPropertyString('MotionRules'), true);
+        if (is_array($list_MotionRules)) {
+            foreach ($list_MotionRules as $item) {
+                $vid = $item['MotionVariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['TargetLightID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_DoorRules = json_decode($this->ReadPropertyString('DoorRules'), true);
+        if (is_array($list_DoorRules)) {
+            foreach ($list_DoorRules as $item) {
+                $vid = $item['DoorVariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['TargetLightID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_TwilightRules = json_decode($this->ReadPropertyString('TwilightRules'), true);
+        if (is_array($list_TwilightRules)) {
+            foreach ($list_TwilightRules as $item) {
+                $vid = $item['TargetLightID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_SceneRules = json_decode($this->ReadPropertyString('SceneRules'), true);
+        if (is_array($list_SceneRules)) {
+            foreach ($list_SceneRules as $item) {
+                $vid = $item['SceneVariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['TargetLightID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_ButtonRules = json_decode($this->ReadPropertyString('ButtonRules'), true);
+        if (is_array($list_ButtonRules)) {
+            foreach ($list_ButtonRules as $item) {
+                $vid = $item['ButtonVariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['TargetLightID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_SyncRules = json_decode($this->ReadPropertyString('SyncRules'), true);
+        if (is_array($list_SyncRules)) {
+            foreach ($list_SyncRules as $item) {
+                $vid = $item['MasterVariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['TargetLightID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
         }
         // ---------------------------------
 

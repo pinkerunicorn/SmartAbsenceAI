@@ -42,6 +42,33 @@ class SmartHomeSecurity extends IPSModuleStrict
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+        // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
+        $list_DoorVariables = json_decode($this->ReadPropertyString('DoorVariables'), true);
+        if (is_array($list_DoorVariables)) {
+            foreach ($list_DoorVariables as $item) {
+                $vid = $item['SensorVariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_WindowVariables = json_decode($this->ReadPropertyString('WindowVariables'), true);
+        if (is_array($list_WindowVariables)) {
+            foreach ($list_WindowVariables as $item) {
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        // ---------------------------------
 
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('OpenWindowsCount'), [

@@ -41,6 +41,9 @@ class SmartHomeLighting extends IPSModuleStrict
     {
         parent::ApplyChanges();
         // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
         $ref_SunsetVariableID = $this->ReadPropertyInteger('SunsetVariableID');
         if ($ref_SunsetVariableID > 1 && @IPS_ObjectExists($ref_SunsetVariableID)) {
             $this->RegisterReference($ref_SunsetVariableID);
@@ -48,6 +51,24 @@ class SmartHomeLighting extends IPSModuleStrict
         $ref_ArchiveControlID = $this->ReadPropertyInteger('ArchiveControlID');
         if ($ref_ArchiveControlID > 1 && @IPS_ObjectExists($ref_ArchiveControlID)) {
             $this->RegisterReference($ref_ArchiveControlID);
+        }
+        $list_LightVariables = json_decode($this->ReadPropertyString('LightVariables'), true);
+        if (is_array($list_LightVariables)) {
+            foreach ($list_LightVariables as $item) {
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_DimmerVariables = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+        if (is_array($list_DimmerVariables)) {
+            foreach ($list_DimmerVariables as $item) {
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
         }
         // ---------------------------------
 

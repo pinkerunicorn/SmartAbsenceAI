@@ -43,6 +43,9 @@ class SmartHomeGarage extends IPSModuleStrict
     {
         parent::ApplyChanges();
         // --- Auto-generated References ---
+        foreach ($this->GetReferenceList() as $refID) {
+            $this->UnregisterReference($refID);
+        }
         $ref_MotorVariableID = $this->ReadPropertyInteger('MotorVariableID');
         if ($ref_MotorVariableID > 1 && @IPS_ObjectExists($ref_MotorVariableID)) {
             $this->RegisterReference($ref_MotorVariableID);
@@ -54,6 +57,24 @@ class SmartHomeGarage extends IPSModuleStrict
         $ref_SensorOpenID = $this->ReadPropertyInteger('SensorOpenID');
         if ($ref_SensorOpenID > 1 && @IPS_ObjectExists($ref_SensorOpenID)) {
             $this->RegisterReference($ref_SensorOpenID);
+        }
+        $list_ButtonVariables = json_decode($this->ReadPropertyString('ButtonVariables'), true);
+        if (is_array($list_ButtonVariables)) {
+            foreach ($list_ButtonVariables as $item) {
+                $vid = $item['VariableID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
+        }
+        $list_LEDInstances = json_decode($this->ReadPropertyString('LEDInstances'), true);
+        if (is_array($list_LEDInstances)) {
+            foreach ($list_LEDInstances as $item) {
+                $vid = $item['InstanceID'] ?? 0;
+                if ($vid > 1 && @IPS_ObjectExists($vid)) {
+                    $this->RegisterReference($vid);
+                }
+            }
         }
         // ---------------------------------
 
