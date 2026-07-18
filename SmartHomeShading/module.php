@@ -417,96 +417,124 @@ class SmartHomeShading extends IPSModuleStrict
             "items": [
                 {
                     "type": "Label",
+                    "caption": "Willkommen bei SmartHome Shading! Lass uns deine Rollläden intelligent machen."
+                },
+                {
+                    "type": "Label",
                     "caption": "1. Globale Sensorik"
-                }
-            ]
-        },
-        {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "SelectVariable",
-                    "name": "AzimuthVariableID",
-                    "caption": "Sonnen-Azimut (Location-Modul)"
                 },
                 {
-                    "type": "SelectVariable",
-                    "name": "ElevationVariableID",
-                    "caption": "Sonnen-Höhe (Elevation)"
-                }
-            ]
-        },
-        {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "SelectVariable",
-                    "name": "BrightnessVariableID",
-                    "caption": "Helligkeits-Sensor (Lux)"
+                    "type": "Label",
+                    "caption": "Hier wählst du die Sensoren für den Sonnenstand aus. Diese benötigt das Modul, um zu wissen, wo die Sonne gerade steht:"
                 },
                 {
-                    "type": "NumberSpinner",
-                    "name": "BrightnessThreshold",
-                    "caption": "Schwellwert Lux (z.B. 40000)",
-                    "minimum": 0,
-                    "maximum": 200000
-                }
-            ]
-        },
-        {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "SelectVariable",
-                    "name": "OutdoorTempVariableID",
-                    "caption": "Außentemperatur-Sensor (°C)"
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "AzimuthVariableID",
+                            "caption": "Sonnen-Azimut (Location-Modul)"
+                        },
+                        {
+                            "type": "SelectVariable",
+                            "name": "ElevationVariableID",
+                            "caption": "Sonnen-Höhe (Elevation)"
+                        }
+                    ]
                 },
                 {
-                    "type": "NumberSpinner",
-                    "name": "TempThreshold",
-                    "caption": "Hitze-Schwellwert (°C, z.B. 24)",
-                    "minimum": -20,
-                    "maximum": 50,
-                    "digits": 1
-                }
-            ]
-        },
-        {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "SelectVariable",
-                    "name": "WindVariableID",
-                    "caption": "Wind-Sensor (km/h)"
+                    "type": "Label",
+                    "caption": "Ab wie viel Lux soll beschattet werden? Wähle deinen Helligkeitssensor und den Schwellwert:"
                 },
                 {
-                    "type": "NumberSpinner",
-                    "name": "WindThreshold",
-                    "caption": "Sturm-Schutz ab (km/h)",
-                    "minimum": 0,
-                    "maximum": 150,
-                    "digits": 1
-                }
-            ]
-        },
-        {
-            "type": "RowLayout",
-            "items": [
-                {
-                    "type": "SelectVariable",
-                    "name": "SunriseVariableID",
-                    "caption": "Sonnenaufgang Variable (Astro)"
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "BrightnessVariableID",
+                            "caption": "Helligkeits-Sensor (Lux)"
+                        },
+                        {
+                            "type": "NumberSpinner",
+                            "name": "BrightnessThreshold",
+                            "caption": "Schwellwert Lux (z.B. 40000)",
+                            "minimum": 0,
+                            "maximum": 200000
+                        }
+                    ]
                 },
                 {
-                    "type": "SelectVariable",
-                    "name": "SunsetVariableID",
-                    "caption": "Sonnenuntergang Variable (Astro)"
+                    "type": "Label",
+                    "caption": "Ab welcher Temperatur wird es dir zu warm im Haus? Beschattung startet nur, wenn es draußen heißer ist als dieser Wert:"
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "OutdoorTempVariableID",
+                            "caption": "Außentemperatur-Sensor (°C)"
+                        },
+                        {
+                            "type": "NumberSpinner",
+                            "name": "TempThreshold",
+                            "caption": "Hitze-Schwellwert (°C, z.B. 24)",
+                            "minimum": -20,
+                            "maximum": 50,
+                            "digits": 1
+                        }
+                    ]
+                },
+                {
+                    "type": "Label",
+                    "caption": "Sturmschutz: Ab welcher Windgeschwindigkeit sollen die Rollläden zum Schutz hochfahren?"
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "WindVariableID",
+                            "caption": "Wind-Sensor (km/h)"
+                        },
+                        {
+                            "type": "NumberSpinner",
+                            "name": "WindThreshold",
+                            "caption": "Sturm-Schutz ab (km/h)",
+                            "minimum": 0,
+                            "maximum": 150,
+                            "digits": 1
+                        }
+                    ]
+                },
+                {
+                    "type": "Label",
+                    "caption": "Damit die Rollläden abends automatisch schließen und morgens öffnen, wähle hier die Astro-Variablen:"
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "SelectVariable",
+                            "name": "SunriseVariableID",
+                            "caption": "Sonnenaufgang Variable (Astro)"
+                        },
+                        {
+                            "type": "SelectVariable",
+                            "name": "SunsetVariableID",
+                            "caption": "Sonnenuntergang Variable (Astro)"
+                        }
+                    ]
                 }
             ]
         },
         {
             "type": "Label",
             "caption": "2. Rollläden & Fenster (0=Auf, 1=Zu)"
+        },
+        {
+            "type": "Label",
+            "caption": "Hier legst du deine Rollläden an. Gib an, bei welchem Sonnenstand (Azimut Von/Bis) das Fenster Sonne abbekommt. Trage außerdem die Positionen für 'Auf', 'Zu', 'Beschatten' und 'Lüften' (wenn die Tür offen ist) ein."
         },
         {
             "type": "List",
