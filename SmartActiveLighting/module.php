@@ -1042,9 +1042,17 @@ class SmartActiveLighting extends IPSModuleStrict
             "caption": "Variable für Sonnenuntergang (Unix Timestamp)"
         },
         {
+            "type": "Label",
+            "caption": "Hier stellst du 'Variable für Sonnenaufgang (Unix Timestamp)' ein."
+        },
+        {
             "type": "SelectVariable",
             "name": "SunriseVariableID",
             "caption": "Variable für Sonnenaufgang (Unix Timestamp)"
+        },
+        {
+            "type": "Label",
+            "caption": "Hier stellst du 'Globaler Lux-Sensor für Bewegungsmelder (Optional)' ein."
         },
         {
             "type": "SelectVariable",

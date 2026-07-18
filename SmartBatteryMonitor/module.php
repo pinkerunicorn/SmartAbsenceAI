@@ -222,7 +222,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 {
                     "caption": "Variable",
                     "name": "VariableID",
-                    "width": "300px",
+                    "width": "auto",
                     "add": 0,
                     "edit": {
                         "type": "SelectVariable"
@@ -236,11 +236,26 @@ class SmartBatteryMonitor extends IPSModuleStrict
                     "edit": {
                         "type": "Select",
                         "options": [
-                            {"label": "Automatisch (Profil/Ident)", "value": "Auto"},
-                            {"label": "Boolean (True = Leer)", "value": "BoolTrue"},
-                            {"label": "Boolean (False = Leer)", "value": "BoolFalse"},
-                            {"label": "Prozent", "value": "Percent"},
-                            {"label": "Spannung", "value": "Voltage"}
+                            {
+                                "label": "Automatisch (Profil/Ident)",
+                                "value": "Auto"
+                            },
+                            {
+                                "label": "Boolean (True = Leer)",
+                                "value": "BoolTrue"
+                            },
+                            {
+                                "label": "Boolean (False = Leer)",
+                                "value": "BoolFalse"
+                            },
+                            {
+                                "label": "Prozent",
+                                "value": "Percent"
+                            },
+                            {
+                                "label": "Spannung",
+                                "value": "Voltage"
+                            }
                         ]
                     }
                 },
@@ -255,6 +270,10 @@ class SmartBatteryMonitor extends IPSModuleStrict
                     }
                 }
             ]
+        },
+        {
+            "type": "Label",
+            "caption": "Hier stellst du 'Tägliche Ausführungszeit' ein."
         },
         {
             "type": "SelectTime",

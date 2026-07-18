@@ -514,9 +514,17 @@ class SmartHomeSecurity extends IPSModuleStrict
             "caption": "Automatisch Verschließen"
         },
         {
+            "type": "Label",
+            "caption": "Hier stellst du 'Uhrzeit zum Verschließen' ein."
+        },
+        {
             "type": "SelectTime",
             "name": "AutoLockTime",
             "caption": "Uhrzeit zum Verschließen"
+        },
+        {
+            "type": "Label",
+            "caption": "Hier stellst du 'Automatisch Aufsperren' ein."
         },
         {
             "type": "CheckBox",
@@ -524,9 +532,17 @@ class SmartHomeSecurity extends IPSModuleStrict
             "caption": "Automatisch Aufsperren"
         },
         {
+            "type": "Label",
+            "caption": "Hier stellst du 'Uhrzeit zum Aufsperren' ein."
+        },
+        {
             "type": "SelectTime",
             "name": "AutoUnlockTime",
             "caption": "Uhrzeit zum Aufsperren"
+        },
+        {
+            "type": "Label",
+            "caption": "Hier stellst du 'Aufsperren nur bei Anwesenheit' ein."
         },
         {
             "type": "CheckBox",

@@ -431,7 +431,7 @@ class SmartHomeControl extends IPSModuleStrict
                 {
                     "caption": "Modus Name",
                     "name": "ModeName",
-                    "width": "150px",
+                    "width": "auto",
                     "add": "Neuer Modus",
                     "edit": {
                         "type": "ValidationTextBox"
@@ -655,6 +655,10 @@ class SmartHomeControl extends IPSModuleStrict
                     }
                 }
             ]
+        },
+        {
+            "type": "Label",
+            "caption": "Hier stellst du 'Garagensteuerung Aktiv' ein."
         },
         {
             "type": "CheckBox",
