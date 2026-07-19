@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeGarage extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -170,7 +173,7 @@ class SmartHomeGarage extends IPSModuleStrict
                     if ($SenderID == $btn['VariableID']) {
                         $currentVal = GetValue($SenderID);
                         if ($this->ValuesMatch($currentVal, $btn['TriggerValue'])) {
-                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeGarage: Taster $SenderID hat Tor-Aktion ausgelöst!");
+                            $this->SLog('INFO', "Taster $SenderID hat Tor-Aktion ausgelöst!");
                             $this->TriggerDoor();
                         }
                     }
@@ -186,7 +189,7 @@ class SmartHomeGarage extends IPSModuleStrict
             @RequestAction($motorId, true);
             $this->SetTimerInterval('RelayOffTimer', 1000); // Trigger release after 1s
         } else {
-            IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: Fehler - Kein Motor-Aktor konfiguriert.');
+            $this->SLog('ERROR', 'Fehler - Kein Motor-Aktor konfiguriert.');
         }
 
         // Calculate expected state
@@ -288,7 +291,7 @@ class SmartHomeGarage extends IPSModuleStrict
     {
         $this->SetTimerInterval('OpenAlarmTimer', 0);
         $this->SetValueIfChanged('AlarmOpenTooLong', true);
-        IPS_LogMessage('SmartHomeGarage', 'Garagentor steht zu lange offen -> Alarm ausgelöst.');
+        $this->SLog('WARNING', 'Garagentor steht zu lange offen -> Alarm ausgelöst.');
     }
 
     private function UpdateLEDs(int $state): void
@@ -371,10 +374,10 @@ class SmartHomeGarage extends IPSModuleStrict
                 // Nur schließen, wenn Tor aktuell nicht schon zu ist
                 $state = GetValue($this->GetIDForIdent('DoorState'));
                 if ($state != 0 && $state != 3) { // 0=Zu, 3=Fährt Zu
-                    IPS_LogMessage('SmartHomeGarage', 'Haus-Modus ist Abwesenheit. Schließe Garagentor automatisch.');
+                    $this->SLog('INFO', 'Haus-Modus ist Abwesenheit. Schließe Garagentor automatisch.');
                     $this->TriggerDoor();
                 } else {
-                    IPS_LogMessage('SmartHomeGarage', 'Haus-Modus ist Abwesenheit. Garagentor ist bereits geschlossen.');
+                    $this->SLog('INFO', 'Haus-Modus ist Abwesenheit. Garagentor ist bereits geschlossen.');
                 }
             }
         }
@@ -390,6 +393,7 @@ class SmartHomeGarage extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeGarage: '. $Message);
         return true;
     }

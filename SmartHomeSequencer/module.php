@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeSequencer extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -37,7 +40,7 @@ class SmartHomeSequencer extends IPSModuleStrict
 
     private function ProcessSequenceList(string $property, string $logName): void
     {
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Manuelle Auslösung der $logName-Sequenz.");
+        $this->SLog('INFO', "Manuelle Auslösung der $logName-Sequenz.");
         
         $sequencesJson = $this->ReadPropertyString($property);
         $sequences = json_decode($sequencesJson, true);
@@ -55,7 +58,7 @@ class SmartHomeSequencer extends IPSModuleStrict
         $now = time();
         $itemsAdded = false;
 
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Sequenz gestartet. Verarbeite ". count($sequences) . "Aktionen.");
+        $this->SLog('INFO', 'Sequenz gestartet. Verarbeite ' . count($sequences) . ' Aktionen.');
 
         foreach ($sequences as $seq) {
             $active = isset($seq['Active']) ? $seq['Active'] : true;
@@ -77,7 +80,7 @@ class SmartHomeSequencer extends IPSModuleStrict
             } else {
                 $queue[] = $item;
                 $itemsAdded = true;
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Aktion für Ziel ". $item['TargetID'] . "zur Warteschlange hinzugefügt (Verzögerung: ". $delay . "s).");
+                $this->SLog('INFO', 'Aktion für Ziel ' . $item['TargetID'] . ' zur Warteschlange hinzugefügt (Verzögerung: ' . $delay . 's).');
             }
         }
 
@@ -130,26 +133,26 @@ class SmartHomeSequencer extends IPSModuleStrict
             switch ($actionType) {
                 case 0: // Skript / Ablaufplan ausführen
                     if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Ausführung fehlgeschlagen. Ziel-ID ". $targetID . "existiert nicht.");
+                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen. Ziel-ID ' . $targetID . ' existiert nicht.');
                         return;
                     }
                     if (!IPS_ScriptExists($targetID)) {
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Fehler - Ziel ". $targetID . "ist kein ausführbares Skript!");
+                        $this->SLog('ERROR', 'Fehler - Ziel ' . $targetID . ' ist kein ausführbares Skript!');
                         return;
                     }
-                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Führe Skript/Ablaufplan aus: ". $targetID);
+                    $this->SLog('INFO', 'Führe Skript/Ablaufplan aus: ' . $targetID);
                     @IPS_RunScript($targetID);
                     break;
                 case 1: // Gerät/Variable schalten (RequestAction)
                     if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Ausführung fehlgeschlagen. Ziel-ID ". $targetID . "existiert nicht.");
+                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen. Ziel-ID ' . $targetID . ' existiert nicht.');
                         return;
                     }
                     if (!IPS_VariableExists($targetID)) {
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Fehler - Ziel ". $targetID . "ist keine Status-Variable!");
+                        $this->SLog('ERROR', 'Fehler - Ziel ' . $targetID . ' ist keine Status-Variable!');
                         return;
                     }
-                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Schalte Variable ". $targetID . "auf Wert: ". $valStr);
+                    $this->SLog('INFO', 'Schalte Variable ' . $targetID . ' auf Wert: ' . $valStr);
                     
                     // Datentyp bestimmen für korrekten Cast
                     $var = IPS_GetVariable($targetID);
@@ -157,7 +160,7 @@ class SmartHomeSequencer extends IPSModuleStrict
                     if ($var['VariableType'] == 0) { // Boolean
                         $lower = strtolower(trim($valStr));
                         $val = in_array($lower, ['true', '1', 'on', 'an', 'yes', 'ja']);
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Wandle String '$valStr'in Boolean um -> ". ($val ? "TRUE": "FALSE"));
+                        $this->SLog('INFO', "Wandle String '$valStr' in Boolean um -> " . ($val ? 'TRUE' : 'FALSE'));
                     } elseif ($var['VariableType'] == 1) { // Integer
                         $val = (int)$valStr;
                     } elseif ($var['VariableType'] == 2) { // Float
@@ -167,29 +170,29 @@ class SmartHomeSequencer extends IPSModuleStrict
                     }
                     
                     if (!@RequestAction($targetID, $val)) {
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: RequestAction fehlgeschlagen! Hat die Variable ". $targetID . "überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?");
+                        $this->SLog('ERROR', 'RequestAction fehlgeschlagen! Hat die Variable ' . $targetID . ' überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?');
                     }
                     break;
                 case 2: // Wake On LAN
                     if ($targetID > 0 && function_exists('WOL_Send')) {
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Sende WOL an Instanz: ". $targetID);
+                        $this->SLog('INFO', 'Sende WOL an Instanz: ' . $targetID);
                         @WOL_Send($targetID);
                     } else {
                         $mac = trim($valStr);
                         if (preg_match('/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/', $mac)) {
-                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Sende natives WOL an MAC-Adresse: ". $mac);
+                            $this->SLog('INFO', 'Sende natives WOL an MAC-Adresse: ' . $mac);
                             $this->SendMagicPacket($mac);
                         } else {
-                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: WOL Fehler - Weder eine WOL-Instanz (Ziel) noch eine gültige MAC-Adresse (im Feld Wert) angegeben. Eingabe war: ". $valStr);
+                            $this->SLog('ERROR', 'WOL Fehler - Weder eine WOL-Instanz (Ziel) noch eine gültige MAC-Adresse (im Feld Wert) angegeben. Eingabe war: ' . $valStr);
                         }
                     }
                     break;
                 default:
-                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Unbekannter Aktionstyp: ". $actionType);
+                    $this->SLog('ERROR', 'Unbekannter Aktionstyp: ' . $actionType);
                     break;
             }
         } catch (Exception $e) {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: Fehler bei der Ausführung (Ziel ". $targetID . "): ". $e->getMessage());
+            $this->SLog('ERROR', 'Fehler bei der Ausführung (Ziel ' . $targetID . '): ' . $e->getMessage());
         }
     }
 
@@ -208,12 +211,13 @@ class SmartHomeSequencer extends IPSModuleStrict
             @socket_sendto($socket, $msg, strlen($msg), 0, $ip, $port);
             @socket_close($socket);
         } else {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSequencer: WOL Fehler - Konnte UDP Socket für Magic Packet nicht erstellen.");
+            $this->SLog('ERROR', 'WOL Fehler - Konnte UDP Socket für Magic Packet nicht erstellen.');
         }
     }
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeSequencer: '. $Message);
         return true;
     }

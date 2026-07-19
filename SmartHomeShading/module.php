@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeShading extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -206,7 +209,7 @@ class SmartHomeShading extends IPSModuleStrict
         if ($windSpeed >= $windThreshold) {
             if (!$this->GetValue('AlarmWindWarning')) {
                 $this->SetValue('AlarmWindWarning', true);
-                IPS_LogMessage('SmartHomeShading', "Sturmwarnung! Windgeschwindigkeit: $windSpeed km/h. Alle Rollläden werden zum Schutz hochgefahren.");
+                $this->SLog('WARNING', "Sturmwarnung! Windgeschwindigkeit: $windSpeed km/h. Alle Rollläden werden zum Schutz hochgefahren.");
                 
                 // Alle Rollläden hochfahren
                 $blindsJson = $this->ReadPropertyString('BlindVariables');
@@ -231,7 +234,7 @@ class SmartHomeShading extends IPSModuleStrict
         } else {
             if ($this->GetValue('AlarmWindWarning')) {
                 $this->SetValue('AlarmWindWarning', false);
-                IPS_LogMessage('SmartHomeShading', "Sturmwarnung aufgehoben.");
+                $this->SLog('INFO', 'Sturmwarnung aufgehoben.');
                 $this->EvaluateConditions();
             }
         }
@@ -356,7 +359,7 @@ class SmartHomeShading extends IPSModuleStrict
                 // Wert in Typ konvertieren und fahren
                 $this->ExecuteAction($id, $targetValueStr);
                 $states[$id] = $targetState;
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeShading: Rollladen $id fährt auf Zustand: $targetState");
+                $this->SLog('INFO', "Rollladen $id fährt auf Zustand: $targetState");
             }
             
             if ($targetState === 'SHADING') {
@@ -402,6 +405,7 @@ class SmartHomeShading extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeShading: '. $Message);
         return true;
     }

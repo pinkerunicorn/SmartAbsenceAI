@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 /**
  * SmartGeminiIO — Zentraler Gemini API Client für alle IP-Symcon KI-Module.
  *
@@ -18,6 +20,7 @@ declare(strict_types=1);
  */
 class SmartGeminiIO extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     // Gemini API Basis-URL (v1beta für responseSchema-Support)
     private const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
@@ -84,7 +87,7 @@ class SmartGeminiIO extends IPSModuleStrict
         if (empty($apiKey)) {
             $this->SetStatus(104);
             $this->SetValue('LastError', 'Kein API-Key konfiguriert.');
-            IPS_LogMessage('SmartVillaKunterbunt', 'SmartGeminiIO: Kein API-Key konfiguriert!');
+            $this->SLog('ERROR', 'Kein API-Key konfiguriert!');
             return '';
         }
 
@@ -160,7 +163,7 @@ class SmartGeminiIO extends IPSModuleStrict
             }
             $this->SetValue('LastError', $errorMsg);
             $this->SetValue('FailedRequests', $this->GetValue('FailedRequests') + 1);
-            IPS_LogMessage('SmartVillaKunterbunt', 'SmartGeminiIO: ' . $errorMsg);
+            $this->SLog('ERROR', $errorMsg);
             return '';
         }
 
@@ -172,7 +175,7 @@ class SmartGeminiIO extends IPSModuleStrict
             $errorMsg = 'Gemini API: Leere oder unerwartete Antwortstruktur.';
             $this->SetValue('LastError', $errorMsg);
             $this->SetValue('FailedRequests', $this->GetValue('FailedRequests') + 1);
-            IPS_LogMessage('SmartVillaKunterbunt', 'SmartGeminiIO: ' . $errorMsg);
+            $this->SLog('ERROR', $errorMsg);
             return '';
         }
 
@@ -228,6 +231,7 @@ class SmartGeminiIO extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartGeminiIO: ' . $Message);
         return true;
     }

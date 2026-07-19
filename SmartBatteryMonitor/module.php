@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartBatteryMonitor extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -186,6 +189,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartBatteryMonitor: ' . $Message);
         return true;
     }

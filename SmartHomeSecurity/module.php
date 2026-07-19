@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeSecurity extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -226,12 +229,12 @@ class SmartHomeSecurity extends IPSModuleStrict
                             RequestAction($id, $this->GetActionValue($door, 'LockValue', 1));
                         } else {
                             $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
-                            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Verriegelung für '$name' übersprungen, da die Tür noch offen steht!");
+                            $this->SLog('WARNING', "Verriegelung für '$name' übersprungen, da die Tür noch offen steht!");
                         }
                     }
                 }
             }
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
+            $this->SLog('INFO', "Verriegelung der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
         } else {
             foreach ($doorVars as $door) {
                 // Fallback für alte Konfigurationen: false
@@ -243,14 +246,14 @@ class SmartHomeSecurity extends IPSModuleStrict
                     }
                 }
             }
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
+            $this->SLog('INFO', "Aufsperren der konfigurierten Türen (Hausmodus $mode) durchgeführt.");
         }
         // Alarm Check
         if ($isAbsence) {
             $this->CalculateOpenWindows();
             if ($this->GetValue('OpenWindowsCount') > 0) {
                 $this->SetValueIfChanged('AlarmWindowsOpenDuringAbsence', true);
-                IPS_LogMessage('SmartHomeSecurity', "Alarm: Bei Abwesenheit sind noch Fenster/Türen offen!");
+                $this->SLog('WARNING', 'Alarm: Bei Abwesenheit sind noch Fenster/Türen offen!');
             }
         }
     }
@@ -338,12 +341,12 @@ class SmartHomeSecurity extends IPSModuleStrict
                         RequestAction($id, $this->GetActionValue($door, 'LockValue', 1)); // Verriegeln
                     } else {
                         $name = isset($door['Name']) && $door['Name'] != '' ? $door['Name'] : IPS_GetName($id);
-                        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Auto-Lock für '$name' übersprungen, da die Tür noch offen steht!");
+                        $this->SLog('WARNING', "Auto-Lock für '$name' übersprungen, da die Tür noch offen steht!");
                     }
                 }
             }
         }
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Verriegeln der Türen durchgeführt.");
+        $this->SLog('INFO', 'Automatisches Verriegeln der Türen durchgeführt.');
         
         $this->UpdateTimers();
     }
@@ -356,7 +359,7 @@ class SmartHomeSecurity extends IPSModuleStrict
         $isAbsent = $this->ReadAttributeBoolean('IsAbsent');
         
         if ($onlyWhenPresent && $isAbsent) {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Aufsperren übersprungen (Abwesenheit aktiv).");
+            $this->SLog('INFO', 'Automatisches Aufsperren übersprungen (Abwesenheit aktiv).');
             return;
         }
 
@@ -369,11 +372,12 @@ class SmartHomeSecurity extends IPSModuleStrict
                 }
             }
         }
-        IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeSecurity: Automatisches Aufsperren der Türen durchgeführt.");
+        $this->SLog('INFO', 'Automatisches Aufsperren der Türen durchgeführt.');
     }
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeSecurity: ' . $Message);
         return true;
     }

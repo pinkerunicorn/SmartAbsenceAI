@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeHeating extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -159,7 +162,7 @@ class SmartHomeHeating extends IPSModuleStrict
             if (!$isHeatingSeason) {
                 $this->SetValue('IsAbsenkbetrieb', false);
                 $this->SetValue('HeatingStatus', '☀ Heizpause (Sommer) - Keine Absenkung');
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.");
+                $this->SLog('INFO', 'Sommerbetrieb aktiv, Heizkörper werden nicht abgesenkt.');
                 return;
             }
             
@@ -225,10 +228,10 @@ class SmartHomeHeating extends IPSModuleStrict
             if ($isVacation) {
                 $dateStr = ($vacationEndTime > 0) ? "bis ". date('d.m. H:i', $vacationEndTime) : "";
                 $this->SetValue('HeatingStatus', '🧳 Urlaub aktiv'. $dateStr . '('. $roomCount . 'Räume tief abgesenkt)');
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Urlaubs-Absenktemperatur aktiviert.");
+                $this->SLog('INFO', 'Urlaubs-Absenktemperatur aktiviert.');
             } else {
                 $this->SetValue('HeatingStatus', '🌙 Abwesenheit aktiv ('. $roomCount . 'Räume manuell abgesenkt)');
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Absenktemperatur (mit Manu-Modus) aktiviert.");
+                $this->SLog('INFO', 'Absenktemperatur (mit Manu-Modus) aktiviert.');
             }
         } else {
             // Modus 0 (Anwesenheit), 3 (Party), 4 (Heimkino), 6 (Putzen) -> Heizung normal!
@@ -236,7 +239,7 @@ class SmartHomeHeating extends IPSModuleStrict
             $isHeatingSeason = GetValue($this->GetIDForIdent('HeatingSeason'));
             if (!$isHeatingSeason) {
                 $this->SetValue('HeatingStatus', '☀ Heizpause (Sommer) - Inaktiv');
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Sommerbetrieb aktiv, keine Änderungen beim Statuswechsel.");
+                $this->SLog('INFO', 'Sommerbetrieb aktiv, keine Änderungen beim Statuswechsel.');
                 return;
             }
 
@@ -258,7 +261,7 @@ class SmartHomeHeating extends IPSModuleStrict
             }
             $this->WriteAttributeString('PreviousStates', '{}');
             $this->SetValue('HeatingStatus', '🟢 Normalbetrieb (Profil gesteuert)');
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeHeating: Normaltemperatur / Auto-Modus wiederhergestellt.");
+            $this->SLog('INFO', 'Normaltemperatur / Auto-Modus wiederhergestellt.');
         }
         $this->UpdateAverageTemperature();
     }
@@ -310,7 +313,7 @@ class SmartHomeHeating extends IPSModuleStrict
             if ($avg < $frostThreshold) {
                 if (!$this->GetValue('AlarmFrostWarning')) {
                     $this->SetValue('AlarmFrostWarning', true);
-                    IPS_LogMessage('SmartHomeHeating', "Frostgefahr erkannt! Ø-Temperatur ist $avg °C");
+                    $this->SLog('WARNING', "Frostgefahr erkannt! Ø-Temperatur ist $avg °C");
                 }
             } else {
                 if ($this->GetValue('AlarmFrostWarning')) {
@@ -330,6 +333,7 @@ class SmartHomeHeating extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeHeating: '. $Message);
         return true;
     }

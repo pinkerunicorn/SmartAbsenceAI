@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeLighting extends IPSModuleStrict
 {
+    use SmartLog_Trait;
     public function Create(): void
     {
         parent::Create();
@@ -205,14 +208,14 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->GenerateAiSchedule();
             IPS_SetEventActive($eid, true);
             $this->SetTimerInterval('LightExecutionTimer', 60000);
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Präsenzsimulation gestartet.");
+            $this->SLog('INFO', 'Präsenzsimulation gestartet.');
             $this->TurnOffAllSimulatedLights(); // Zuerst alles aus
             
             // Check if any lights are STILL on (meaning they were manually turned on and forgotten)
             $this->CalculateActiveLights();
             if ($this->GetValue('ActiveLightsCount') > 0) {
                 $this->SetValueIfChanged('AlarmLightsOnDuringAbsence', true);
-                IPS_LogMessage('SmartHomeLighting', "Alarm: Bei Abwesenheit ist noch Licht an!");
+                $this->SLog('WARNING', 'Alarm: Bei Abwesenheit ist noch Licht an!');
             }
         } else {
             // Wenn Präsenzsimulation lief, schalten wir sie ab
@@ -227,13 +230,13 @@ class SmartHomeLighting extends IPSModuleStrict
             
             if ($isSleep) { // Schlafen
                 $this->TurnOffAllSimulatedLights();
-                IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Schlafen aktiv - Alle Lichter aus.");
+                $this->SLog('INFO', 'Schlafen aktiv - Alle Lichter aus.');
             } else {
                 // Bei Rückkehr (0, 3, 4) machen wir die simulierten Lichter aus, 
                 // aber nur wenn die Simulation davor lief.
                 if ($wasActive) {
                     $this->TurnOffAllSimulatedLights(true);
-                    IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeLighting: Präsenzsimulation gestoppt und Lichter aus.");
+                    $this->SLog('INFO', 'Präsenzsimulation gestoppt und Lichter aus.');
                 }
             }
         }
@@ -531,6 +534,7 @@ class SmartHomeLighting extends IPSModuleStrict
 
     protected function LogMessage(string $Message, int $Type): bool
     {
+        $this->SLog('INFO', $Message);
         IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeLighting: '. $Message);
         return true;
     }
