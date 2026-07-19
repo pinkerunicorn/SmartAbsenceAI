@@ -1,14 +1,15 @@
 {
     "id": "{4C8B2A6D-9E3F-4A7B-8C5D-1F6E2A3B7C4D}",
-    "name": "SmartGeminiIO",
+    "name": "Smart Gemini IO",
     "type": 1,
-    "vendor": "",
-    "moduleType": 1,
-    "author": "Florian Graßinger",
+    "vendor": "Florian Graßinger",
     "url": "https://github.com/pinkerunicorn/",
-    "version": "1.0",
+    "aliases": [
+        "Smart Gemini IO"
+    ],
+    "parentRequirements": [],
+    "childRequirements": [],
+    "implemented": [],
     "prefix": "GIO",
-    "compatibility": {
-        "version": "8.0"
-    }
+    "author": "Florian Graßinger"
 }
