@@ -263,6 +263,9 @@ class SmartActiveLighting extends IPSModuleStrict
                 $isTrigger = $val;
             } elseif (is_int($val) || is_float($val)) {
                 $isTrigger = ($val > 0);
+            } elseif (is_string($val)) {
+                $lowerVal = strtolower(trim($val));
+                $isTrigger = in_array($lowerVal, ['true', 'open', 'on', '1', 'geöffnet']);
             }
 
             // Check if Sender is a Motion Sensor
