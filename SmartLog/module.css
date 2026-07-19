@@ -1,0 +1,376 @@
+/* ── SmartLog Tile View ── */
+
+:root {
+    --slog-bg: #1a1a2e;
+    --slog-surface: #16213e;
+    --slog-surface-hover: #1a2744;
+    --slog-border: #2a3a5c;
+    --slog-text: #e0e0e0;
+    --slog-text-muted: #8892a4;
+    --slog-accent: #3b82f6;
+
+    --slog-debug: #6B7280;
+    --slog-info: #3B82F6;
+    --slog-warning: #F59E0B;
+    --slog-error: #EF4444;
+
+    --slog-debug-bg: rgba(107, 114, 128, 0.10);
+    --slog-info-bg: rgba(59, 130, 246, 0.10);
+    --slog-warning-bg: rgba(245, 158, 11, 0.10);
+    --slog-error-bg: rgba(239, 68, 68, 0.10);
+
+    --slog-radius: 8px;
+    --slog-radius-sm: 4px;
+    --slog-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --slog-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.slog-container {
+    font-family: var(--slog-font);
+    background: var(--slog-bg);
+    color: var(--slog-text);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ── Header ── */
+.slog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--slog-surface);
+    border-bottom: 1px solid var(--slog-border);
+    flex-shrink: 0;
+}
+
+.slog-title {
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.slog-title-icon {
+    font-size: 18px;
+}
+
+.slog-badge {
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--slog-accent);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 24px;
+    text-align: center;
+}
+
+.slog-header-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.slog-btn {
+    background: var(--slog-border);
+    color: var(--slog-text);
+    border: none;
+    border-radius: var(--slog-radius-sm);
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: var(--slog-font);
+}
+
+.slog-btn:hover {
+    background: #3a4a6c;
+}
+
+.slog-btn-danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.slog-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.35);
+}
+
+/* ── Filter Bar ── */
+.slog-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--slog-surface);
+    border-bottom: 1px solid var(--slog-border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.slog-search {
+    flex: 1;
+    min-width: 120px;
+    background: var(--slog-bg);
+    border: 1px solid var(--slog-border);
+    border-radius: var(--slog-radius-sm);
+    padding: 5px 10px;
+    color: var(--slog-text);
+    font-size: 12px;
+    font-family: var(--slog-font);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.slog-search:focus {
+    border-color: var(--slog-accent);
+}
+
+.slog-search::placeholder {
+    color: var(--slog-text-muted);
+}
+
+.slog-filter-group {
+    display: flex;
+    gap: 4px;
+}
+
+.slog-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--slog-border);
+    background: transparent;
+    color: var(--slog-text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--slog-font);
+    user-select: none;
+}
+
+.slog-chip:hover {
+    border-color: var(--slog-text-muted);
+}
+
+.slog-chip.active {
+    border-color: transparent;
+    color: #fff;
+    font-weight: 500;
+}
+
+.slog-chip[data-level="DEBUG"].active {
+    background: var(--slog-debug);
+}
+
+.slog-chip[data-level="INFO"].active {
+    background: var(--slog-info);
+}
+
+.slog-chip[data-level="WARNING"].active {
+    background: var(--slog-warning);
+    color: #000;
+}
+
+.slog-chip[data-level="ERROR"].active {
+    background: var(--slog-error);
+}
+
+/* ── Source Filter ── */
+.slog-source-select {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: var(--slog-radius-sm);
+    border: 1px solid var(--slog-border);
+    background: var(--slog-bg);
+    color: var(--slog-text);
+    cursor: pointer;
+    font-family: var(--slog-font);
+    outline: none;
+    max-width: 150px;
+}
+
+/* ── Log List ── */
+.slog-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+}
+
+.slog-entry {
+    display: flex;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--slog-radius-sm);
+    margin-bottom: 4px;
+    border-left: 3px solid transparent;
+    transition: background 0.1s;
+    align-items: flex-start;
+}
+
+.slog-entry:hover {
+    background: var(--slog-surface-hover);
+}
+
+.slog-entry[data-level="DEBUG"] {
+    border-left-color: var(--slog-debug);
+    background: var(--slog-debug-bg);
+}
+
+.slog-entry[data-level="INFO"] {
+    border-left-color: var(--slog-info);
+    background: var(--slog-info-bg);
+}
+
+.slog-entry[data-level="WARNING"] {
+    border-left-color: var(--slog-warning);
+    background: var(--slog-warning-bg);
+}
+
+.slog-entry[data-level="ERROR"] {
+    border-left-color: var(--slog-error);
+    background: var(--slog-error-bg);
+}
+
+.slog-entry-level {
+    font-size: 14px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    line-height: 18px;
+}
+
+.slog-entry-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.slog-entry-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.slog-entry-source {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--slog-accent);
+    white-space: nowrap;
+    font-family: var(--slog-mono);
+}
+
+.slog-entry-time {
+    font-size: 10px;
+    color: var(--slog-text-muted);
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.slog-entry-message {
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.slog-entry-details {
+    font-size: 11px;
+    color: var(--slog-text-muted);
+    margin-top: 3px;
+    line-height: 1.3;
+    font-family: var(--slog-mono);
+    word-break: break-word;
+}
+
+/* ── Pagination ── */
+.slog-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--slog-surface);
+    border-top: 1px solid var(--slog-border);
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--slog-text-muted);
+}
+
+.slog-pagination-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.slog-pagination-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.slog-page-btn {
+    background: var(--slog-border);
+    color: var(--slog-text);
+    border: none;
+    border-radius: var(--slog-radius-sm);
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: var(--slog-font);
+}
+
+.slog-page-btn:hover:not(:disabled) {
+    background: #3a4a6c;
+}
+
+.slog-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* ── Empty State ── */
+.slog-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 32px;
+    color: var(--slog-text-muted);
+    text-align: center;
+}
+
+.slog-empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.slog-empty-text {
+    font-size: 14px;
+}
+
+/* ── Scrollbar ── */
+.slog-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.slog-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.slog-list::-webkit-scrollbar-thumb {
+    background: var(--slog-border);
+    border-radius: 3px;
+}
+
+.slog-list::-webkit-scrollbar-thumb:hover {
+    background: #4a5a7c;
+}

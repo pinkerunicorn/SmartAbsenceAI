@@ -51,13 +51,6 @@ class SmartHomeControl extends IPSModuleStrict
         
         // Timer für Kalender-Check
         $this->RegisterTimer('CalendarCheck', 0, 'SHC_CheckCalendar($_IPS[\'TARGET\']);');
-        
-        // Attribut für Log-Daten
-        $this->RegisterAttributeString('LogData', '[]');
-        
-        // HTML Log Variable
-        $this->RegisterVariableString('ControllerLog', '📝 System Log', '', 2);
-        IPS_SetIcon($this->GetIDForIdent('ControllerLog'), 'Gear');
     }
 
     public function ApplyChanges(): void
@@ -177,7 +170,7 @@ class SmartHomeControl extends IPSModuleStrict
                     $seqInst = $m['SequencerInstance'] ?? 0;
                     if ($seqInst > 0 && IPS_InstanceExists($seqInst) && function_exists('SHSQ_RunDeactivationSequence')) {
                         SHSQ_RunDeactivationSequence($seqInst);
-                        $this->AddLogEvent("Austritts-Sequenz für Modus '". $m['ModeName'] . "'ausgeführt.", '⏪');
+                        $this->SLog('INFO', "Austritts-Sequenz für Modus '" . $m['ModeName'] . "' ausgeführt.");
                     }
                     break;
                 }
@@ -224,7 +217,7 @@ class SmartHomeControl extends IPSModuleStrict
         $isAbsence = $currentModeConfig ? ($currentModeConfig['IsAbsence'] ?? ($mode == 1 || $mode == 2)) : ($mode == 1 || $mode == 2);
         $isSleep = $currentModeConfig ? ($currentModeConfig['IsSleep'] ?? ($mode == 5)) : ($mode == 5);
 
-        $this->AddLogEvent("Modus gewechselt auf: ". $modeName, '🏠');
+        $this->SLog('INFO', "Modus gewechselt auf: " . $modeName);
 
         if ($notifyHeating && $this->ReadPropertyBoolean('EnableHeating') && $heatingInst > 0 && IPS_InstanceExists($heatingInst) && function_exists('SHH_SetHouseMode')) {
             SHH_SetHouseMode($heatingInst, $mode, $isAbsence, $isSleep, $vacationEndTime);
@@ -266,7 +259,7 @@ class SmartHomeControl extends IPSModuleStrict
         
         if ($sequencerInst > 0 && IPS_InstanceExists($sequencerInst) && function_exists('SHSQ_RunSequence')) {
             SHSQ_RunSequence($sequencerInst);
-            $this->AddLogEvent("Eintritts-Sequenz ausgeführt.", '▶');
+            $this->SLog('INFO', 'Eintritts-Sequenz ausgeführt.');
         }
 
     }
@@ -275,14 +268,13 @@ class SmartHomeControl extends IPSModuleStrict
     {
         $url = $this->ReadPropertyString('CalendarURL');
         if (empty($url)) {
-            $this->AddLogEvent("SmartHomeControl: CheckCalendar - Keine iCal-URL hinterlegt.", 'ℹ');
+            $this->SLog('DEBUG', 'CheckCalendar: Keine iCal-URL hinterlegt.');
             return;
         }
         
         $icalData = @file_get_contents($url);
         if (!$icalData) {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Konnte iCal-Daten nicht abrufen.");
-            $this->AddLogEvent("SmartHomeControl: Fehler: Konnte Kalenderdaten nicht abrufen.", '❌');
+            $this->SLog('ERROR', 'CheckCalendar: Konnte Kalenderdaten nicht abrufen.');
             return;
         }
         
@@ -336,63 +328,30 @@ class SmartHomeControl extends IPSModuleStrict
         $currentMode = GetValue($this->GetIDForIdent('HouseMode'));
         
         if ($vacationFound && $currentMode !== 2) {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin gefunden! Wechsle in Modus Urlaub (Ende: ". date('d.m.Y H:i', $vacationEndTime) . ").");
-            $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus (Ende: ". date('d.m. H:i', $vacationEndTime) . ").", '🧳');
+            $this->SLog('INFO', 'Kalender: Urlaubstermin aktiv! Wechsle in den Urlaubs-Modus.', 'Ende: ' . date('d.m. H:i', $vacationEndTime));
             $this->SetHouseMode(2, $vacationEndTime);
         } elseif (!$vacationFound && $currentMode === 2) {
-            IPS_LogMessage('SmartVillaKunterbunt', "SmartHomeControl: CheckCalendar - Urlaubstermin beendet! Wechsle zurück in Modus Anwesenheit.");
-            $this->AddLogEvent("SmartHomeControl: Kalender: Urlaubstermin beendet! Wechsle zurück auf Anwesenheit.", '🟢');
+            $this->SLog('INFO', 'Kalender: Urlaubstermin beendet! Wechsle zurück auf Anwesenheit.');
             $this->SetHouseMode(0);
         } elseif (!$vacationFound) {
-            $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Aktuell ist kein Urlaub eingetragen.", '📅');
+            $this->SLog('DEBUG', 'Kalender geprüft: Aktuell ist kein Urlaub eingetragen.');
         } else {
-            $this->AddLogEvent("SmartHomeControl: Kalender geprüft: Urlaub ist aktiv (Ende: ". date('d.m. H:i', $vacationEndTime) . ").", '📅');
+            $this->SLog('DEBUG', 'Kalender geprüft: Urlaub ist aktiv.', 'Ende: ' . date('d.m. H:i', $vacationEndTime));
         }
     }
 
-    private function AddLogEvent(string $message, string $icon = 'ℹ'): void
+    /**
+     * Sendet eine Logmeldung an das zentrale SmartLog-Modul.
+     * Fallback auf IPS_LogMessage wenn SmartLog nicht verfügbar.
+     */
+    private function SLog(string $level, string $message, string $details = ''): void
     {
-        $logJson = $this->ReadAttributeString('LogData');
-        $log = json_decode($logJson, true);
-        if (!is_array($log)) $log = [];
-        
-        array_unshift($log, [
-            'time'=> time(),
-            'msg'=> $message,
-            'icon'=> $icon
-        ]);
-        
-        if (count($log) > 50) {
-            $log = array_slice($log, 0, 50);
+        $slogInstances = IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
+        if (count($slogInstances) > 0) {
+            SLOG_Log($slogInstances[0], $level, 'SmartHomeControl', $message, $details);
+        } else {
+            IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeControl: ' . $message);
         }
-        
-        $this->WriteAttributeString('LogData', json_encode($log));
-        $this->RenderLog($log);
-    }
-
-    private function RenderLog(array $log): void
-    {
-        if (count($log) === 0) {
-            $this->SetValue('ControllerLog', '<div style="padding: 10px; color: #888;">Noch keine Ereignisse protokolliert.</div>');
-            return;
-        }
-
-        $html = '<div style="display: flex; flex-direction: column; gap: 8px; padding: 5px;">';
-        foreach ($log as $entry) {
-            $timeStr = date('d.m.Y H:i:s', $entry['time']);
-            $msg = htmlspecialchars($entry['msg']);
-            $icon = $entry['icon'];
-
-            $html .= '<div style="background: rgba(255,255,255,0.05); border-left: 3px solid #00a8ff; padding: 8px 12px; border-radius: 4px;">';
-            $html .= '<div style="font-size: 0.8em; color: #aaa; margin-bottom: 3px;">'. $timeStr . '</div>';
-            $html .= '<div style="display: flex; align-items: center; gap: 8px;">';
-            $html .= '<span style="font-size: 1.2em;">'. $icon . '</span>';
-            $html .= '<span>'. $msg . '</span>';
-            $html .= '</div></div>';
-        }
-        $html .= '</div>';
-
-        $this->SetValue('ControllerLog', $html);
     }
 
     protected function LogMessage(string $Message, int $Type): bool

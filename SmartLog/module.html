@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+%%MODULE_CSS%%
+</head>
+<body>
+<div class="slog-container" id="slog-app">
+
+    <!-- Header -->
+    <div class="slog-header">
+        <div class="slog-title">
+            <span class="slog-title-icon">📋</span>
+            <span>Smart Log</span>
+            <span class="slog-badge" id="slog-count">0</span>
+        </div>
+        <div class="slog-header-actions">
+            <button class="slog-btn slog-btn-danger" onclick="slogClearLog()" title="Log leeren">🗑️</button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="slog-filters">
+        <input type="text" class="slog-search" id="slog-search" placeholder="🔍 Suche..." />
+        <div class="slog-filter-group" id="slog-level-chips"></div>
+        <select class="slog-source-select" id="slog-source-select" title="Quelle filtern">
+            <option value="">Alle Quellen</option>
+        </select>
+    </div>
+
+    <!-- Log List -->
+    <div class="slog-list" id="slog-list"></div>
+
+    <!-- Pagination -->
+    <div class="slog-pagination">
+        <div class="slog-pagination-info">
+            <span id="slog-page-info">—</span>
+        </div>
+        <div class="slog-pagination-buttons">
+            <button class="slog-page-btn" id="slog-prev" onclick="slogPrevPage()" disabled>◀ Neuer</button>
+            <button class="slog-page-btn" id="slog-next" onclick="slogNextPage()" disabled>Älter ▶</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // ── State ──
+    let state = {};
+    let searchTimer = null;
+
+    // ── Init ──
+    const initialData = %%INITIAL_DATA%%;
+    state = initialData;
+    render();
+
+    // ── IPS Tile View Bridge ──
+    // Empfängt Updates vom Backend via UpdateVisualizationValue
+    window.handleMessage = function(rawData) {
+        try {
+            const data = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+            if (data && data.ok) {
+                state = data;
+                render();
+            }
+        } catch (e) {
+            console.error('SmartLog: handleMessage parse error', e);
+        }
+    };
+
+    // ── Render ──
+    function render() {
+        renderCount();
+        renderLevelChips();
+        renderSourceSelect();
+        renderList();
+        renderPagination();
+    }
+
+    function renderCount() {
+        const el = document.getElementById('slog-count');
+        if (el) el.textContent = state.gesamtEintraege || 0;
+    }
+
+    function renderLevelChips() {
+        const container = document.getElementById('slog-level-chips');
+        if (!container) return;
+
+        const levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR'];
+        const icons = state.levelIcons || {};
+        const activeFilters = state.levelFilter || [];
+
+        container.innerHTML = levels.map(function(level) {
+            const isActive = activeFilters.indexOf(level) !== -1;
+            return '<button class="slog-chip' + (isActive ? ' active' : '') + '" data-level="' + level + '" onclick="slogToggleLevel(\'' + level + '\')">'
+                + (icons[level] || '') + ' ' + level
+                + '</button>';
+        }).join('');
+    }
+
+    function renderSourceSelect() {
+        const select = document.getElementById('slog-source-select');
+        if (!select) return;
+
+        const sources = state.verfuegbareSources || [];
+        const activeSource = (state.sourceFilter && state.sourceFilter.length > 0) ? state.sourceFilter[0] : '';
+
+        let html = '<option value="">Alle Quellen (' + sources.length + ')</option>';
+        sources.forEach(function(s) {
+            const selected = (s === activeSource) ? ' selected' : '';
+            html += '<option value="' + escapeHtml(s) + '"' + selected + '>' + escapeHtml(s) + '</option>';
+        });
+
+        select.innerHTML = html;
+        select.onchange = function() {
+            slogFilterSource(this.value);
+        };
+    }
+
+    function renderList() {
+        const container = document.getElementById('slog-list');
+        if (!container) return;
+
+        const zeilen = state.zeilen || [];
+        const colors = state.levelColors || {};
+        const icons = state.levelIcons || {};
+
+        if (zeilen.length === 0) {
+            container.innerHTML = '<div class="slog-empty">'
+                + '<div class="slog-empty-icon">📋</div>'
+                + '<div class="slog-empty-text">Noch keine Log-Einträge</div>'
+                + '</div>';
+            return;
+        }
+
+        let html = '';
+        zeilen.forEach(function(entry) {
+            const level = entry.l || 'INFO';
+            const icon = icons[level] || 'ℹ️';
+            const source = entry.s || '?';
+            const message = entry.m || '';
+            const details = entry.d || '';
+            const time = formatTime(entry.t || 0);
+
+            html += '<div class="slog-entry" data-level="' + level + '">'
+                + '<div class="slog-entry-level">' + icon + '</div>'
+                + '<div class="slog-entry-body">'
+                + '<div class="slog-entry-header">'
+                + '<span class="slog-entry-source">' + escapeHtml(source) + '</span>'
+                + '<span class="slog-entry-time">' + time + '</span>'
+                + '</div>'
+                + '<div class="slog-entry-message">' + escapeHtml(message) + '</div>'
+                + (details ? '<div class="slog-entry-details">' + escapeHtml(details) + '</div>' : '')
+                + '</div>'
+                + '</div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    function renderPagination() {
+        const info = document.getElementById('slog-page-info');
+        const prevBtn = document.getElementById('slog-prev');
+        const nextBtn = document.getElementById('slog-next');
+
+        const seite = state.seite || 0;
+        const gesamtSeiten = state.gesamtSeiten || 1;
+        const gesamtTreffer = state.gesamtTreffer || 0;
+
+        if (info) {
+            info.textContent = 'Seite ' + (seite + 1) + ' / ' + gesamtSeiten + ' (' + gesamtTreffer + ' Treffer)';
+        }
+
+        if (prevBtn) prevBtn.disabled = (seite <= 0);
+        if (nextBtn) nextBtn.disabled = (seite >= gesamtSeiten - 1);
+    }
+
+    // ── Actions ──
+    window.slogToggleLevel = function(level) {
+        const filters = state.levelFilter ? state.levelFilter.slice() : [];
+        const idx = filters.indexOf(level);
+        if (idx !== -1) {
+            filters.splice(idx, 1);
+        } else {
+            filters.push(level);
+        }
+        requestAction('FilterLevel', JSON.stringify(filters));
+    };
+
+    window.slogFilterSource = function(source) {
+        const arr = source ? [source] : [];
+        requestAction('FilterSource', JSON.stringify(arr));
+    };
+
+    window.slogClearLog = function() {
+        requestAction('ClearLog', '1');
+    };
+
+    window.slogPrevPage = function() {
+        const seite = Math.max(0, (state.seite || 0) - 1);
+        requestAction('Seite', seite.toString());
+    };
+
+    window.slogNextPage = function() {
+        const seite = (state.seite || 0) + 1;
+        requestAction('Seite', seite.toString());
+    };
+
+    // ── Search with debounce ──
+    const searchInput = document.getElementById('slog-search');
+    if (searchInput) {
+        searchInput.value = state.textFilter || '';
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                requestAction('FilterText', searchInput.value);
+            }, 400);
+        });
+    }
+
+    // ── Helpers ──
+    function requestAction(ident, value) {
+        if (typeof window.requestActionIPS === 'function') {
+            // IP-Symcon Tile View Bridge
+            window.requestActionIPS(ident, value);
+        } else if (typeof window.parent !== 'undefined' && typeof window.parent.requestAction === 'function') {
+            window.parent.requestAction(ident, value);
+        }
+    }
+
+    function formatTime(ts) {
+        if (!ts) return '';
+        const d = new Date(ts * 1000);
+        const day = String(d.getDate()).padStart(2, '0');
+        const mon = String(d.getMonth() + 1).padStart(2, '0');
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        const s = String(d.getSeconds()).padStart(2, '0');
+        return day + '.' + mon + '. ' + h + ':' + m + ':' + s;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+})();
+</script>
+</body>
+</html>
