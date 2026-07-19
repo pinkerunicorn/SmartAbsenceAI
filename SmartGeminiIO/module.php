@@ -99,8 +99,7 @@ class SmartGeminiIO extends IPSModuleStrict
                 ]
             ],
             'generationConfig' => [
-                'temperature'      => $temperature,
-                'responseMimeType' => 'application/json'
+                'temperature' => $temperature
             ]
         ];
 
@@ -113,7 +112,9 @@ class SmartGeminiIO extends IPSModuleStrict
         if (!empty($schemaJson)) {
             $schema = json_decode($schemaJson, true);
             if (is_array($schema)) {
-                $payload['generationConfig']['responseSchema'] = $schema;
+                // JSON-Modus nur aktivieren wenn ein Schema mitgegeben wird
+                $payload['generationConfig']['responseMimeType'] = 'application/json';
+                $payload['generationConfig']['responseSchema']   = $schema;
             }
         }
 
