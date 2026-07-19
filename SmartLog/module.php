@@ -40,6 +40,7 @@ class SmartLog extends IPSModuleStrict
         // Properties
         $this->RegisterPropertyInteger('MaxEntries', 200);
         $this->RegisterPropertyInteger('AutoRefreshSekunden', 10);
+        $this->RegisterPropertyBoolean('MirrorToSyslog', false);
 
         // Attribute (persistenter Speicher)
         $this->RegisterAttributeString(self::ATTR_LOG_DATA, '[]');
@@ -123,8 +124,10 @@ class SmartLog extends IPSModuleStrict
         // Tile View aktualisieren
         $this->aktualisiereVisualisierung();
 
-        // Auch ins Symcon-Systemlog schreiben
-        IPS_LogMessage('SmartVillaKunterbunt', "{$source}: {$message}");
+        // Optional ins Symcon-Systemlog schreiben
+        if ($this->ReadPropertyBoolean('MirrorToSyslog')) {
+            IPS_LogMessage('SmartVillaKunterbunt', "{$source}: {$message}");
+        }
     }
 
     public function Debug(string $source, string $message, string $details = ''): void
