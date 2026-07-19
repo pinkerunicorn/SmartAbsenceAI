@@ -132,30 +132,33 @@ class SmartGeminiIO extends IPSModuleStrict
         $this->SetValue('TotalRequests', $this->GetValue('TotalRequests') + 1);
         $this->SetValue('LastModel', $model);
 
-        // HTTP POST (synchron)
-        $context = stream_context_create([
-            'http' => [
-                'method'        => 'POST',
-                'header'        => "Content-Type: application/json\r\n",
-                'content'       => $jsonPayload,
-                'timeout'       => $timeout,
-                'ignore_errors' => true
-            ]
+        // HTTP POST via cURL (synchron)
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonPayload);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json'
         ]);
 
-        $rawResponse = @file_get_contents($url, false, $context);
-
-        // HTTP Status Code auslesen
+        $rawResponse = curl_exec($ch);
         $httpCode = 0;
-        if (!empty($http_response_header)) {
-            if (preg_match('/HTTP\/\d[\.\d]* (\d+)/', $http_response_header[0], $m)) {
-                $httpCode = (int)$m[1];
-            }
+        $curlError = '';
+
+        if ($rawResponse === false) {
+            $curlError = curl_error($ch);
+        } else {
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         }
+        curl_close($ch);
 
         if ($rawResponse === false || $httpCode !== 200) {
             $errorMsg = "Gemini API Fehler (HTTP $httpCode)";
-            if ($rawResponse !== false) {
+            if ($rawResponse === false) {
+                $errorMsg .= ': cURL Error - ' . $curlError;
+            } else {
                 $errData = json_decode($rawResponse, true);
                 if (isset($errData['error']['message'])) {
                     $errorMsg .= ': ' . $errData['error']['message'];
