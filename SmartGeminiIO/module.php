@@ -110,11 +110,16 @@ class SmartGeminiIO extends IPSModuleStrict
         }
 
         if (!empty($schemaJson)) {
-            $schema = json_decode($schemaJson, true);
-            if (is_array($schema)) {
-                // JSON-Modus nur aktivieren wenn ein Schema mitgegeben wird
+            if ($schemaJson === 'application/json') {
+                // JSON-Modus ohne Schema (Gemini gibt freies JSON zurück)
                 $payload['generationConfig']['responseMimeType'] = 'application/json';
-                $payload['generationConfig']['responseSchema']   = $schema;
+            } else {
+                $schema = json_decode($schemaJson, true);
+                if (is_array($schema)) {
+                    // JSON-Modus mit strukturiertem Schema
+                    $payload['generationConfig']['responseMimeType'] = 'application/json';
+                    $payload['generationConfig']['responseSchema']   = $schema;
+                }
             }
         }
 

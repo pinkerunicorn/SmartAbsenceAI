@@ -8,8 +8,7 @@ class SmartHomeLighting extends IPSModuleStrict
     {
         parent::Create();
 
-        $this->RegisterPropertyString('GeminiAPIKey', '');
-        $this->RegisterPropertyString('GeminiModel', 'gemini-3.5-flash');
+        // Gemini API-Key und Modell werden zentral über SmartGeminiIO konfiguriert.
         $this->RegisterPropertyInteger('SunsetVariableID', 0);
         $this->RegisterPropertyInteger('ArchiveControlID', 0);
         $this->RegisterPropertyString('LightVariables', '[]');
@@ -30,8 +29,8 @@ class SmartHomeLighting extends IPSModuleStrict
         IPS_SetIcon($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), 'Warning');
         $this->EnableAction('AlarmLightsOnDuringAbsence');
         
-        $this->RegisterVariableString('VestaboardStatus', 'Kurz-Status (Vestaboard)', '', 6);
-        IPS_SetIcon($this->GetIDForIdent('VestaboardStatus'), 'Information');
+        $this->RegisterVariableString('VestaboardMessage', 'Vestaboard Nachricht', '', 6);
+        IPS_SetIcon($this->GetIDForIdent('VestaboardMessage'), 'Information');
 
         $this->RegisterTimer('LightExecutionTimer', 0, 'SHL_CheckAndExecuteLightSchedule($_IPS[\'TARGET\']);');
         $this->RegisterTimer('GeminiRetryTimer', 0, 'SHL_GenerateAiSchedule($_IPS[\'TARGET\'], true);');
@@ -77,13 +76,13 @@ class SmartHomeLighting extends IPSModuleStrict
         $this->MaintainVariable('GeminiError', 'Fehler aufgetreten', 0, '', 2, true);
         $this->MaintainVariable('ActiveLightsCount', 'Aktive Lampen (Zähler)', 1, '', 3, true);
         $this->MaintainVariable('ActiveLightsList', 'Aktive Lampen (Namen)', 3, '', 4, true);
-        $this->MaintainVariable('VestaboardStatus', 'Kurz-Status (Vestaboard)', 3, '', 5, true);
+        $this->MaintainVariable('VestaboardMessage', 'Vestaboard Nachricht', 3, '', 5, true);
 
         IPS_SetIcon($this->GetIDForIdent('LightScheduleStatus'), 'Clock');
         IPS_SetIcon($this->GetIDForIdent('GeminiError'), 'Warning');
         IPS_SetIcon($this->GetIDForIdent('ActiveLightsCount'), 'Bulb');
         IPS_SetIcon($this->GetIDForIdent('ActiveLightsList'), 'Bulb');
-        IPS_SetIcon($this->GetIDForIdent('VestaboardStatus'), 'Information');
+        IPS_SetIcon($this->GetIDForIdent('VestaboardMessage'), 'Information');
         IPS_SetIcon($this->GetIDForIdent('AlarmLightsOnDuringAbsence'), 'Warning');
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('GeminiError'), [
@@ -101,9 +100,9 @@ class SmartHomeLighting extends IPSModuleStrict
             'PRESENTATION'=> VARIABLE_PRESENTATION_SWITCH
         ]);
 
-        $apiKey = $this->ReadPropertyString('GeminiAPIKey');
-        if (empty($apiKey)) {
-            $this->SetStatus(201);
+        $geminiInstances = IPS_GetInstanceListByModuleID('{4C8B2A6D-9E3F-4A7B-8C5D-1F6E2A3B7C4D}');
+        if (empty($geminiInstances)) {
+            $this->SetStatus(201); // Inactive — SmartGeminiIO fehlt
             return;
         }
 
@@ -175,12 +174,12 @@ class SmartHomeLighting extends IPSModuleStrict
         
         if ($count == 0) {
             $this->SetValueIfChanged('ActiveLightsList', 'Alle aus');
-            $this->SetValueIfChanged('VestaboardStatus', '');
+            $this->SetValueIfChanged('VestaboardMessage', '');
         } else {
             $namesStr = implode(", ", $activeNames);
             $this->SetValueIfChanged('ActiveLightsList', $namesStr);
             $suffix = ($count == 1) ? ' Lampe an' : ' Lampen an';
-            $this->SetValueIfChanged('VestaboardStatus', $count . $suffix);
+            $this->SetValueIfChanged('VestaboardMessage', $count . $suffix);
         }
     }
 
@@ -247,14 +246,19 @@ class SmartHomeLighting extends IPSModuleStrict
             $this->SetTimerInterval('GeminiRetryTimer', 0);
         }
 
-        $apiKey = $this->ReadPropertyString('GeminiAPIKey');
+        $geminiInstances = IPS_GetInstanceListByModuleID('{4C8B2A6D-9E3F-4A7B-8C5D-1F6E2A3B7C4D}');
+        if (empty($geminiInstances)) {
+            $this->SetValue('GeminiError', true);
+            return;
+        }
+        $geminiId = $geminiInstances[0];
         $sunsetVarId = $this->ReadPropertyInteger('SunsetVariableID');
         $archiveId = $this->ReadPropertyInteger('ArchiveControlID');
 
         $this->SetValue('GeminiError', false);
         $this->SetValue('LightScheduleStatus', 'Starte KI-Generierung... Bitte warten.');
 
-        if (empty($apiKey) || $sunsetVarId == 0 || $archiveId == 0) {
+        if ($sunsetVarId == 0 || $archiveId == 0) {
             $this->SetValue('GeminiError', true);
             return;
         }
@@ -327,93 +331,59 @@ class SmartHomeLighting extends IPSModuleStrict
         $prompt .= "Antworte AUSSCHLIESSLICH im folgenden JSON Format (ohne Markdown, ohne Erklärungen), verwende für 'device'zwingend die übermittelte numerische ID:\n";
         $prompt .= "[ {\"time\":\"HH:MM\", \"device\": 12345, \"state\": true/false/dimvalue} ]";
 
-        $model = $this->ReadPropertyString('GeminiModel');
-        if (empty($model)) $model = 'gemini-3.5-flash';
-
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/". $model . ":generateContent?key=". $apiKey;
-        $payload = [
-            "contents"=> [["parts"=> [["text"=> $prompt]]]],
-            "generationConfig"=> ["response_mime_type"=> "application/json"]
-        ];
-
-        $payloadJson = json_encode($payload);
-
-        // Asynchroner Aufruf über IPS_RunScriptText, um den IP-Symcon Thread nicht zu blockieren
+        // Async via SmartGeminiIO — 'application/json' = JSON-Modus ohne formales Schema
+        $instanceId = $this->InstanceID;
         $script = '<?php
-            $ch = curl_init("'. $url . '");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, '. var_export($payloadJson, true) . ');
-            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-            $response = curl_exec($ch);
-            $error = curl_error($ch);
-            curl_close($ch);
-            
-            if ($error) {
-                SHL_ProcessGeminiResponse('. $this->InstanceID . ', json_encode(["error"=> "cURL Fehler: ". $error]));
-            } else {
-                SHL_ProcessGeminiResponse('. $this->InstanceID . ', $response);
-            }
+            $result = GIO_Query(' . $geminiId . ',
+                ' . var_export($prompt, true) . ',
+                \'Du bist eine Smart Home KI. Antworte AUSSCHLIESSLICH mit einem JSON-Array ohne Markdown.\',
+                \'application/json\',
+                0.2
+            );
+            SHL_ProcessGeminiResult(' . $instanceId . ', $result);
         ';
         IPS_RunScriptText($script);
     }
 
-    public function ProcessGeminiResponse(string $response): void
+    public function ProcessGeminiResult(string $scheduleJson): void
     {
-        if (!$response) {
-            $this->HandleGeminiError("Keine Antwort erhalten.");
+        if (empty($scheduleJson)) {
+            $this->HandleGeminiError('SmartGeminiIO lieferte keine Antwort.');
             return;
         }
 
-        $json = json_decode($response, true);
-        if (isset($json["error"]) && is_string($json["error"]) && strpos($json["error"], "cURL") !== false) {
-            $this->HandleGeminiError($json["error"]);
-            return;
-        }
+        $scheduleArray = json_decode($scheduleJson, true);
+        if (is_array($scheduleArray)) {
+            $this->WriteAttributeString('LightSchedule', json_encode($scheduleArray));
+            $this->SetBuffer('GeminiRetryCount', '0');
+            $this->SetTimerInterval('GeminiRetryTimer', 0);
+            $this->SetValue('GeminiError', false);
 
-        if (isset($json['candidates'][0]['content']['parts'][0]['text'])) {
-            $scheduleText = $json['candidates'][0]['content']['parts'][0]['text'];
-            $scheduleArray = json_decode($scheduleText, true);
-            if (is_array($scheduleArray)) {
-                $this->WriteAttributeString('LightSchedule', json_encode($scheduleArray));
-                $this->SetBuffer('GeminiRetryCount', '0');
-                $this->SetTimerInterval('GeminiRetryTimer', 0);
-                $this->SetValue('GeminiError', false);
+            $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
+            if (!is_array($lightVars)) $lightVars = [];
+            $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
+            if (!is_array($dimmerVars)) $dimmerVars = [];
 
-                $lightVars = json_decode($this->ReadPropertyString('LightVariables'), true);
-                if (!is_array($lightVars)) $lightVars = [];
-                $dimmerVars = json_decode($this->ReadPropertyString('DimmerVariables'), true);
-                if (!is_array($dimmerVars)) $dimmerVars = [];
-                
-                $allVars = array_merge($lightVars, $dimmerVars);
-                $lightNames = [];
-                if (is_array($allVars)) {
-                    foreach ($allVars as $l) {
-                        if (isset($l['Name']) && $l['Name'] != "") {
-                            $lightNames[$l['VariableID']] = $l['Name'];
-                        }
-                    }
+            $allVars = array_merge($lightVars, $dimmerVars);
+            $lightNames = [];
+            foreach ($allVars as $l) {
+                if (isset($l['Name']) && $l['Name'] != "") {
+                    $lightNames[$l['VariableID']] = $l['Name'];
                 }
-
-                $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
-                foreach ($scheduleArray as $action) {
-                    $state = $action['state'] ? "AN": "AUS";
-                    if (is_numeric($action['state']) && $action['state'] > 1) {
-                        $state = "Wert: ". $action['state'];
-                    }
-                    $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät ". $action['device'];
-                    $formattedSchedule .= "- ". $action['time'] . "Uhr: ". $devName . "-> ". $state . "\n";
-                }
-                $this->SetValue('LightScheduleStatus', $formattedSchedule);
-            } else {
-                $this->HandleGeminiError("Ungültiges JSON empfangen.");
             }
-        } else if (isset($json['error'])) {
-            $this->HandleGeminiError("Gemini API Error: ". json_encode($json['error']));
+
+            $formattedSchedule = "Geplante Schaltvorgänge für heute:\n";
+            foreach ($scheduleArray as $action) {
+                $state = $action['state'] ? "AN" : "AUS";
+                if (is_numeric($action['state']) && $action['state'] > 1) {
+                    $state = "Wert: " . $action['state'];
+                }
+                $devName = isset($lightNames[$action['device']]) ? $lightNames[$action['device']] : "Gerät " . $action['device'];
+                $formattedSchedule .= "- " . $action['time'] . "Uhr: " . $devName . "-> " . $state . "\n";
+            }
+            $this->SetValue('LightScheduleStatus', $formattedSchedule);
         } else {
-            $this->HandleGeminiError("Unerwartete Antwortstruktur.");
+            $this->HandleGeminiError("Ungültiges JSON empfangen.");
         }
     }
 
@@ -575,33 +545,8 @@ class SmartHomeLighting extends IPSModuleStrict
             "caption": "⚙ Allgemeine Einstellungen",
             "items": [
                 {
-                    "type": "RowLayout",
-                    "items": [
-                        {
-                            "type": "ValidationTextBox",
-                            "name": "GeminiAPIKey",
-                            "caption": "Gemini API Key"
-                        },
-                        {
-                            "type": "Select",
-                            "name": "GeminiModel",
-                            "caption": "Gemini Modell",
-                            "options": [
-                                {
-                                    "caption": "Gemini 3.5 Flash",
-                                    "value": "gemini-3.5-flash"
-                                },
-                                {
-                                    "caption": "Gemini 2.5 Flash",
-                                    "value": "gemini-2.5-flash"
-                                },
-                                {
-                                    "caption": "Gemini 2.5 Flash Preview",
-                                    "value": "gemini-2.5-flash-preview-09-2025"
-                                }
-                            ]
-                        }
-                    ]
+                    "type": "Label",
+                    "caption": "API-Key und Modell werden zentral über die 'Smart Gemini IO' Instanz konfiguriert."
                 },
                 {
                     "type": "RowLayout",
