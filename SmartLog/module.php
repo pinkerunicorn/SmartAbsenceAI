@@ -392,6 +392,11 @@ class SmartLog extends IPSModuleStrict
             "caption": "Auto-Refresh (Sekunden, 0 = aus)",
             "minimum": 0,
             "maximum": 300
+        },
+        {
+            "type": "CheckBox",
+            "name": "MirrorToSyslog",
+            "caption": "Logs zusätzlich ins IP-Symcon Syslog schreiben"
         }
     ],
     "actions": [
