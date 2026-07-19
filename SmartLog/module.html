@@ -187,26 +187,26 @@
         } else {
             filters.push(level);
         }
-        requestAction('FilterLevel', JSON.stringify(filters));
+        sendAction('FilterLevel', JSON.stringify(filters));
     };
 
     window.slogFilterSource = function(source) {
         const arr = source ? [source] : [];
-        requestAction('FilterSource', JSON.stringify(arr));
+        sendAction('FilterSource', JSON.stringify(arr));
     };
 
     window.slogClearLog = function() {
-        requestAction('ClearLog', '1');
+        sendAction('ClearLog', '1');
     };
 
     window.slogPrevPage = function() {
         const seite = Math.max(0, (state.seite || 0) - 1);
-        requestAction('Seite', seite.toString());
+        sendAction('Seite', seite.toString());
     };
 
     window.slogNextPage = function() {
         const seite = (state.seite || 0) + 1;
-        requestAction('Seite', seite.toString());
+        sendAction('Seite', seite.toString());
     };
 
     // ── Search with debounce ──
@@ -216,18 +216,19 @@
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(function() {
-                requestAction('FilterText', searchInput.value);
+                sendAction('FilterText', searchInput.value);
             }, 400);
         });
     }
 
     // ── Helpers ──
-    function requestAction(ident, value) {
-        if (typeof window.requestActionIPS === 'function') {
-            // IP-Symcon Tile View Bridge
-            window.requestActionIPS(ident, value);
-        } else if (typeof window.parent !== 'undefined' && typeof window.parent.requestAction === 'function') {
-            window.parent.requestAction(ident, value);
+    function sendAction(ident, value) {
+        if (typeof window.requestAction === 'function') {
+            window.requestAction(ident, value);
+        } else if (typeof requestAction === 'function') {
+            requestAction(ident, value);
+        } else {
+            console.error('IP-Symcon requestAction not found!');
         }
     }
 
