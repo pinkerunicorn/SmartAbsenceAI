@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
+
 class SmartHomeControl extends IPSModuleStrict
 {
+    use SmartLog_Trait;
+
     public function Create(): void
     {
         parent::Create();
@@ -340,19 +344,6 @@ class SmartHomeControl extends IPSModuleStrict
         }
     }
 
-    /**
-     * Sendet eine Logmeldung an das zentrale SmartLog-Modul.
-     * Fallback auf IPS_LogMessage wenn SmartLog nicht verfügbar.
-     */
-    private function SLog(string $level, string $message, string $details = ''): void
-    {
-        $slogInstances = IPS_GetInstanceListByModuleID('{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}');
-        if (count($slogInstances) > 0) {
-            SLOG_Log($slogInstances[0], $level, 'SmartHomeControl', $message, $details);
-        } else {
-            IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeControl: ' . $message);
-        }
-    }
 
     protected function LogMessage(string $Message, int $Type): bool
     {
