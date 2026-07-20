@@ -418,7 +418,9 @@ class SmartHomeLighting extends IPSModuleStrict
         foreach ($schedule as $action) {
             if ($action['time'] == $currentTime) {
                 if (IPS_VariableExists($action['device'])) {
-                    RequestAction($action['device'], $action['state']);
+                    if (!@RequestAction($action['device'], $action['state'])) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: " . $action['device'] . " | Wert: " . var_export($action['state'], true));
+                    }
                 }
                 $executedSomething = true;
             } else {
@@ -475,9 +477,13 @@ class SmartHomeLighting extends IPSModuleStrict
                 if ($id > 0 && IPS_VariableExists($id)) {
                     $varObj = IPS_GetVariable($id);
                     if ($varObj['VariableType'] == 0) {
-                        @RequestAction($id, false);
+                        if (!@RequestAction($id, false)) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $id | Wert: false");
+                        }
                     } else {
-                        @RequestAction($id, 0);
+                        if (!@RequestAction($id, 0)) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $id | Wert: 0");
+                        }
                     }
                     IPS_Sleep(100);
                 }
@@ -492,7 +498,9 @@ class SmartHomeLighting extends IPSModuleStrict
                 }
                 $id = $light['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
-                    @RequestAction($id, 0);
+                    if (!@RequestAction($id, 0)) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $id | Wert: 0");
+                    }
                     IPS_Sleep(100);
                 }
             }

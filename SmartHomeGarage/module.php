@@ -186,7 +186,9 @@ class SmartHomeGarage extends IPSModuleStrict
     {
         $motorId = $this->ReadPropertyInteger('MotorVariableID');
         if ($motorId > 0 && IPS_VariableExists($motorId)) {
-            @RequestAction($motorId, true);
+            if (!@RequestAction($motorId, true)) {
+                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $motorId | Wert: true");
+            }
             $this->SetTimerInterval('RelayOffTimer', 1000); // Trigger release after 1s
         } else {
             $this->SLog('ERROR', 'Fehler - Kein Motor-Aktor konfiguriert.');
@@ -220,7 +222,9 @@ class SmartHomeGarage extends IPSModuleStrict
         $this->SetTimerInterval('RelayOffTimer', 0); // Disable timer
         $motorId = $this->ReadPropertyInteger('MotorVariableID');
         if ($motorId > 0 && IPS_VariableExists($motorId)) {
-            @RequestAction($motorId, false);
+            if (!@RequestAction($motorId, false)) {
+                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $motorId | Wert: false");
+            }
         }
     }
 
@@ -323,7 +327,9 @@ class SmartHomeGarage extends IPSModuleStrict
         foreach ($leds as $led) {
             $instId = $led['InstanceID'];
             if ($instId > 0 && IPS_InstanceExists($instId)) {
-                @HM_WriteValueString($instId, 'COMBINED_PARAMETER', $string);
+                if (!@HM_WriteValueString($instId, 'COMBINED_PARAMETER', $string)) {
+                    $this->SLog('WARNING', 'HM-Befehl fehlgeschlagen', "Instanz: $instId");
+                }
             }
         }
     }

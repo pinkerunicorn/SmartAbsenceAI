@@ -212,15 +212,21 @@ class SmartHomeHeating extends IPSModuleStrict
                 if ($controlModeId > 0 && IPS_VariableExists($controlModeId)) {
                     $currentMode = GetValue($controlModeId);
                     if (is_string($currentMode)) {
-                        RequestAction($controlModeId, 'MANUAL');
+                        if (!@RequestAction($controlModeId, 'MANUAL')) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $controlModeId | Wert: 'MANUAL'");
+                        }
                     } else {
-                        RequestAction($controlModeId, 1); // Meistens 1 = Manu
+                        if (!@RequestAction($controlModeId, 1)) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $controlModeId | Wert: 1");
+                        } // Meistens 1 = Manu
                     }
                     IPS_Sleep(500); // Kurz warten für Homematic
                 }
 
                 if ($targetTempId > 0 && IPS_VariableExists($targetTempId)) {
-                    RequestAction($targetTempId, $individualTemp);
+                    if (!@RequestAction($targetTempId, $individualTemp)) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetTempId | Wert: " . var_export($individualTemp, true));
+                    }
                 }
             }
             $this->WriteAttributeString('PreviousStates', json_encode($previousStates));
@@ -253,9 +259,13 @@ class SmartHomeHeating extends IPSModuleStrict
                     $prevTemp = isset($state['prevTemp']) ? $state['prevTemp'] : null;
 
                     if ($modeId > 0 && $prevMode !== null && IPS_VariableExists($modeId)) {
-                        RequestAction($modeId, $prevMode);
+                        if (!@RequestAction($modeId, $prevMode)) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $modeId | Wert: " . var_export($prevMode, true));
+                        }
                     } elseif ($tempId > 0 && $prevTemp !== null && IPS_VariableExists($tempId)) {
-                        RequestAction($tempId, $prevTemp);
+                        if (!@RequestAction($tempId, $prevTemp)) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $tempId | Wert: " . var_export($prevTemp, true));
+                        }
                     }
                 }
             }

@@ -246,9 +246,13 @@ class SmartActiveLighting extends IPSModuleStrict
                         if ($tid > 0 && IPS_VariableExists($tid)) {
                             $var = IPS_GetVariable($tid);
                             if ($var['VariableType'] == 0) {
-                                RequestAction($tid, $Value);
+                                if (!@RequestAction($tid, $Value)) {
+                                    $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $tid | Wert: " . var_export($Value, true));
+                                }
                             } else {
-                                RequestAction($tid, $Value ? 100 : 0);
+                                if (!@RequestAction($tid, $Value ? 100 : 0)) {
+                                    $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $tid | Wert: " . var_export($Value ? 100 : 0, true));
+                                }
                             }
                         }
                     }
@@ -406,9 +410,13 @@ class SmartActiveLighting extends IPSModuleStrict
                     foreach ($targetsToToggle as $tid) {
                         $var = IPS_GetVariable($tid);
                         if ($var['VariableType'] == 0) {
-                            RequestAction($tid, $newState);
+                            if (!@RequestAction($tid, $newState)) {
+                                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $tid | Wert: " . var_export($newState, true));
+                            }
                         } else {
-                            RequestAction($tid, $newState ? 100 : 0);
+                            if (!@RequestAction($tid, $newState ? 100 : 0)) {
+                                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $tid | Wert: " . var_export($newState ? 100 : 0, true));
+                            }
                         }
                     }
                     
@@ -452,14 +460,20 @@ class SmartActiveLighting extends IPSModuleStrict
 
         // Turn on
         if (is_bool($targetValue)) {
-            RequestAction($targetId, true);
+            if (!@RequestAction($targetId, true)) {
+                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: true");
+            }
         } else {
             // Check if target is a boolean or integer/float (dimmer)
             $var = IPS_GetVariable($targetId);
             if ($var['VariableType'] == 0) { // Boolean
-                RequestAction($targetId, true);
+                if (!@RequestAction($targetId, true)) {
+                    $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: true");
+                }
             } else {
-                RequestAction($targetId, $targetValue);
+                if (!@RequestAction($targetId, $targetValue)) {
+                    $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: " . var_export($targetValue, true));
+                }
             }
         }
 
@@ -486,9 +500,13 @@ class SmartActiveLighting extends IPSModuleStrict
             if ($targetId > 0 && IPS_VariableExists($targetId)) {
                 $var = IPS_GetVariable($targetId);
                 if ($var['VariableType'] == 0) {
-                    RequestAction($targetId, false);
+                    if (!@RequestAction($targetId, false)) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: false");
+                    }
                 } else {
-                    RequestAction($targetId, 0);
+                    if (!@RequestAction($targetId, 0)) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: 0");
+                    }
                 }
             }
         }
@@ -530,9 +548,13 @@ class SmartActiveLighting extends IPSModuleStrict
             // Turn on
             $var = IPS_GetVariable($targetId);
             if ($var['VariableType'] == 0) { // Boolean
-                RequestAction($targetId, true);
+                if (!@RequestAction($targetId, true)) {
+                    $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: true");
+                }
             } else {
-                RequestAction($targetId, $targetValue);
+                if (!@RequestAction($targetId, $targetValue)) {
+                    $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: " . var_export($targetValue, true));
+                }
             }
             
             // Track active timer (reusing active timer dict so house mode can clear it)
@@ -563,9 +585,13 @@ class SmartActiveLighting extends IPSModuleStrict
             if ($targetId > 0 && IPS_VariableExists($targetId)) {
                 $var = IPS_GetVariable($targetId);
                 if ($var['VariableType'] == 0) {
-                    RequestAction($targetId, false);
+                    if (!@RequestAction($targetId, false)) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: false");
+                    }
                 } else {
-                    RequestAction($targetId, 0);
+                    if (!@RequestAction($targetId, 0)) {
+                        $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: 0");
+                    }
                 }
             }
         }
@@ -584,7 +610,9 @@ class SmartActiveLighting extends IPSModuleStrict
         elseif (is_numeric($targetValStr)) $targetVal = (float)$targetValStr;
         else $targetVal = $targetValStr;
 
-        RequestAction($targetId, $targetVal);
+        if (!@RequestAction($targetId, $targetVal)) {
+            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: " . var_export($targetVal, true));
+        }
     }
 
 
@@ -668,9 +696,13 @@ class SmartActiveLighting extends IPSModuleStrict
                 if ($targetId > 0 && IPS_VariableExists($targetId)) {
                     $var = IPS_GetVariable($targetId);
                     if ($var['VariableType'] == 0) {
-                        RequestAction($targetId, ($actionVal == 1));
+                        if (!@RequestAction($targetId, ($actionVal == 1))) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: " . var_export(($actionVal == 1), true));
+                        }
                     } else {
-                        RequestAction($targetId, ($actionVal == 1) ? 100 : 0);
+                        if (!@RequestAction($targetId, ($actionVal == 1) ? 100 : 0)) {
+                            $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: " . var_export(($actionVal == 1) ? 100 : 0, true));
+                        }
                     }
                 }
             }
@@ -694,9 +726,13 @@ class SmartActiveLighting extends IPSModuleStrict
                     if ($targetId > 0 && IPS_VariableExists($targetId)) {
                         $var = IPS_GetVariable($targetId);
                         if ($var['VariableType'] == 0) {
-                            RequestAction($targetId, false);
+                            if (!@RequestAction($targetId, false)) {
+                                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: false");
+                            }
                         } else {
-                            RequestAction($targetId, 0);
+                            if (!@RequestAction($targetId, 0)) {
+                                $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $targetId | Wert: 0");
+                            }
                         }
                     }
                 }

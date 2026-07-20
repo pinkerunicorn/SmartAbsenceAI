@@ -276,9 +276,11 @@ class SmartHomeControl extends IPSModuleStrict
             return;
         }
         
-        $icalData = @file_get_contents($url);
-        if (!$icalData) {
-            $this->SLog('ERROR', 'CheckCalendar: Konnte Kalenderdaten nicht abrufen.');
+        $ctx = stream_context_create(['http' => ['timeout' => 5]]);
+        $icalData = @file_get_contents($url, false, $ctx);
+        if ($icalData === false) {
+            $error = error_get_last();
+            $this->SLog('ERROR', 'CheckCalendar: Konnte Kalenderdaten nicht abrufen.', $error['message'] ?? 'Unbekannter Fehler');
             return;
         }
         

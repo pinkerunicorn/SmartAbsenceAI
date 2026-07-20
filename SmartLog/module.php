@@ -44,13 +44,17 @@ class SmartLog extends IPSModuleStrict
 
         // Attribute (persistenter Speicher)
         $this->RegisterAttributeString(self::ATTR_LOG_DATA, '[]');
-        $this->RegisterAttributeString(self::ATTR_STATUS, json_encode([
-            'seite'       => 0,
-            'maxZeilen'   => 30,
-            'levelFilter' => [],
-            'textFilter'  => '',
-            'sourceFilter' => [],
-        ], JSON_THROW_ON_ERROR));
+        try {
+            $this->RegisterAttributeString(self::ATTR_STATUS, json_encode([
+                'seite'       => 0,
+                'maxZeilen'   => 30,
+                'levelFilter' => [],
+                'textFilter'  => '',
+                'sourceFilter' => [],
+            ], JSON_THROW_ON_ERROR));
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+        }
 
         // Variablen
         $this->RegisterVariableInteger('EntryCount', 'Log-Einträge', '', 1);
@@ -115,7 +119,11 @@ class SmartLog extends IPSModuleStrict
             $logData = array_slice($logData, 0, $max);
         }
 
-        $this->WriteAttributeString(self::ATTR_LOG_DATA, json_encode($logData, JSON_THROW_ON_ERROR));
+        try {
+            $this->WriteAttributeString(self::ATTR_LOG_DATA, json_encode($logData, JSON_THROW_ON_ERROR));
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+        }
 
         // Variablen aktualisieren
         $this->SetValue('EntryCount', count($logData));
@@ -187,10 +195,16 @@ class SmartLog extends IPSModuleStrict
 
         $initialDaten = $this->erstelleVisualisierungsDaten();
 
+        try {
+            $encoded = json_encode($initialDaten, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+            $encoded = '{}';
+        }
         $html = str_replace('%%MODULE_CSS%%', $cssBlock, $html);
         return str_replace(
             '%%INITIAL_DATA%%',
-            json_encode($initialDaten, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+            $encoded,
             $html
         );
     }
@@ -201,7 +215,12 @@ class SmartLog extends IPSModuleStrict
 
         switch ($ident) {
             case 'FilterLevel':
-                $decoded = json_decode((string) $value, true);
+                try {
+                    $decoded = json_decode((string) $value, true, 512, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+                    $decoded = null;
+                }
                 $status['levelFilter'] = is_array($decoded) ? $decoded : [];
                 break;
 
@@ -210,7 +229,12 @@ class SmartLog extends IPSModuleStrict
                 break;
 
             case 'FilterSource':
-                $decoded = json_decode((string) $value, true);
+                try {
+                    $decoded = json_decode((string) $value, true, 512, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $e) {
+                    IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+                    $decoded = null;
+                }
                 $status['sourceFilter'] = is_array($decoded) ? $decoded : [];
                 break;
 
@@ -243,14 +267,24 @@ class SmartLog extends IPSModuleStrict
     private function leseLogDaten(): array
     {
         $json = $this->ReadAttributeString(self::ATTR_LOG_DATA);
-        $data = json_decode($json, true);
+        try {
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+            $data = [];
+        }
         return is_array($data) ? $data : [];
     }
 
     private function leseStatus(): array
     {
         $json = $this->ReadAttributeString(self::ATTR_STATUS);
-        $data = json_decode($json, true);
+        try {
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+            $data = [];
+        }
         return is_array($data) ? $data : [
             'seite' => 0,
             'maxZeilen' => 30,
@@ -262,7 +296,11 @@ class SmartLog extends IPSModuleStrict
 
     private function schreibeStatus(array $status): void
     {
-        $this->WriteAttributeString(self::ATTR_STATUS, json_encode($status, JSON_THROW_ON_ERROR));
+        try {
+            $this->WriteAttributeString(self::ATTR_STATUS, json_encode($status, JSON_THROW_ON_ERROR));
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+        }
     }
 
     private function erstelleVisualisierungsDaten(): array
@@ -355,9 +393,13 @@ class SmartLog extends IPSModuleStrict
     private function aktualisiereVisualisierung(): void
     {
         $daten = $this->erstelleVisualisierungsDaten();
-        $this->UpdateVisualizationValue(
-            json_encode($daten, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
-        );
+        try {
+            $encoded = json_encode($daten, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            IPS_LogMessage('SmartLog', 'JSON-Fehler: ' . $e->getMessage());
+            return;
+        }
+        $this->UpdateVisualizationValue($encoded);
     }
 
     // ─────────────────────────────────────────────────────────────────

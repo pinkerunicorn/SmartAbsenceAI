@@ -208,7 +208,9 @@ class SmartHomeSequencer extends IPSModuleStrict
         $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         if ($socket) {
             @socket_set_option($socket, SOL_SOCKET, SO_BROADCAST, 1);
-            @socket_sendto($socket, $msg, strlen($msg), 0, $ip, $port);
+            if (!@socket_sendto($socket, $msg, strlen($msg), 0, $ip, $port)) {
+                $this->SLog('WARNING', 'socket_sendto fehlgeschlagen', "IP: $ip");
+            }
             @socket_close($socket);
         } else {
             $this->SLog('ERROR', 'WOL Fehler - Konnte UDP Socket für Magic Packet nicht erstellen.');
