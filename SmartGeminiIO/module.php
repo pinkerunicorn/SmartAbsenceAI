@@ -143,15 +143,33 @@ class SmartGeminiIO extends IPSModuleStrict
             'Content-Type: application/json'
         ]);
 
-        $rawResponse = curl_exec($ch);
+        $maxRetries = 2;
+        $attempt = 0;
+        $rawResponse = false;
         $httpCode = 0;
         $curlError = '';
 
-        if ($rawResponse === false) {
-            $curlError = curl_error($ch);
-        } else {
+        do {
+            $rawResponse = curl_exec($ch);
+            if ($rawResponse === false) {
+                $curlError = curl_error($ch);
+                $this->SLog('WARNING', 'API-Anfrage fehlgeschlagen, Wiederholungsversuch...', 'Versuch: ' . ($attempt + 1) . ' | Fehler: ' . $curlError);
+                $attempt++;
+                if ($attempt < $maxRetries) {
+                    usleep(500000); // 500ms warten
+                }
+                continue;
+            }
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        }
+            if ($httpCode !== 200) {
+                $this->SLog('WARNING', 'API-Fehlercode erhalten, Wiederholungsversuch...', 'Versuch: ' . ($attempt + 1) . ' | HTTP: ' . $httpCode);
+                $attempt++;
+                if ($attempt < $maxRetries) usleep(500000);
+                continue;
+            }
+            break; // Erfolg
+        } while ($attempt < $maxRetries);
+
         curl_close($ch);
 
         if ($rawResponse === false || $httpCode !== 200) {
