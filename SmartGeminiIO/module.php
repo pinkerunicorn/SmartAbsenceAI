@@ -87,7 +87,7 @@ class SmartGeminiIO extends IPSModuleStrict
         if (empty($apiKey)) {
             $this->SetStatus(104);
             $this->SetValue('LastError', 'Kein API-Key konfiguriert.');
-            $this->SLog('ERROR', 'Kein API-Key konfiguriert!');
+            $this->SLog('ERROR', 'Abfrage abgebrochen.', 'Grund: Kein API-Key konfiguriert');
             return '';
         }
 
@@ -166,7 +166,7 @@ class SmartGeminiIO extends IPSModuleStrict
             }
             $this->SetValue('LastError', $errorMsg);
             $this->SetValue('FailedRequests', $this->GetValue('FailedRequests') + 1);
-            $this->SLog('ERROR', $errorMsg);
+            $this->SLog('ERROR', 'Gemini API Fehler.', "Grund: $errorMsg");
             return '';
         }
 
@@ -178,12 +178,13 @@ class SmartGeminiIO extends IPSModuleStrict
             $errorMsg = 'Gemini API: Leere oder unerwartete Antwortstruktur.';
             $this->SetValue('LastError', $errorMsg);
             $this->SetValue('FailedRequests', $this->GetValue('FailedRequests') + 1);
-            $this->SLog('ERROR', $errorMsg);
+            $this->SLog('ERROR', 'Gemini API Fehler.', "Grund: $errorMsg");
             return '';
         }
 
         $this->SetValue('LastError', '');
         $this->SetValue('SuccessfulRequests', $this->GetValue('SuccessfulRequests') + 1);
+        $this->SLog('INFO', 'Gemini API erfolgreich abgefragt.', "Modell: $model | Prompt-Länge: " . strlen($userPrompt));
 
         return $extractedText;
     }

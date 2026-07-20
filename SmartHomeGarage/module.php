@@ -180,7 +180,7 @@ class SmartHomeGarage extends IPSModuleStrict
                     if ($SenderID == $btn['VariableID']) {
                         $currentVal = GetValue($SenderID);
                         if ($this->ValuesMatch($currentVal, $btn['TriggerValue'])) {
-                            $this->SLog('INFO', "Taster $SenderID hat Tor-Aktion ausgelöst!");
+                            $this->SLog('INFO', 'Tor-Aktion durch Taster ausgelöst.', "Taster-ID: $SenderID");
                             $this->TriggerDoor();
                         }
                     }
@@ -195,10 +195,12 @@ class SmartHomeGarage extends IPSModuleStrict
         if ($motorId > 0 && IPS_VariableExists($motorId)) {
             if (!@RequestAction($motorId, true)) {
                 $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $motorId | Wert: true");
+            } else {
+                $this->SLog('INFO', 'Aktor (Motor) geschaltet.', "ID: $motorId | Wert: true");
             }
             $this->SetTimerInterval('RelayOffTimer', 1000); // Trigger release after 1s
         } else {
-            $this->SLog('ERROR', 'Fehler - Kein Motor-Aktor konfiguriert.');
+            $this->SLog('ERROR', 'Tor konnte nicht getriggert werden.', "Grund: Kein Motor-Aktor konfiguriert");
         }
 
         // Calculate expected state
@@ -231,6 +233,8 @@ class SmartHomeGarage extends IPSModuleStrict
         if ($motorId > 0 && IPS_VariableExists($motorId)) {
             if (!@RequestAction($motorId, false)) {
                 $this->SLog('WARNING', 'Aktor-Befehl fehlgeschlagen', "ID: $motorId | Wert: false");
+            } else {
+                $this->SLog('INFO', 'Aktor (Motor) ausgeschaltet.', "ID: $motorId | Wert: false");
             }
         }
     }
@@ -302,7 +306,7 @@ class SmartHomeGarage extends IPSModuleStrict
     {
         $this->SetTimerInterval('OpenAlarmTimer', 0);
         $this->SetValueIfChanged('AlarmOpenTooLong', true);
-        $this->SLog('WARNING', 'Garagentor steht zu lange offen -> Alarm ausgelöst.');
+        $this->SLog('WARNING', 'Alarm ausgelöst!', 'Grund: Garagentor steht zu lange offen');
     }
 
     private function UpdateLEDs(int $state): void
@@ -336,6 +340,8 @@ class SmartHomeGarage extends IPSModuleStrict
             if ($instId > 0 && IPS_InstanceExists($instId)) {
                 if (!@HM_WriteValueString($instId, 'COMBINED_PARAMETER', $string)) {
                     $this->SLog('WARNING', 'HM-Befehl fehlgeschlagen', "Instanz: $instId");
+                } else {
+                    $this->SLog('INFO', 'HM-LED Zustand aktualisiert.', "Instanz: $instId | String: $string");
                 }
             }
         }
@@ -386,11 +392,11 @@ class SmartHomeGarage extends IPSModuleStrict
             if ($this->ReadPropertyBoolean('CloseOnAbsence')) {
                 // Nur schließen, wenn Tor aktuell nicht schon zu ist
                 $state = GetValue($this->GetIDForIdent('DoorState'));
-                if ($state !== self::STATE_CLOSED && $state !== self::STATE_MOVING_DOWN) { // 0=Zu, 3=Fährt Zu
-                    $this->SLog('INFO', 'Haus-Modus ist Abwesenheit. Schließe Garagentor automatisch.');
+                if ($state != 0 && $state != 3) { // 0=Zu, 3=Fährt Zu
+                    $this->SLog('INFO', 'Schließe Garagentor automatisch.', "Hausmodus: Abwesenheit aktiv");
                     $this->TriggerDoor();
                 } else {
-                    $this->SLog('INFO', 'Haus-Modus ist Abwesenheit. Garagentor ist bereits geschlossen.');
+                    $this->SLog('INFO', 'Automatisches Schließen übersprungen.', "Grund: Tor bereits zu");
                 }
             }
         }

@@ -46,7 +46,7 @@ class SmartHomeSequencer extends IPSModuleStrict
 
     private function ProcessSequenceList(string $property, string $logName): void
     {
-        $this->SLog('INFO', "Manuelle Auslösung der $logName-Sequenz.");
+        $this->SLog('INFO', 'Sequenz manuell ausgelöst.', "Sequenz: $logName");
         
         $sequencesJson = $this->ReadPropertyString($property);
         $sequences = json_decode($sequencesJson, true);
@@ -64,7 +64,7 @@ class SmartHomeSequencer extends IPSModuleStrict
         $now = time();
         $itemsAdded = false;
 
-        $this->SLog('INFO', 'Sequenz gestartet. Verarbeite ' . count($sequences) . ' Aktionen.');
+        $this->SLog('INFO', 'Sequenz gestartet.', "Aktionen: " . count($sequences));
 
         foreach ($sequences as $seq) {
             $active = isset($seq['Active']) ? $seq['Active'] : true;
@@ -86,7 +86,7 @@ class SmartHomeSequencer extends IPSModuleStrict
             } else {
                 $queue[] = $item;
                 $itemsAdded = true;
-                $this->SLog('INFO', 'Aktion für Ziel ' . $item['TargetID'] . ' zur Warteschlange hinzugefügt (Verzögerung: ' . $delay . 's).');
+                $this->SLog('INFO', 'Aktion verzögert zur Warteschlange hinzugefügt.', "Ziel-ID: " . $item['TargetID'] . " | Verzögerung: $delay s");
             }
         }
 
@@ -137,28 +137,28 @@ class SmartHomeSequencer extends IPSModuleStrict
 
         try {
             switch ($actionType) {
-                case self::ACTION_SCRIPT: // Skript / Ablaufplan ausführen
+                case 0: // Skript / Ablaufplan ausführen
                     if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
-                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen. Ziel-ID ' . $targetID . ' existiert nicht.');
+                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen.', "Grund: Ziel-ID $targetID existiert nicht");
                         return;
                     }
                     if (!IPS_ScriptExists($targetID)) {
-                        $this->SLog('ERROR', 'Fehler - Ziel ' . $targetID . ' ist kein ausführbares Skript!');
+                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen.', "Grund: Ziel-ID $targetID ist kein Skript");
                         return;
                     }
-                    $this->SLog('INFO', 'Führe Skript/Ablaufplan aus: ' . $targetID);
+                    $this->SLog('INFO', 'Skript/Ablaufplan ausgeführt.', "Skript-ID: $targetID");
                     @IPS_RunScript($targetID);
                     break;
-                case self::ACTION_DEVICE: // Gerät/Variable schalten (RequestAction)
+                case 1: // Gerät/Variable schalten (RequestAction)
                     if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
-                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen. Ziel-ID ' . $targetID . ' existiert nicht.');
+                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen.', "Grund: Ziel-ID $targetID existiert nicht");
                         return;
                     }
                     if (!IPS_VariableExists($targetID)) {
-                        $this->SLog('ERROR', 'Fehler - Ziel ' . $targetID . ' ist keine Status-Variable!');
+                        $this->SLog('ERROR', 'Ausführung fehlgeschlagen.', "Grund: Ziel-ID $targetID ist keine Status-Variable");
                         return;
                     }
-                    $this->SLog('INFO', 'Schalte Variable ' . $targetID . ' auf Wert: ' . $valStr);
+                    $this->SLog('INFO', 'Variable wird geschaltet.', "Ziel-ID: $targetID | Wert: $valStr");
                     
                     // Datentyp bestimmen für korrekten Cast
                     $var = IPS_GetVariable($targetID);
@@ -166,7 +166,7 @@ class SmartHomeSequencer extends IPSModuleStrict
                     if ($var['VariableType'] == 0) { // Boolean
                         $lower = strtolower(trim($valStr));
                         $val = in_array($lower, ['true', '1', 'on', 'an', 'yes', 'ja']);
-                        $this->SLog('INFO', "Wandle String '$valStr' in Boolean um -> " . ($val ? 'TRUE' : 'FALSE'));
+                        $this->SLog('INFO', 'Wandle Wert um.', "Von: $valStr | Zu: " . ($val ? 'TRUE' : 'FALSE'));
                     } elseif ($var['VariableType'] == 1) { // Integer
                         $val = (int)$valStr;
                     } elseif ($var['VariableType'] == 2) { // Float
@@ -176,20 +176,22 @@ class SmartHomeSequencer extends IPSModuleStrict
                     }
                     
                     if (!@RequestAction($targetID, $val)) {
-                        $this->SLog('ERROR', 'RequestAction fehlgeschlagen! Hat die Variable ' . $targetID . ' überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?');
+                        $this->SLog('ERROR', 'RequestAction fehlgeschlagen.', "Ziel-ID: $targetID | Wert: $valStr");
+                    } else {
+                        $this->SLog('INFO', 'Aktion erfolgreich ausgeführt.', "Ziel-ID: $targetID | Wert: " . var_export($val, true));
                     }
                     break;
-                case self::ACTION_WOL: // Wake On LAN
+                case 2: // Wake On LAN
                     if ($targetID > 0 && function_exists('WOL_Send')) {
-                        $this->SLog('INFO', 'Sende WOL an Instanz: ' . $targetID);
+                        $this->SLog('INFO', 'WOL gesendet.', "Instanz-ID: $targetID");
                         @WOL_Send($targetID);
                     } else {
                         $mac = trim($valStr);
                         if (preg_match('/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/', $mac)) {
-                            $this->SLog('INFO', 'Sende natives WOL an MAC-Adresse: ' . $mac);
+                            $this->SLog('INFO', 'Natives WOL gesendet.', "MAC-Adresse: $mac");
                             $this->SendMagicPacket($mac);
                         } else {
-                            $this->SLog('ERROR', 'WOL Fehler - Weder eine WOL-Instanz (Ziel) noch eine gültige MAC-Adresse (im Feld Wert) angegeben. Eingabe war: ' . $valStr);
+                            $this->SLog('ERROR', 'WOL Fehler: Ungültige Eingabe.', "Eingabe: $valStr");
                         }
                     }
                     break;
@@ -219,7 +221,7 @@ class SmartHomeSequencer extends IPSModuleStrict
             }
             @socket_close($socket);
         } else {
-            $this->SLog('ERROR', 'WOL Fehler - Konnte UDP Socket für Magic Packet nicht erstellen.');
+            $this->SLog('ERROR', 'WOL Fehler.', "Grund: Konnte UDP Socket nicht erstellen");
         }
     }
 

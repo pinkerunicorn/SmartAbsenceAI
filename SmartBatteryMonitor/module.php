@@ -101,12 +101,12 @@ class SmartBatteryMonitor extends IPSModuleStrict
                 continue;
             }
             
-            $var = @IPS_GetVariable($varID);
+            $var = IPS_GetVariable($varID);
             if (!is_array($var)) {
                 continue; // Skip if variable metadata is inaccessible
             }
             
-            $val = @GetValue($varID);
+            $val = GetValue($varID);
             $type = $item['Type'] ?? 'Auto';
             $threshold = (float)($item['Threshold'] ?? 0);
             $name = !empty($item['Name']) ? $item['Name'] : IPS_GetName($varID);
@@ -115,7 +115,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
             
             if ($type === 'Auto') {
                 $profile = $var['VariableCustomProfile'] != '' ? $var['VariableCustomProfile'] : $var['VariableProfile'];
-                $obj = @IPS_GetObject($varID);
+                $obj = IPS_GetObject($varID);
                 $ident = is_array($obj) ? $obj['ObjectIdent'] : '';
                 
                 if ($profile === '~Battery' || strpos(strtolower($ident), 'low_bat') !== false || strpos(strtolower($ident), 'lowbat') !== false) {
@@ -134,7 +134,7 @@ class SmartBatteryMonitor extends IPSModuleStrict
             }
             
             $statusText = $isLow ? 'LEER' : 'OK';
-            $realValue = @GetValueFormatted($varID);
+            $realValue = GetValueFormatted($varID);
             if ($realValue === false) $realValue = 'Fehler';
             
             $allBatteriesLog[] = "[$statusText] $name ($realValue)";
