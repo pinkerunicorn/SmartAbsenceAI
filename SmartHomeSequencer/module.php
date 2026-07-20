@@ -7,6 +7,12 @@ require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
 class SmartHomeSequencer extends IPSModuleStrict
 {
     use SmartLog_Trait;
+
+    private const ACTION_SCRIPT = 0;
+    private const ACTION_DEVICE = 1;
+    private const ACTION_WOL = 2;
+    private const ACTION_DELAY = 3;
+
     public function Create(): void
     {
         parent::Create();
@@ -131,7 +137,7 @@ class SmartHomeSequencer extends IPSModuleStrict
 
         try {
             switch ($actionType) {
-                case 0: // Skript / Ablaufplan ausführen
+                case self::ACTION_SCRIPT: // Skript / Ablaufplan ausführen
                     if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
                         $this->SLog('ERROR', 'Ausführung fehlgeschlagen. Ziel-ID ' . $targetID . ' existiert nicht.');
                         return;
@@ -143,7 +149,7 @@ class SmartHomeSequencer extends IPSModuleStrict
                     $this->SLog('INFO', 'Führe Skript/Ablaufplan aus: ' . $targetID);
                     @IPS_RunScript($targetID);
                     break;
-                case 1: // Gerät/Variable schalten (RequestAction)
+                case self::ACTION_DEVICE: // Gerät/Variable schalten (RequestAction)
                     if ($targetID <= 0 || !IPS_ObjectExists($targetID)) {
                         $this->SLog('ERROR', 'Ausführung fehlgeschlagen. Ziel-ID ' . $targetID . ' existiert nicht.');
                         return;
@@ -173,7 +179,7 @@ class SmartHomeSequencer extends IPSModuleStrict
                         $this->SLog('ERROR', 'RequestAction fehlgeschlagen! Hat die Variable ' . $targetID . ' überhaupt ein Aktionsskript zugewiesen oder gehört sie zu einer Instanz, die Schalten erlaubt?');
                     }
                     break;
-                case 2: // Wake On LAN
+                case self::ACTION_WOL: // Wake On LAN
                     if ($targetID > 0 && function_exists('WOL_Send')) {
                         $this->SLog('INFO', 'Sende WOL an Instanz: ' . $targetID);
                         @WOL_Send($targetID);

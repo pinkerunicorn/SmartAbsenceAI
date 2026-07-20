@@ -7,6 +7,13 @@ require_once __DIR__ . '/../SmartLog/libs/Trait_SmartLog.php';
 class SmartHomeGarage extends IPSModuleStrict
 {
     use SmartLog_Trait;
+
+    private const STATE_CLOSED = 0;
+    private const STATE_OPEN = 1;
+    private const STATE_MOVING_UP = 2;
+    private const STATE_MOVING_DOWN = 3;
+    private const STATE_STOPPED = 4;
+
     public function Create(): void
     {
         parent::Create();
@@ -24,7 +31,7 @@ class SmartHomeGarage extends IPSModuleStrict
         $this->RegisterPropertyBoolean('CloseOnAbsence', true);
 
         // Attribute for tracking the last direction to guess the next move
-        $this->RegisterAttributeInteger('LastDirection', 2); // 2=Fährt Auf, 3=Fährt Zu
+        $this->RegisterAttributeInteger('LastDirection', self::STATE_MOVING_UP); // 2=Fährt Auf, 3=Fährt Zu
 
         // Timer for Relay impulse and Alarm
         $this->RegisterTimer('RelayOffTimer', 0, 'SHG_TurnOffRelay($_IPS[\'TARGET\']);');
@@ -196,21 +203,21 @@ class SmartHomeGarage extends IPSModuleStrict
 
         // Calculate expected state
         $currentState = $this->GetValue('DoorState');
-        $nextState = 4; // Default to Gestoppt
+        $nextState = self::STATE_STOPPED; // Default to Gestoppt
 
-        if ($currentState == 0) {
-            $nextState = 2; // Fährt Auf
-        } elseif ($currentState == 1) {
-            $nextState = 3; // Fährt Zu
-        } elseif ($currentState == 2 || $currentState == 3) {
-            $nextState = 4; // Gestoppt
-        } elseif ($currentState == 4) {
+        if ($currentState === self::STATE_CLOSED) {
+            $nextState = self::STATE_MOVING_UP; // Fährt Auf
+        } elseif ($currentState === self::STATE_OPEN) {
+            $nextState = self::STATE_MOVING_DOWN; // Fährt Zu
+        } elseif ($currentState === self::STATE_MOVING_UP || $currentState === self::STATE_MOVING_DOWN) {
+            $nextState = self::STATE_STOPPED; // Gestoppt
+        } elseif ($currentState === self::STATE_STOPPED) {
             // Wenn Teiloffen und getriggert wird, raten wir anhand der letzten Fahrtrichtung
             $lastDir = $this->ReadAttributeInteger('LastDirection');
-            $nextState = ($lastDir == 2) ? 3 : 2; 
+            $nextState = ($lastDir === self::STATE_MOVING_UP) ? self::STATE_MOVING_DOWN : self::STATE_MOVING_UP; 
         }
 
-        if ($nextState == 2 || $nextState == 3) {
+        if ($nextState === self::STATE_MOVING_UP || $nextState === self::STATE_MOVING_DOWN) {
             $this->WriteAttributeInteger('LastDirection', $nextState);
         }
 
@@ -247,20 +254,20 @@ class SmartHomeGarage extends IPSModuleStrict
         $newState = $currentState;
 
         if ($isClosed) {
-            $newState = 0; // Zu
+            $newState = self::STATE_CLOSED; // Zu
         } elseif ($isOpen) {
-            $newState = 1; // Auf
+            $newState = self::STATE_OPEN; // Auf
         } else {
             // Weder Zu noch Auf. 
             // Wenn der letzte Zustand "Zu"(0) oder "Auf"(1) war, 
             // wissen wir, dass es jetzt per Hand bewegt wurde oder der Impuls losgeht.
             // Ist es aber z.B. schon auf "Fährt Auf"(2), belassen wir es dabei.
-            if ($currentState == 0) {
+            if ($currentState === self::STATE_CLOSED) {
                 // Es hat "Zu"verlassen -> Es fährt wahrscheinlich auf.
-                $newState = 2; 
-            } elseif ($currentState == 1) {
+                $newState = self::STATE_MOVING_UP; 
+            } elseif ($currentState === self::STATE_OPEN) {
                 // Es hat "Auf"verlassen -> Es fährt wahrscheinlich zu.
-                $newState = 3;
+                $newState = self::STATE_MOVING_DOWN;
             }
         }
 
@@ -276,7 +283,7 @@ class SmartHomeGarage extends IPSModuleStrict
             $this->UpdateLEDs($state);
             
             // Alarm Logic
-            if ($state === 1 || $state === 4) { // 1 = Auf, 4 = Teiloffen
+            if ($state === self::STATE_OPEN || $state === self::STATE_STOPPED) { // 1 = Auf, 4 = Teiloffen
                 $delayMinutes = $this->ReadPropertyInteger('AlarmDelayMinutes');
                 if ($delayMinutes > 0 && $this->GetTimerInterval('OpenAlarmTimer') == 0 && !$this->GetValue('AlarmOpenTooLong')) {
                     $this->SetTimerInterval('OpenAlarmTimer', $delayMinutes * 60000);
@@ -284,7 +291,7 @@ class SmartHomeGarage extends IPSModuleStrict
             } else {
                 // If closing or closed, cancel timer
                 $this->SetTimerInterval('OpenAlarmTimer', 0);
-                if ($state === 0 && $this->GetValue('AlarmOpenTooLong')) {
+                if ($state === self::STATE_CLOSED && $this->GetValue('AlarmOpenTooLong')) {
                     $this->SetValue('AlarmOpenTooLong', false);
                 }
             }
@@ -305,19 +312,19 @@ class SmartHomeGarage extends IPSModuleStrict
 
         // Homematic COMBINED_PARAMETER Strings
         $string = '';
-        if ($state == 0) {
+        if ($state === self::STATE_CLOSED) {
             // Zu -> Aus
             $string = 'L=100,DV=31,DU=2,RTV=0,RTU=0,C=0,CB=0,RTTOV=0,RTTOU=3';
-        } elseif ($state == 1) {
+        } elseif ($state === self::STATE_OPEN) {
             // Auf -> Weiß, Pulsierend
             $string = 'L=100,DV=31,DU=2,RTV=0,RTU=0,C=7,CB=9,RTTOV=0,RTTOU=3';
-        } elseif ($state == 2) {
+        } elseif ($state === self::STATE_MOVING_UP) {
             // Fährt Auf -> Gelb, Blitzen
             $string = 'L=100,DV=31,DU=2,RTV=0,RTU=0,C=6,CB=6,RTTOV=0,RTTOU=3';
-        } elseif ($state == 3) {
+        } elseif ($state === self::STATE_MOVING_DOWN) {
             // Fährt Zu -> Rot, Blitzen
             $string = 'L=100,DV=31,DU=2,RTV=0,RTU=0,C=4,CB=6,RTTOV=0,RTTOU=3';
-        } elseif ($state == 4) {
+        } elseif ($state === self::STATE_STOPPED) {
             // Gestoppt / Teiloffen -> Blau, Dauerlicht
             $string = 'L=100,DV=31,DU=2,RTV=0,RTU=0,C=1,CB=1,RTTOV=0,RTTOU=3';
         }
@@ -379,7 +386,7 @@ class SmartHomeGarage extends IPSModuleStrict
             if ($this->ReadPropertyBoolean('CloseOnAbsence')) {
                 // Nur schließen, wenn Tor aktuell nicht schon zu ist
                 $state = GetValue($this->GetIDForIdent('DoorState'));
-                if ($state != 0 && $state != 3) { // 0=Zu, 3=Fährt Zu
+                if ($state !== self::STATE_CLOSED && $state !== self::STATE_MOVING_DOWN) { // 0=Zu, 3=Fährt Zu
                     $this->SLog('INFO', 'Haus-Modus ist Abwesenheit. Schließe Garagentor automatisch.');
                     $this->TriggerDoor();
                 } else {
