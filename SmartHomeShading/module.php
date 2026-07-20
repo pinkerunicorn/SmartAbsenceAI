@@ -211,6 +211,204 @@ class SmartHomeShading extends IPSModuleStrict
         }
     }
 
+    private function CalculateBlindState(array $blind, bool $isNight, bool $isHotAndBright, float $azimuth): ?int
+    {
+        // Fensterkontakt prüfen
+        $contactID = $blind['ContactID'] ?? 0;
+        $isOpen = false;
+        if ($contactID > 0 && IPS_VariableExists($contactID)) {
+            $contactVal = GetValue($contactID);
+            if (is_string($contactVal)) {
+                $isOpen = (strtoupper($contactVal) === 'OPEN'|| strtoupper($contactVal) === 'TILTED');
+            } elseif (is_bool($contactVal)) {
+                $isOpen = $contactVal;
+            } else {
+                $isOpen = ($contactVal > 0);
+            }
+        }
+        
+        // Sonnen-Sektor
+        $aziFrom = (float)($blind['AzimuthFrom'] ?? 90);
+        $aziTo = (float)($blind['AzimuthTo'] ?? 270);
+        
+        // Ist die Sonne im Sektor?
+        $sunInSector = false;
+        if ($aziFrom < $aziTo) {
+            $sunInSector = ($azimuth >= $aziFrom && $azimuth <= $aziTo);
+        } else {
+            $sunInSector = ($azimuth >= $aziFrom || $azimuth <= $aziTo);
+        }
+        
+        $targetState = 'OPEN';
+        $targetValueStr = "1";
+        
+        if ($isNight) {
+            $targetState = 'NIGHT';
+            $targetValueStr = $blind['ValueClose'] ?? "1";
+        } elseif ($sunInSector && $isHotAndBright) {
+            $targetState = 'SHADING';
+            $targetValueStr = $blind['ValueShade'] ?? "0.1";
+        } else {
+            $targetState = 'OPEN';
+            $targetValueStr = $blind['ValueOpen'] ?? "0";
+        }
+        
+        if ($isOpen && $targetState !== 'OPEN') {
+            $targetState = 'VENTILATE';
+            $targetValueStr = $blind['ValueVentilate'] ?? "0.3";
+        }
+
+        return (int) $targetValueStr;
+    }
+
+    private function GetTargetValueString(array $blind, string $state): string 
+    {
+        if ($state === 'NIGHT') {
+            return $blind['ValueClose'] ?? "1";
+        } elseif ($state === 'SHADING') {
+            return $blind['ValueShade'] ?? "0.1";
+        } elseif ($state === 'VENTILATE') {
+            return $blind['ValueVentilate'] ?? "0.3";
+        } else {
+            return $blind['ValueOpen'] ?? "0";
+        }
+    }
+
+    public function EvaluateConditions(): void
+    {
+        $blindsJson = $this->ReadPropertyString('BlindVariables');
+        $blinds = json_decode($blindsJson, true);
+        if (!is_array($blinds) || count($blinds) === 0) return;
+        
+        if ($this->GetValue('AlarmWindWarning')) {
+            return;
+        }
+        
+        // Werte lesen
+        $azimuth = $this->GetFloatVal('AzimuthVariableID');
+        $brightness = $this->GetFloatVal('BrightnessVariableID');
+        $brightnessThreshold = $this->ReadPropertyInteger('BrightnessThreshold');
+        $temp = $this->GetFloatVal('OutdoorTempVariableID');
+        $tempThreshold = $this->ReadPropertyFloat('TempThreshold');
+        
+        $states = json_decode($this->ReadAttributeString('CurrentState'), true);
+        
+        $isHotAndBright = ($temp >= $tempThreshold && $brightness >= $brightnessThreshold);
+        $this->SetValue('StatusIsHotAndBright', $isHotAndBright);
+        
+        $sunriseTime = $this->GetFloatVal('SunriseVariableID');
+        $sunsetTime = $this->GetFloatVal('SunsetVariableID');
+        $now = time();
+        $isNight = false;
+        
+        if ($sunriseTime > 0 && $sunsetTime > 0) {
+            if ($sunriseTime > $sunsetTime) {
+                $isNight = false;
+            } else {
+                if ($now >= $sunsetTime || $now < $sunriseTime) {
+                    $isNight = true;
+                }
+            }
+        }
+        $this->SetValue('StatusIsNight', $isNight);
+        $this->SetValue('StatusLastEvaluation', time());
+        
+        $sunCount = 0;
+        $shadingCount = 0;
+        
+        foreach ($blinds as $blind) {
+            $id = $blind['VariableID'] ?? 0;
+            if ($id <= 0) {
+                continue;
+            }
+            
+            // Für StatusSunInSectorCount
+            $aziFrom = (float)($blind['AzimuthFrom'] ?? 90);
+            $aziTo = (float)($blind['AzimuthTo'] ?? 270);
+            $sunInSector = false;
+            if ($aziFrom < $aziTo) {
+                $sunInSector = ($azimuth >= $aziFrom && $azimuth <= $aziTo);
+            } else {
+                $sunInSector = ($azimuth >= $aziFrom || $azimuth <= $aziTo);
+            }
+            if ($sunInSector) {
+                $sunCount++;
+            }
+            
+            $targetValueInt = $this->CalculateBlindState($blind, $isNight, $isHotAndBright, $azimuth);
+            
+            // Re-resolve state for logging and target value (since int loses exact floats)
+            // But actually we have to return int for the method signature
+            // Let's deduce targetState from $targetValueInt!
+            
+            // We can just use the int to find the state or recalculate internally
+            $targetValueStr = (string)$targetValueInt;
+            $targetState = 'OPEN';
+            
+            // Or better, CalculateBlindState returns the TARGET value! Let's deduce state.
+            if ($targetValueInt == (int)($blind['ValueClose'] ?? "1")) {
+                $targetState = 'NIGHT';
+                $targetValueStr = $blind['ValueClose'] ?? "1";
+            } elseif ($targetValueInt == (int)($blind['ValueShade'] ?? "0.1")) {
+                $targetState = 'SHADING';
+                $targetValueStr = $blind['ValueShade'] ?? "0.1";
+            } elseif ($targetValueInt == (int)($blind['ValueVentilate'] ?? "0.3")) {
+                $targetState = 'VENTILATE';
+                $targetValueStr = $blind['ValueVentilate'] ?? "0.3";
+            } else {
+                $targetState = 'OPEN';
+                $targetValueStr = $blind['ValueOpen'] ?? "0";
+            }
+            
+            $currentState = $states[$id] ?? 'UNKNOWN';
+            
+            if ($currentState !== $targetState) {
+                $this->ExecuteAction($id, $targetValueStr);
+                $states[$id] = $targetState;
+                $this->SLog('INFO', "Rollladen $id fährt auf Zustand: $targetState");
+            }
+            
+            if ($targetState === 'SHADING') {
+                $shadingCount++;
+            }
+        }
+        
+        $this->SetValue('StatusSunInSectorCount', $sunCount);
+        $this->SetValue('ActiveShadingCount', $shadingCount);
+        $this->WriteAttributeString('CurrentState', json_encode($states));
+    }
+    
+    private function GetFloatVal(string $propName): float
+    {
+        $varId = $this->ReadPropertyInteger($propName);
+        if ($varId > 0 && IPS_VariableExists($varId)) {
+            return (float)GetValue($varId);
+        }
+        return 0.0;
+    }
+
+    private function ExecuteAction(int $targetID, string $valStr): void
+    {
+        if (!IPS_VariableExists($targetID)) return;
+
+        $var = IPS_GetVariable($targetID);
+        $val = $valStr;
+        
+        if ($var['VariableType'] == 0) { // Boolean
+            $val = (strtolower($valStr) === 'true'|| $valStr === '1');
+        } elseif ($var['VariableType'] == 1) { // Integer
+            $val = (int)$valStr;
+        } elseif ($var['VariableType'] == 2) { // Float
+            $valStr = str_replace(',', '.', $valStr);
+            $val = (float)$valStr;
+        }
+        
+        $result = RequestAction($targetID, $val);
+        if (!$result) {
+            $this->SLog('ERROR', "RequestAction für ID $targetID fehlgeschlagen!");
+        }
+    }
+
     public function GetConfigurationForm(): string
     {
         return <<<'EOT'
