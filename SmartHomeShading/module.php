@@ -202,9 +202,13 @@ class SmartHomeShading extends IPSModuleStrict
     {
         $windVar = $this->ReadPropertyInteger('WindVariableID');
         if ($windVar <= 0 || !IPS_VariableExists($windVar)) return;
-        $this->SLog('INFO', $Message);
-        IPS_LogMessage('SmartVillaKunterbunt', 'SmartHomeShading: '. $Message);
-        return true;
+
+        $windSpeed = GetValue($windVar);
+        $threshold = $this->ReadPropertyFloat('WindThreshold');
+        if ($windSpeed >= $threshold) {
+            $this->SetValue('AlarmWindWarning', true);
+            $this->SLog('WARNING', 'Sturmwarnung aktiv — Rollläden werden eingefahren.', "Windgeschwindigkeit: {$windSpeed} | Schwelle: {$threshold}");
+        }
     }
 
     public function GetConfigurationForm(): string
