@@ -365,14 +365,20 @@ class SmartHomeSecurity extends IPSModuleStrict
 
         $doorVars = json_decode($this->ReadPropertyString('DoorVariables'), true);
         if (is_array($doorVars)) {
+            $unlockedDoors = [];
             foreach ($doorVars as $door) {
                 $id = $door['VariableID'];
                 if ($id > 0 && IPS_VariableExists($id)) {
                     RequestAction($id, $this->GetActionValue($door, 'UnlockValue', 0)); // Aufsperren
+                    $unlockedDoors[] = IPS_GetName($id);
                 }
             }
+            if (!empty($unlockedDoors)) {
+                $this->SLog('INFO', 'Automatisches Aufsperren durchgeführt.', 'Türen: ' . implode(', ', $unlockedDoors));
+            } else {
+                $this->SLog('INFO', 'Automatisches Aufsperren der Türen durchgeführt.');
+            }
         }
-        $this->SLog('INFO', 'Automatisches Aufsperren der Türen durchgeführt.');
     }
 
     protected function LogMessage(string $Message, int $Type): bool
